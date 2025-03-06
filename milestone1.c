@@ -1,9 +1,11 @@
-#include <pthread.h>
+#define _GNU_SOURCE
 #include <sched.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 
 //FCFS
 // void* thread_function(void* arg){
