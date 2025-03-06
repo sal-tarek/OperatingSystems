@@ -8,11 +8,6 @@
 
 
 //FCFS
-// void* thread_function(void* arg){
-//     int thread_num = *(int*)arg;
-//     pthread_t thread_id = pthread_self();
-    
-// }
 
 //RoundRobin
 
@@ -79,6 +74,37 @@ int main() {
     pthread_attr_init(&attr); 
     pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);
 
+
+// Randomly shuffle an array
+void shuffleThreads(int arr[]) {
+    for (int i = 2; i > 0; i--) {
+        int j = rand() % (i + 1);   // rand() --> generate a random number
+        int temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+}
+    srand(time(null)); // seed the random number generator with the current time 
+
+    int threadsOrder[3] = {1 , 2 , 3};
+    shuffleThreads(threadsOrder);
+
+    // threadFunctions --> Threads Queue (Array of thread function pointers)
+    void *(*threadFunctions[])(void *) = {thread1, thread2, thread3};
+
+    // // Creating the pthreads
+    // pthread_t threads[3];
+    // for(int i = 0 ; i < 3 ; i++){
+    //     int threadIndex = threadsOrder[i] - 1; 
+    //     pthread_create(&threads[i], &cpu_attr, threadFunctions[threadIndex], NULL);
+    //     pthread_join(threads[i], NULL);
+    // }
+
+    
+
+
+
+    
     // Creation of threads
     pthread_t thread_1, thread_2, thread_3;
 
@@ -96,6 +122,16 @@ int main() {
     pthread_create(&thread_3, &attr, thread3, NULL);
     pthread_join(thread_3,NULL);
     printf("Thread 3 has finished execution.\n");
+
+
+    pthread_t threads[3];
+    int thread_nums[3] = {1, 2, 3};
+
+    for(int i=0; i<3, i++){
+      pthread_create(&threads[i], NULL, thread_function, &thread_nums[i]);
+      pthread_join(threads[i], NULL);
+    }
+    printf("Main Thread: All threads have finished execution.\n");
 
     return 0;
 }
