@@ -13,7 +13,7 @@
 - [Layla Khaled] ([Email])
 - [Lama Abdeldayem] ([Email])
 - [Yasmeen Tarek] ([Email])
-- [Mai Hazem] ([Email])
+- [Mai Hazem] ([maihazem607@gmail.com])
 
 ## Project Overview
 
