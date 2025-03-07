@@ -160,14 +160,17 @@ int main() {
     if (s != 0) handle_error_en(s, "pthread_attr_setinheritsched attr3");
 
     // Create threads
+    thread_data[0].release_time = get_time_ms(); // Release Time for thread 1
     s = pthread_create(&thread_1, &attr1, thread1, NULL);
     if (s != 0) handle_error_en(s, "pthread_create thread_1");
     pthread_join(thread_1, NULL);
     printf("Thread 1 has finished execution.\n \n");
+    thread_data[1].release_time = get_time_ms(); // Release Time for thread 2
     s = pthread_create(&thread_2, &attr2, thread2, NULL);
     if (s != 0) handle_error_en(s, "pthread_create thread_2");
     pthread_join(thread_2, NULL);
     printf("Thread 2 has finished execution.\n \n");
+    thread_data[2].release_time = get_time_ms(); // Release Time for thread 2
     s = pthread_create(&thread_3, &attr3, thread3, NULL);
     if (s != 0) handle_error_en(s, "pthread_create thread_3");
     pthread_join(thread_3, NULL);
@@ -175,14 +178,23 @@ int main() {
 
 
     for(int i = 0 ; i < 3; i++){
+        printf("release time for thread %d: %f\n", i + 1, thread_data[i].release_time);
+        printf("start time for thread %d: %f\n", i + 1, thread_data[i].start_time);
+        printf("finish time for thread %d: %f\n", i + 1, thread_data[i].finish_time);
+
         // Response Time
         thread_data[i].response_time = thread_data[i].start_time - thread_data[i].release_time;
+        printf("response time for thread %d: %f\n", i + 1, thread_data[i].response_time);
+        // Turnaround Time
+        thread_data[i].turnaround_time = thread_data[i].finish_time - thread_data[i].release_time;
+        printf("turnaround time for thread %d: %f\n", i + 1, thread_data[i].turnaround_time);
         // Execution Time
         thread_data[i].execution_time = thread_data[i].finish_time - thread_data[i].start_time;
+        printf("execution time for thread %d: %f\n", i + 1, thread_data[i].execution_time);
         // Waiting Time  
-        thread_data[i].wait_time = thread_data[i].turnaround_time - thread_data[i].execution_time; 
-        // TurnAround Time
-        thread_data[i].turnaround_time = thread_data[i].finish_time - thread_data[i].release_time; 
+        thread_data[i].wait_time = thread_data[i].turnaround_time - thread_data[i].execution_time;
+        printf("wait time for thread %d: %f\n\n", i + 1, thread_data[i].wait_time);
+        
     }
 
     // Clean up attributes
