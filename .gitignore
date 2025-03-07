@@ -1,0 +1,50 @@
+# Compiled object files
+*.o
+*.obj
+milestone1
+
+# Executable files
+*.exe
+*.out
+*.app
+
+# Debug files
+*.dSYM/
+*.pdb
+*.ilk
+*.aps
+*.ncb
+*.sdf
+*.opendb
+*.tlog
+
+# Dependency files
+*.d
+
+# Build directories
+/build/
+/bin/
+/Debug/
+/Release/
+
+# IDE and Editor files
+.vscode/
+*.code-workspace
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+
+# CMake and Makefile artifacts
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+compile_commands.json
