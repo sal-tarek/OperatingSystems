@@ -29,14 +29,14 @@ double get_time_ms(){
 
 // Structure to hold timing data
 typedef struct {
-    double release_time;
-    double start_time;
-    double finish_time;
-    double wait_time;
+    double release_time; 
+    double start_time; 
+    double finish_time; 
+    double wait_time; 
     double response_time;
-    double turnaround_time;
-    double total_execution_time; // Total execution time (wall-clock)
-    double cpu_time; // CPU execution time
+    double turnaround_time; 
+    double total_execution_time; // Total execution time (wall-clock) 
+    double cpu_time; // CPU execution time  
 } ThreadMetrics;
 
 ThreadMetrics thread_data[3];
@@ -67,7 +67,7 @@ void *thread1(void *arg) {
 
     // Store results
     thread_data[0].total_execution_time = thread_data[0].finish_time - thread_data[0].start_time;
-    thread_data[0].cpu_time = get_time_ms(CLOCK_THREAD_CPUTIME_ID) - get_time_ms(start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
+    thread_data[0].cpu_time = (end_cpu.tv_sec * 1000.0 + end_cpu.tv_nsec / 1.0e6) - (start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
     pthread_exit(NULL);
     return NULL;
 }
@@ -89,7 +89,7 @@ void *thread2(void *arg) {
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end_cpu);
 
     thread_data[1].total_execution_time = thread_data[1].finish_time - thread_data[1].start_time;
-    thread_data[1].cpu_time = get_time_ms(CLOCK_THREAD_CPUTIME_ID) - get_time_ms(start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
+    thread_data[1].cpu_time = (end_cpu.tv_sec * 1000.0 + end_cpu.tv_nsec / 1.0e6) - (start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
 
     pthread_exit(NULL);
     return NULL;
@@ -104,22 +104,10 @@ void *thread3(void *arg) {
 
     int num1, num2;
     printf("Thread 3 input: Please enter two numbers =)\n");
-    // printf("First number: \n");
-    // scanf(" %d", &num1);
-    // printf("Second number: \n");
-    // scanf(" %d", &num2);
-
     printf("First number: \n");
-    if (scanf("%d", &num1) != 1) {
-        printf("Invalid input for num1!\n");
-        pthread_exit(NULL);
-    }
-
+    scanf(" %d", &num1);
     printf("Second number: \n");
-    if (scanf("%d", &num2) != 1) {
-        printf("Invalid input for num2!\n");
-        pthread_exit(NULL);
-    }
+    scanf(" %d", &num2);
 
     int sum = 0, prod = 1;
     int max = (num1 > num2) ? num1 : num2;
@@ -140,7 +128,7 @@ void *thread3(void *arg) {
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end_cpu);
 
     thread_data[2].total_execution_time = thread_data[2].finish_time - thread_data[2].start_time;
-    thread_data[2].cpu_time = get_time_ms(CLOCK_THREAD_CPUTIME_ID) - get_time_ms(start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
+    thread_data[2].cpu_time = (end_cpu.tv_sec * 1000.0 + end_cpu.tv_nsec / 1.0e6) - (start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
 
                               
     pthread_exit(NULL);
@@ -224,12 +212,25 @@ int main() {
     pthread_join(thread_3, NULL);
     printf("Thread 3 has finished execution.\n");
 
-   
     for(int i = 0 ; i < 3; i++){
-        thread_data[i].execution_time = thread_data[i].finish_time - thread_data[i].start_time; // Execution Time
-        thread_data[i].wait_time = thread_data[i].turnaround_time - thread_data[i].execution_time; // Waiting Time
-        thread_data[i].turnaround_time = thread_data[i].finish_time - thread_data[i].release_time; // TurnAround Time
+        thread_data[i].turnaround_time = thread_data[i].finish_time - thread_data[i].release_time; // Turnaround Time
+        thread_data[i].wait_time = thread_data[i].response_time + (thread_data[i].total_execution_time - thread_data[i].cpu_time);       // Waiting Time
+        thread_data[i].response_time = thread_data[i].start_time - thread_data[i].release_time;    // Response Time
     }
+
+    printf("\nThread Execution Times:\n");
+    for (int i = 0; i < 3; i++) {
+        printf("Thread %d:\n", i + 1);
+        printf("  Release Time: %.2f ms\n", thread_data[i].release_time);
+        printf("  Start Time: %.2f ms\n", thread_data[i].start_time);
+        printf("  Finish Time: %.2f ms\n", thread_data[i].finish_time);
+        printf("  Wait Time: %.2f ms\n", thread_data[i].wait_time);
+        printf("  Response Time: %.2f ms\n", thread_data[i].response_time);
+        printf("  Turnaround Time: %.2f ms\n", thread_data[i].turnaround_time);
+        printf("  Total Execution Time: %.2f ms\n", thread_data[i].total_execution_time);
+        printf("  CPU Execution Time: %.2f ms\n\n", thread_data[i].cpu_time);
+    }
+
     // Clean up attributes
     pthread_attr_destroy(&attr1);
     pthread_attr_destroy(&attr2);

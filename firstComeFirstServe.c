@@ -34,7 +34,8 @@ typedef struct {
     double wait_time;
     double response_time;
     double turnaround_time;
-    double execution_time;
+    double execution_time; // Total execution time (wall-clock)
+    double cpu_time; // CPU execution time
 } ThreadMetrics;
 
 ThreadMetrics thread_data[3];

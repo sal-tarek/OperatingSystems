@@ -13,7 +13,7 @@
 - [Habiba Mahmoud] ([hrefaee72004@gmail.com])
 - [Layla Khaled] ([Email])
 - [Lama Abdeldayem] ([Email])
-- [Yasmeen Tarek] ([Email])
+- [Yasmeen Tarek] ([yasmeen.tarek.elabsawy@gmail.com])
 - [Mai Hazem] ([maihazem607@gmail.com])
 
 ## Project Overview
