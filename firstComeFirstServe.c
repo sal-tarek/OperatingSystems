@@ -7,13 +7,19 @@
 #include <unistd.h>
 #include <errno.h>
 
-// release time
-// start time 
-// finish time
-// wait time = turnaround - execution
-// response time = start - release
-// turnaround time = finish - release
-// execution time = finish - start
+// total_execution_time = finish - start
+
+// cpu_execution_time;
+// release_time; 
+// start_time; 
+// finish_time; 
+// wait_time = turnaround - execution
+// response_time = start - release
+// turnaround_time = finish - release
+// CPU useful work
+// CPU Utilization
+// memory consumption
+
 
 // Error handling macro
 #define handle_error_en(en, msg) \
@@ -44,13 +50,10 @@ ThreadMetrics thread_data[3];
 // Thread 1 - Nour, Mai, Yasmeen
 void *thread1(void *arg) {
     thread_data[0].start_time = get_time_ms();  // Start time
-    char char1, char2;
 
-    printf("Thread 1 input: Please enter two characters =(\n");
-    printf("First character: \n");
-    scanf(" %c", &char1);
-    printf("Second character: \n");
-    scanf(" %c", &char2);
+    char char1, char2;
+    printf("Thread 1 - Enter two alphabetic characters: \n");
+    scanf(" %c %c", &char1, &char2);
 
     for (char i = char1; i <= char2; i++) 
         printf("%c", i);
@@ -63,6 +66,8 @@ void *thread1(void *arg) {
 
 //Thread 2 - Lama, Habiba
 void *thread2(void *arg) {
+    printf("Thread 2\n");
+
     thread_data[1].start_time = get_time_ms();  // Start time
     pthread_t threadID = pthread_self();
     printf("First Hi from thread %ld!\n",(unsigned long)threadID);
@@ -78,15 +83,11 @@ void *thread2(void *arg) {
 // Thread 3 - Salma, Layla (SCHED_FIFO)
 void *thread3(void *arg) {
     thread_data[2].start_time = get_time_ms();  // Start time
-    int num1, num2;
 
-    printf("Thread 3 input: Please enter two numbers =)\n");
-    printf("First number: \n");
-    scanf("%d", &num1);
-    printf("Second number: \n");
-    scanf("%d", &num2);
+    int num1, num2, sum = 0, prod = 1;
+    printf("Thread 3 - Enter two integers: \n");
+    scanf("%d %d", &num1, &num2);
 
-    int sum = 0, prod = 1;
     float avg = 0; // Changed to float to handle division accurately
     for (int i = num1; i <= num2; i++) {
         sum += i;
