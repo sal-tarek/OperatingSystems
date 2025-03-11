@@ -145,7 +145,7 @@ void *thread2(void *arg) {
     return NULL;
 }
 
-// Thread 3 - Salma, Layla (SCHED_FIFO)
+// Thread 3 - Salma, Layla 
 void *thread3(void *arg) {
     struct timespec start_cpu, end_cpu;
 
@@ -257,6 +257,8 @@ int main() {
     pthread_join(thread_2, NULL);
     pthread_join(thread_3, NULL);
 
+    float end_process_time = get_time_ms();
+
     double avg_total_execution_time, avg_cpu_execution_time, avg_release_time, avg_start_time, avg_finish_time, avg_wait_time, avg_response_time, avg_turnaround_time, avg_cpu_useful_work, avg_cpu_utilization, avg_memory_consumption;
 
     for(int i = 0 ; i < 3; i++){
@@ -293,7 +295,8 @@ int main() {
     avg_cpu_utilization /= 3;
     avg_memory_consumption /= 3;
 
-    
+    printf("Total Process Execution Time: %.2f ms\n", end_process_time - thread_data[0].release_time);
+
     printf("\nThread Execution Times:\n");
     for (int i = 0; i < 3; i++) {
         printf("Thread %d:\n", i + 1);

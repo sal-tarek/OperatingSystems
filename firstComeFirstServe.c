@@ -113,6 +113,7 @@ void *thread1(void *arg) {
     thread_data[0].cpu_execution_time = (end_cpu.tv_sec * 1000.0 + end_cpu.tv_nsec / 1.0e6) - (start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
     thread_data[0].memory_consumption = get_thread_memory_usage(pthread_self());
 
+    printf("Thread 1 has finished execution.\n \n");
     pthread_exit(NULL);
     return NULL;
 }
@@ -139,11 +140,12 @@ void *thread2(void *arg) {
     thread_data[1].cpu_execution_time = (end_cpu.tv_sec * 1000.0 + end_cpu.tv_nsec / 1.0e6) - (start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
     thread_data[1].memory_consumption = get_thread_memory_usage(pthread_self());
 
+    printf("Thread 2 has finished execution.\n \n");
     pthread_exit(NULL);
     return NULL;
 }
 
-// Thread 3 - Salma, Layla (SCHED_FIFO)
+// Thread 3 - Salma, Layla
 void *thread3(void *arg) {
     struct timespec start_cpu, end_cpu;
 
@@ -171,6 +173,7 @@ void *thread3(void *arg) {
     thread_data[2].cpu_execution_time = (end_cpu.tv_sec * 1000.0 + end_cpu.tv_nsec / 1.0e6) - (start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
     thread_data[2].memory_consumption = get_thread_memory_usage(pthread_self());
 
+    printf("Thread 3 has finished execution.\n \n");
     pthread_exit(NULL);
     return NULL;
 }
@@ -237,19 +240,18 @@ int main() {
     thread_data[0].release_time = get_time_ms(); // Release Time for thread 1
     s = pthread_create(&thread_1, &attr1, thread1, NULL);
     if (s != 0) handle_error_en(s, "pthread_create thread_1");
-    pthread_join(thread_1, NULL);
-    printf("Thread 1 has finished execution.\n \n");
     thread_data[1].release_time = get_time_ms(); // Release Time for thread 2
     s = pthread_create(&thread_2, &attr2, thread2, NULL);
     if (s != 0) handle_error_en(s, "pthread_create thread_2");
-    pthread_join(thread_2, NULL);
-    printf("Thread 2 has finished execution.\n \n");
     thread_data[2].release_time = get_time_ms(); // Release Time for thread 3
     s = pthread_create(&thread_3, &attr3, thread3, NULL);
     if (s != 0) handle_error_en(s, "pthread_create thread_3");
-    pthread_join(thread_3, NULL);
-    printf("Thread 3 has finished execution.\n \n");
 
+    pthread_join(thread_1, NULL);
+    pthread_join(thread_2, NULL);
+    pthread_join(thread_3, NULL);
+
+    float end_process_time = get_time_ms();
 
     double avg_total_execution_time, avg_cpu_execution_time, avg_release_time, avg_start_time, avg_finish_time, avg_wait_time, avg_response_time, avg_turnaround_time, avg_cpu_useful_work, avg_cpu_utilization, avg_memory_consumption;
 
@@ -288,6 +290,8 @@ int main() {
     avg_memory_consumption /= 3;
 
     
+    printf("Total Process Execution Time: %.2f ms\n", end_process_time - thread_data[0].release_time);
+
     printf("\nThread Execution Times:\n");
     for (int i = 0; i < 3; i++) {
         printf("Thread %d:\n", i + 1);
