@@ -29,9 +29,9 @@
     do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
 // Function to get the current time in milliseconds
-double get_time_ms(){
+double get_time_ms(clockid_t clock_id){
     struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
+    clock_gettime(clock_id, &ts);
     return ts.tv_sec * 1000.0 + ts.tv_nsec / 1.0e6; // Convert to milliseconds
 }
 
@@ -90,11 +90,10 @@ ThreadMetrics thread_data[3];
 
 // Thread 1 - Nour, Mai, Yasmeen
 void *thread1(void *arg) {
-    struct timespec start_cpu, end_cpu;
 
     // Start timers
     thread_data[0].start_time = get_time_ms(CLOCK_MONOTONIC);
-    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start_cpu);
+    double start_cpu = get_time_ms(CLOCK_THREAD_CPUTIME_ID);
 
     char char1, char2;
     printf("Thread 1 - Enter two alphabetic characters: \n");
@@ -105,12 +104,12 @@ void *thread1(void *arg) {
     printf("\n");
 
     // End timers
+    double end_cpu = get_time_ms(CLOCK_THREAD_CPUTIME_ID);
     thread_data[0].finish_time = get_time_ms(CLOCK_MONOTONIC);
-    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end_cpu);
 
     // Store results
     thread_data[0].total_execution_time = thread_data[0].finish_time - thread_data[0].start_time;
-    thread_data[0].cpu_execution_time = (end_cpu.tv_sec * 1000.0 + end_cpu.tv_nsec / 1.0e6) - (start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
+    thread_data[0].cpu_execution_time = end_cpu - start_cpu;
     thread_data[0].memory_consumption = get_thread_memory_usage(pthread_self());
 
     printf("Thread 1 has finished execution.\n \n");
@@ -118,26 +117,25 @@ void *thread1(void *arg) {
     return NULL;
 }
 
-//Thread 2 - Lama, Habiba
+//Thread2 - Lama, Habiba
 void *thread2(void *arg) {
+
     printf("Thread 2\n");
 
-    struct timespec start_cpu, end_cpu;
-
     thread_data[1].start_time = get_time_ms(CLOCK_MONOTONIC);
-    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start_cpu);
+    double start_cpu = get_time_ms(CLOCK_THREAD_CPUTIME_ID);
 
     pthread_t threadID = pthread_self();
     printf("First Hi from thread %ld!\n",(unsigned long)threadID);
     printf("Second Hi from thread %ld!\n",(unsigned long)threadID);
     printf("Third Hi from thread %ld!\n",(unsigned long)threadID);
-    printf("Bye!\n");
+    printf("Bye from thread 2!\n");
     
+    double end_cpu = get_time_ms(CLOCK_THREAD_CPUTIME_ID);
     thread_data[1].finish_time = get_time_ms(CLOCK_MONOTONIC);
-    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end_cpu);
 
     thread_data[1].total_execution_time = thread_data[1].finish_time - thread_data[1].start_time;
-    thread_data[1].cpu_execution_time = (end_cpu.tv_sec * 1000.0 + end_cpu.tv_nsec / 1.0e6) - (start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
+    thread_data[1].cpu_execution_time = end_cpu - start_cpu;
     thread_data[1].memory_consumption = get_thread_memory_usage(pthread_self());
 
     printf("Thread 2 has finished execution.\n \n");
@@ -145,32 +143,36 @@ void *thread2(void *arg) {
     return NULL;
 }
 
-// Thread 3 - Salma, Layla
+// Thread 3 - Salma, Layla 
 void *thread3(void *arg) {
-    struct timespec start_cpu, end_cpu;
 
     thread_data[2].start_time = get_time_ms(CLOCK_MONOTONIC);
-    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start_cpu);
+    double start_cpu = get_time_ms(CLOCK_THREAD_CPUTIME_ID);
 
-    int num1, num2, sum = 0, prod = 1;
+    int num1, num2;
     printf("Thread 3 - Enter two integers: \n");
     scanf("%d %d", &num1, &num2);
 
+    int sum = 0, prod = 1;
+    int max = (num1 > num2) ? num1 : num2;
+    int min = (num1 < num2) ? num1 : num2;
+
     float avg = 0; // Changed to float to handle division accurately
-    for (int i = num1; i <= num2; i++) {
+    for (int i = min; i <= max; i++) {
         sum += i;
         prod *= i;
     }
-    avg = (float)sum / (num2 - num1 + 1);
+
+    avg = (float)sum / (max - min + 1);
     printf("Sum: %d\n", sum);
     printf("Average: %.2f\n", avg);
     printf("Product: %d\n", prod);
-    
+
+    double end_cpu = get_time_ms(CLOCK_THREAD_CPUTIME_ID);
     thread_data[2].finish_time = get_time_ms(CLOCK_MONOTONIC);
-    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end_cpu);
 
     thread_data[2].total_execution_time = thread_data[2].finish_time - thread_data[2].start_time;
-    thread_data[2].cpu_execution_time = (end_cpu.tv_sec * 1000.0 + end_cpu.tv_nsec / 1.0e6) - (start_cpu.tv_sec * 1000.0 + start_cpu.tv_nsec / 1.0e6);
+    thread_data[2].cpu_execution_time = end_cpu - start_cpu;
     thread_data[2].memory_consumption = get_thread_memory_usage(pthread_self());
 
     printf("Thread 3 has finished execution.\n \n");
@@ -254,13 +256,13 @@ int main() {
     if (s != 0) handle_error_en(s, "pthread_attr_setinheritsched attr3");
 
     // Create threads
-    thread_data[0].release_time = get_time_ms(); // Release Time for thread 1
+    thread_data[0].release_time = get_time_ms(CLOCK_MONOTONIC); // Release Time for thread 1
     s = pthread_create(&thread_1, &attr1, thread1, NULL);
     if (s != 0) handle_error_en(s, "pthread_create thread_1");
-    thread_data[1].release_time = get_time_ms(); // Release Time for thread 2
+    thread_data[1].release_time = get_time_ms(CLOCK_MONOTONIC); // Release Time for thread 2
     s = pthread_create(&thread_2, &attr2, thread2, NULL);
     if (s != 0) handle_error_en(s, "pthread_create thread_2");
-    thread_data[2].release_time = get_time_ms(); // Release Time for thread 3
+    thread_data[2].release_time = get_time_ms(CLOCK_MONOTONIC); // Release Time for thread 3
     s = pthread_create(&thread_3, &attr3, thread3, NULL);
     if (s != 0) handle_error_en(s, "pthread_create thread_3");
 
@@ -297,14 +299,14 @@ int main() {
 
     // Calculate CPU load
     double cpu_load = 100.0 * (1.0 - (double)idle_total_d / total_d);
-    float end_process_time = get_time_ms();
+    float end_process_time = get_time_ms(CLOCK_MONOTONIC);
 
-    double avg_total_execution_time, avg_cpu_execution_time, avg_release_time, avg_start_time, avg_finish_time, avg_wait_time, avg_response_time, avg_turnaround_time, avg_cpu_useful_work, avg_cpu_utilization, avg_memory_consumption;
+    double avg_total_execution_time = 0, avg_cpu_execution_time = 0, avg_release_time = 0, avg_start_time = 0, avg_finish_time = 0, avg_wait_time = 0, avg_response_time = 0, avg_turnaround_time = 0, avg_cpu_useful_work = 0, avg_cpu_utilization = 0, avg_memory_consumption = 0;
 
     for(int i = 0 ; i < 3; i++){
         thread_data[i].turnaround_time = thread_data[i].finish_time - thread_data[i].release_time;                                                  // Turnaround Time
-        thread_data[i].wait_time = thread_data[i].response_time + (thread_data[i].total_execution_time - thread_data[i].cpu_execution_time);        // Waiting Time
         thread_data[i].response_time = thread_data[i].start_time - thread_data[i].release_time;                                                     // Response Time
+        thread_data[i].wait_time = thread_data[i].response_time + (thread_data[i].total_execution_time - thread_data[i].cpu_execution_time);        // Waiting Time
         thread_data[i].cpu_useful_work = thread_data[i].cpu_execution_time / (thread_data[i].cpu_execution_time + thread_data[i].wait_time);
         thread_data[i].cpu_utilization = (thread_data[i].cpu_execution_time / thread_data[i].total_execution_time) * 100;
 
