@@ -196,6 +196,23 @@ int main() {
     struct sched_param param1, param2, param3;
     int s;
 
+    unsigned long user1, nice1, system1, idle1, iowait1, irq1, softirq1, steal1;
+    unsigned long user2, nice2, system2, idle2, iowait2, irq2, softirq2, steal2;
+
+    FILE *file = fopen("/proc/stat", "r");
+    if (!file) return -1;
+
+    char line[256];
+    if (!fgets(line, sizeof(line), file)) {
+        fclose(file);
+        return -1;
+    }
+
+    sscanf(line, "cpu %lu %lu %lu %lu %lu %lu %lu %lu",
+           &user1, &nice1, &system1, &idle1, &iowait1, &irq1, &softirq1, &steal1);
+
+    fclose(file);
+
     // Initialize attributes
     s = pthread_attr_init(&attr1);
     if (s != 0) handle_error_en(s, "pthread_attr_init attr1");
@@ -257,6 +274,34 @@ int main() {
     pthread_join(thread_2, NULL);
     pthread_join(thread_3, NULL);
 
+    file = fopen("/proc/stat", "r");
+    if (!file) return -1;
+
+    if (!fgets(line, sizeof(line), file)) {
+        fclose(file);
+        return -1;
+    }
+
+    sscanf(line, "cpu %lu %lu %lu %lu %lu %lu %lu %lu",
+           &user2, &nice2, &system2, &idle2, &iowait2, &irq2, &softirq2, &steal2);
+
+    fclose(file);
+
+    // Calculate deltas
+    unsigned long user_d = user2 - user1;
+    unsigned long nice_d = nice2 - nice1;
+    unsigned long system_d = system2 - system1;
+    unsigned long idle_d = idle2 - idle1;
+    unsigned long iowait_d = iowait2 - iowait1;
+    unsigned long irq_d = irq2 - irq1;
+    unsigned long softirq_d = softirq2 - softirq1;
+    unsigned long steal_d = steal2 - steal1;
+
+    // Calculate total and idle time
+    unsigned long total_d = user_d + nice_d + system_d + idle_d + iowait_d + irq_d + softirq_d + steal_d;
+    unsigned long idle_total_d = idle_d + iowait_d;
+
+    double cpu_load = 100.0 * (1.0 - (double)idle_total_d / total_d);
     float end_process_time = get_time_ms();
 
     double avg_total_execution_time, avg_cpu_execution_time, avg_release_time, avg_start_time, avg_finish_time, avg_wait_time, avg_response_time, avg_turnaround_time, avg_cpu_useful_work, avg_cpu_utilization, avg_memory_consumption;
@@ -296,6 +341,7 @@ int main() {
     avg_memory_consumption /= 3;
 
     printf("Total Process Execution Time: %.2f ms\n", end_process_time - thread_data[0].release_time);
+    printf("System CPU Load: %.6f%%\n", cpu_load);
 
     printf("\nThread Execution Times:\n");
     for (int i = 0; i < 3; i++) {
