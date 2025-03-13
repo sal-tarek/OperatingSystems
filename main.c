@@ -352,14 +352,16 @@ int main() {
         thread_data[i].cpu_useful_work = thread_data[i].cpu_execution_time / (thread_data[i].cpu_execution_time + thread_data[i].wait_time);
         thread_data[i].cpu_utilization = (thread_data[i].cpu_execution_time / thread_data[i].total_execution_time) * 100;
 
-        printf("\n");
-        printf("%lf\n", thread_data[i].cpu_execution_time);
-        printf("%lf\n", thread_data[i].wait_time);
-        printf("%lf\n", thread_data[i].total_execution_time);
+        /*
+            printf("\n");
+            printf("%lf\n", thread_data[i].cpu_execution_time);
+            printf("%lf\n", thread_data[i].wait_time);
+            printf("%lf\n", thread_data[i].total_execution_time);
 
-        printf("%lf\n", thread_data[i].response_time);
-        printf("%lf\n", thread_data[i].total_execution_time - thread_data[i].cpu_execution_time);
-        printf("%lf\n", thread_data[i].cpu_execution_time / (thread_data[i].cpu_execution_time + thread_data[i].wait_time));
+            printf("%lf\n", thread_data[i].response_time);
+            printf("%lf\n", thread_data[i].total_execution_time - thread_data[i].cpu_execution_time);
+            printf("%lf\n", thread_data[i].cpu_execution_time / (thread_data[i].cpu_execution_time + thread_data[i].wait_time));
+        */
 
 
         avg_total_execution_time += thread_data[i].total_execution_time;
@@ -395,16 +397,16 @@ int main() {
     printf("\nThread Execution Times:\n");
     for (int i = 0; i < 3; i++) {
         printf("Thread %d:\n", i + 1);
-        printf("  Total Execution Time: %.2f ms\n", thread_data[i].total_execution_time);
-        printf("  CPU Execution Time: %.2f ms\n", thread_data[i].cpu_execution_time);
+        printf("  Total Execution Time: %.4f ms\n", thread_data[i].total_execution_time);
+        printf("  CPU Execution Time: %.4f ms\n", thread_data[i].cpu_execution_time);
         printf("  Release Time: %.2f ms\n", thread_data[i].release_time);
         printf("  Start Time: %.2f ms\n", thread_data[i].start_time);
         printf("  Finish Time: %.2f ms\n", thread_data[i].finish_time);
-        printf("  Wait Time: %.2f ms\n", thread_data[i].wait_time);
-        printf("  Response Time: %.2f ms\n", thread_data[i].response_time);
-        printf("  Turnaround Time: %.2f ms\n", thread_data[i].turnaround_time);
-        printf("  CPU Useful Work: %.2f ms\n", thread_data[i].cpu_useful_work);
-        printf("  CPU Utilization: %.2f%%\n", thread_data[i].cpu_utilization);
+        printf("  Wait Time: %.4f ms\n", thread_data[i].wait_time);
+        printf("  Response Time: %.4f ms\n", thread_data[i].response_time);
+        printf("  Turnaround Time: %.4f ms\n", thread_data[i].turnaround_time);
+        printf("  CPU Useful Work: %.4f ms\n", thread_data[i].cpu_useful_work);
+        printf("  CPU Utilization: %.4f%%\n", thread_data[i].cpu_utilization);
         printf("  Memory Consumption: %.2f KB\n \n", thread_data[i].memory_consumption);
     }
 
