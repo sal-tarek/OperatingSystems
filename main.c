@@ -283,8 +283,19 @@ int main() {
     s = pthread_attr_setaffinity_np(&attr3, sizeof(cpu_set_t), &cpuset);
     if (s != 0) handle_error_en(s, "pthread_attr_setaffinity_np attr3");
 
-    // Set scheduling policies and priorities
-    fcfs(&s, &param1, &param2, &param3, &attr1, &attr2, &attr3);
+    // Set scheduling policies and priorities depending on user input
+    int scheduler;
+
+    do {
+        printf("Insert 1 to run using First Come First Serve scheduling, and 2 to run using Round Robin scheduling\n");
+        scanf(" %d", &scheduler);
+    } while (scheduler != 1 && scheduler != 2);
+
+    if (scheduler == 1) {
+        fcfs(&s, &param1, &param2, &param3, &attr1, &attr2, &attr3);
+    } else {
+        roundRobin(&s, &param1, &param2, &param3, &attr1, &attr2, &attr3);
+    }
 
     // Create threads
     thread_data[0].release_time = get_time_ms(CLOCK_MONOTONIC); // Release Time for thread 1
