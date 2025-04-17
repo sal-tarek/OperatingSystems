@@ -1,20 +1,16 @@
 #ifndef QUEUE_H
 #define QUEUE_H
-
-typedef struct Node {
-    int data;
-    struct Node* next;
-} Node;
+#include "PCB.h"
 
 typedef struct Queue {
-    Node* front;
-    Node* rear;
+    Process* front;
+    Process* rear;
 } Queue;
 
 Queue* createQueue();
-void enqueue(Queue* q, int data);
-int dequeue(Queue* q);
-int peek(Queue* q);
+void enqueue(Queue* q, Process* newProcess);
+Process* dequeue(Queue* q);
+Process* peek(Queue* q);
 int isEmpty(Queue* q);
 void display(Queue* q);
 void freeQueue(Queue* q);

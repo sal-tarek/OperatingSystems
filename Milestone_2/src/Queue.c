@@ -1,27 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-// Node structure
-typedef struct Node {
-    int data;
-    struct Node* next;
-} Node;
+#include "PCB.h"
 
 typedef struct Queue {
-    Node* front;
-    Node* rear;
+    Process* front;
+    Process* rear;
 } Queue;
-
-Node* createNode(int data) {
-    Node* newNode = (Node*)malloc(sizeof(Node));
-    if (!newNode) {
-        printf("Memory allocation failed\n");
-        exit(1);
-    }
-    newNode->data = data;
-    newNode->next = NULL;
-    return newNode;
-}
 
 Queue* createQueue() {
     Queue* q = (Queue*)malloc(sizeof(Queue));
@@ -29,41 +13,41 @@ Queue* createQueue() {
     return q;
 }
 
-void enqueue(Queue* q, int data) {
-    Node* newNode = createNode(data);
+void enqueue(Queue* q, Process* newProcess) {
+    newProcess->state = READY;
+
     if (q->rear == NULL) {
-        q->front = q->rear = newNode;
+        q->front = q->rear = newProcess;
         return;
     }
-    q->rear->next = newNode;
-    q->rear = newNode;
+
+    q->rear->next = newProcess;
+    q->rear = newProcess;
 }
 
-int dequeue(Queue* q) {
+Process* dequeue(Queue* q) {
     if (q->front == NULL) {
         printf("Queue is empty\n");
-        return -1;
+        return NULL;
     }
 
-    int data = q->front->data;
-    Node* temp = q->front->next;
-    q->front->next = NULL;
-    q->front = temp;
+    Process* temp = q->front;  
+    q->front = q->front->next;  
 
+    if (q->front == NULL) {
+        q->rear = NULL;  
+    }
 
-    if (q->front == NULL)
-        q->rear = NULL;
-
-    free(temp);
-    return data;
+    temp->next = NULL;  
+    return temp;  
 }
 
-int peek(Queue* q) {
+Process* peek(Queue* q) {
     if (q->front == NULL) {
         printf("Queue is empty\n");
-        return -1;
+        return NULL;
     }
-    return q->front->data;
+    return q->front;
 }
 
 int isEmpty(Queue* q) {
@@ -71,29 +55,11 @@ int isEmpty(Queue* q) {
 }
 
 void display(Queue* q) {
-    Node* curr = q->front;
+    Process* curr = q->front;
     printf("Queue: ");
     while (curr != NULL) {
-        printf("%d -> ", curr->data);
+        printf("%d -> ", curr->id);
         curr = curr->next;
     }
     printf("NULL\n");
-}
-
-int main() {
-    Queue* q = createQueue();
-
-    enqueue(q, 10);
-    enqueue(q, 20);
-    enqueue(q, 30);
-    display(q);
-
-    dequeue(q);
-    display(q);
-    dequeue(q);
-    display(q);
-    dequeue(q);
-    display(q);
-
-    return 0;
 }
