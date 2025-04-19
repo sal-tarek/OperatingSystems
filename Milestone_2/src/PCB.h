@@ -16,7 +16,8 @@ typedef struct Process {
     int priority;             
     int programCounter;       
     int memLowerBound;        
-    int memUpperBound;        
+    int memUpperBound;   
+    
 
     // (used for scheduling)
     int arrivalTime;          
