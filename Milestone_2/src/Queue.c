@@ -10,7 +10,7 @@ Queue* createQueue() {
 }
 
 void enqueue(Queue* q, Process* newProcess) {
-    newProcess->state = READY;
+    //newProcess->state = READY;
 
     if (q->rear == NULL) {
         q->front = q->rear = newProcess;
@@ -50,14 +50,14 @@ int isEmpty(Queue* q) {
     return (q->front == NULL);
 }
 
-void display(Queue* q) {
-    Process* curr = q->front;
-    printf("Queue: ");
+void displayQueue(Queue *q) {
+    Process *curr = q->front;
+    printf("Queue:\n");
     while (curr != NULL) {
-        printf("%d -> ", curr->pid);
+        displayProcess(curr);  // Print details of each process
         curr = curr->next;
     }
-    printf("NULL\n");
+    printf("End of Queue\n");
 }
 
 
@@ -71,4 +71,9 @@ void freeQueue(Queue* q) {
         curr = next;
     }
     free(q);
+}
+#include <stdbool.h>
+
+bool isQueueEmpty(Queue* q) {
+    return q == NULL || q->front == NULL;
 }
