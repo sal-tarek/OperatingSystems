@@ -68,7 +68,7 @@ void populatePCB(Process *process, MemoryWord **memory, IndexEntry **index, Memo
     PCB *pcb = createPCB(process->pid);
     char data[32];
     char key[32];
-
+     //needs to be function in PCB struct (populatePCB)
     snprintf(data, sizeof(data), "PID:%d", pcb->id);
     addMemoryData(memory, range.pcb_start + 0, data);
     snprintf(key, sizeof(key), "P%d_PCB_1", process->pid);
@@ -102,27 +102,68 @@ void populatePCB(Process *process, MemoryWord **memory, IndexEntry **index, Memo
     free(pcb);
 }
 
-void populateMemory(Queue *job_pool, MemoryWord **memory, IndexEntry **index, int current_time) {
-    Process *curr = job_pool->front;
 
-    while (curr != NULL) {
+void populateMemory(Queue *job_pool, MemoryWord **memory, IndexEntry **index, int current_time) {
+    while (!isQueueEmpty(job_pool)) {
+        Process *curr = job_pool->front;
+
         if (curr->state == NEW && curr->arrival_time <= current_time) {
             int pid = curr->pid - 1;
-            if (pid < 0 || pid > 2) {
-                fprintf(stderr, "Invalid pid: %d\n", curr->pid);
-                curr = curr->next;
-                continue;
-            }
-
             MemoryRange range = ranges[pid];
             readInstructions(curr, memory, index, range);
             populatePCB(curr, memory, index, range);
 
             curr->state = READY;
-            //remove from job pool
-            dequeue(job_pool);
-            //add to ready queue
+            dequeue(job_pool); // Remove it
+        } else {
+            break; // because the rest have arrival_time > current_time
         }
-        curr = curr->next;
     }
 }
+
+char* fetchDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key) {
+    int address = getIndexAddress(index, key);
+    if (address == -1) {
+        fprintf(stderr, "Key not found in index: %s\n", key);
+        return NULL;
+    }
+
+    char *data = getMemoryData(memory, address);
+    if (!data) {
+        fprintf(stderr, "No data found at address: %d for key: %s\n", address, key);
+        return NULL;
+    }
+
+    return data;
+}
+
+int updateDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key, const char *new_data) {
+    // Protect instructions from being updated
+    if (strstr(key, "_Instruction_") != NULL) {
+        fprintf(stderr, "Cannot update instruction key: %s\n", key);
+        return -1;
+    }
+
+    int address = getIndexAddress(index, key);
+    if (address == -1) {
+        fprintf(stderr, "Key not found in index: %s\n", key);
+        return -1;
+    }
+
+    if (updateMemoryData(&memory, address, new_data) != 0) {
+        fprintf(stderr, "Failed to update data at address: %d for key: %s\n", address, key);
+        return -1;
+    }
+
+    return 0;
+}
+
+// MemoryRange getProcessMemoryRange(int pid) {
+//     int index = pid - 1;
+//     if (index < 0 || index > 2) {
+//         fprintf(stderr, "Invalid PID: %d\n", pid);
+//         MemoryRange invalid = {0, 0, 0, 0, 0, 0};
+//         return invalid;
+//     }
+//     return ranges[index];
+// }

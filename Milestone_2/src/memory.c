@@ -39,6 +39,21 @@ void addMemoryData(MemoryWord **memory, int address, const char *data) {
     }
 }
 
+int updateMemoryData(MemoryWord **memory, int address, const char *new_data) {
+    MemoryWord *word;
+    HASH_FIND_INT(*memory, &address, word);
+    if (!word) {
+        return -1; // Address not found
+    }
+    free(word->data); // Free old data
+    word->data = strdup(new_data);
+    if (!word->data) {
+        fprintf(stderr, "Memory allocation failed for data at address: %d\n", address);
+        return -1;
+    }
+    return 0;
+}
+
 char* getMemoryData(MemoryWord *memory, int address) {
     if (address < 0 || address > 59) {
         fprintf(stderr, "Invalid memory address: %d\n", address);

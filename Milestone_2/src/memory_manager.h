@@ -21,6 +21,8 @@ void readInstructions(Process *process, MemoryWord **memory, IndexEntry **index,
 void populateVariables(Process *process, MemoryWord **memory, IndexEntry **index, MemoryRange range);
 void populatePCB(Process *process, MemoryWord **memory, IndexEntry **index, MemoryRange range);
 void populateMemory(Queue *job_pool, MemoryWord **memory, IndexEntry **index, int current_time);
-
+char* fetchDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key);
+int updateDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key, const char *new_data);
+// MemoryRange getProcessMemoryRange(int pid);
 
 #endif // MEMORY_MANAGER_H

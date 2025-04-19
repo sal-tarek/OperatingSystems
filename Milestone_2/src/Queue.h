@@ -11,6 +11,7 @@ typedef struct Queue {
 
 Queue* createQueue();
 void enqueue(Queue* q, Process* newProcess);
+void enqueueSortedByArrivalTime(Queue* q, Process* newProcess);
 Process* dequeue(Queue* q);
 Process* peek(Queue* q);
 int isEmpty(Queue* q);

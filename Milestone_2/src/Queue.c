@@ -21,6 +21,35 @@ void enqueue(Queue* q, Process* newProcess) {
     q->rear = newProcess;
 }
 
+void enqueueSortedByArrivalTime(Queue* q, Process* newProcess) {
+    newProcess->next = NULL;
+
+    // Case 1: Queue is empty or newProcess should be placed at the front
+    if (q->front == NULL || newProcess->arrival_time < q->front->arrival_time) {
+        newProcess->next = q->front;
+        q->front = newProcess;
+        if (q->rear == NULL) {
+            q->rear = newProcess;
+        }
+        return;
+    }
+
+    // Case 2: Insert in the correct sorted position
+    Process* current = q->front;
+    while (current->next != NULL && current->next->arrival_time <= newProcess->arrival_time) {
+        current = current->next;
+    }
+
+    newProcess->next = current->next;
+    current->next = newProcess;
+
+    // If inserted at the end, update rear
+    if (newProcess->next == NULL) {
+        q->rear = newProcess;
+    }
+}
+
+
 Process* dequeue(Queue* q) {
     if (q->front == NULL) {
         printf("Queue is empty\n");

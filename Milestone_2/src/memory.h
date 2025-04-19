@@ -12,6 +12,7 @@ typedef struct {
 
 void initMemory(MemoryWord **memory);
 void addMemoryData(MemoryWord **memory, int address, const char *data);
+int updateMemoryData(MemoryWord **memory, int address, const char *new_data);
 char* getMemoryData(MemoryWord *memory, int address);
 void freeMemory(MemoryWord **memory);
 void printMemory(MemoryWord *memory);
