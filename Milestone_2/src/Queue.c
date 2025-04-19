@@ -63,3 +63,16 @@ void display(Queue* q) {
     }
     printf("NULL\n");
 }
+
+
+void freeQueue(Queue* q) {
+    Process* curr = q->front;
+    Process* next;
+    while (curr != NULL) {
+        next = curr->next;
+        free(curr->file_path); // Free file_path
+        free(curr);            // Free Process struct
+        curr = next;
+    }
+    free(q);
+}
