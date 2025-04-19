@@ -10,7 +10,7 @@
 - [Noureldin Salaheldin] ([noureldin.gamaleldin@gmail.com])
 - [Salma Tarek Soliman] ([salmaaburahmah@gmail.com])
 - [Habiba Mahmoud] ([hrefaee72004@gmail.com])
-- [Layla Khaled] ([Email])
+- [Layla Khaled] ([laila.khaled.04@gmail.com])
 - [Lama Abdeldayem] ([Email])
 - [Yasmeen Tarek] ([yasmeen.tarek.elabsawy@gmail.com])
 - [Mai Hazem] ([maihazem607@gmail.com])

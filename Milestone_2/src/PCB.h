@@ -1,32 +1,17 @@
 #ifndef PCB_H
 #define PCB_H
 
-typedef enum {
-    NEW,
-    READY,
-    RUNNING,
-    WAITING,
-    TERMINATED
-} ProcessState;
+#include "process.h"  // for ProcessState
 
+typedef struct PCB {
+    int id;                     // Unique ID for PCB
+    ProcessState state;         // State of the process
+    int priority;               // Priority (optional feature)
+    int programCounter;         // Tracks execution progress
+    int memLowerBound;          // Start of memory allocated
+    int memUpperBound;          // End of memory allocated
+} PCB;
 
-typedef struct Process {
-    int id;                   
-    ProcessState state;       
-    int priority;             
-    int programCounter;       
-    int memLowerBound;        
-    int memUpperBound;        
+PCB* createPCB(int id);         // Create PCB with given ID
 
-    // (used for scheduling)
-    int arrivalTime;          
-    int burstTime;            // Total execution time required
-    int remainingTime;        
-
-    struct Process* next;     // For linking in queues (It's like the next pointer in Node Struct)
-
-} Process;
-
-Process* createProcess(int id);
-
-#endif
+#endif // PCB_H

@@ -1,6 +1,7 @@
+// Queue.h
 #ifndef QUEUE_H
 #define QUEUE_H
-#include "PCB.h"
+#include "process.h"
 
 typedef struct Queue {
     Process* front;
@@ -15,4 +16,4 @@ int isEmpty(Queue* q);
 void display(Queue* q);
 void freeQueue(Queue* q);
 
-#endif
+#endif // QUEUE_H
