@@ -1,11 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "PCB.h"
-
-typedef struct Queue {
-    Process* front;
-    Process* rear;
-} Queue;
+#include "process.h"
+#include "Queue.h"
 
 Queue* createQueue() {
     Queue* q = (Queue*)malloc(sizeof(Queue));
@@ -58,7 +54,7 @@ void display(Queue* q) {
     Process* curr = q->front;
     printf("Queue: ");
     while (curr != NULL) {
-        printf("%d -> ", curr->id);
+        printf("%d -> ", curr->pid);
         curr = curr->next;
     }
     printf("NULL\n");

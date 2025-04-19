@@ -1,7 +1,7 @@
 // Queue.h
 #ifndef QUEUE_H
 #define QUEUE_H
-#include "PCB.h"
+#include "process.h"
 
 typedef struct Queue {
     Process* front;

@@ -1,3 +1,4 @@
+// process.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,10 +20,8 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
     newProcess->state = NEW;
     newProcess->next = NULL;
 
-    if (!newProcess->pid || !newProcess->file_path) {
-        fprintf(stderr, "Failed to allocate memory for pid or file_path\n");
-        free(newProcess->pid);
-        free(newProcess->file_path);
+    if (!newProcess->file_path) {
+        fprintf(stderr, "Failed to allocate memory for file_path\n");
         free(newProcess);
         exit(EXIT_FAILURE);
     }
