@@ -20,6 +20,6 @@ typedef struct Process {
     struct Process *next;     // For queue linked list
 } Process;
 
-Process* createProcess(const char *pid, const char *file_path, int arrival_time, int burst_time);
+Process* createProcess(int pid, const char *file_path, int arrival_time, int burst_time);
 
 #endif // PROCESS_H
