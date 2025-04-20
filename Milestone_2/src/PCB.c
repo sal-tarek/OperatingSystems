@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "PCB.h"  // include your header
-#include "process.h" // needed for ProcessState enum (if not already covered via PCB.h)
+#include "PCB.h"  
 
 PCB* createPCB(int id) {
     PCB* newPCB = (PCB*)malloc(sizeof(PCB));

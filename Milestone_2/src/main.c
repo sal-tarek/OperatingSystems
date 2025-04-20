@@ -7,9 +7,23 @@
 #include "Queue.h"
 #include "memory.h"
 
+Queue *readyQueue;                  // Ready Queue holding processes waiting to run by the chosen Scheduler
+Process *runningProcess = NULL;     // currently running process (or NULL if none)
+int clockCycle;                     // current clock cycle of the simulation
+
+
 int main() {
+
+    clockCycle = 0;
+
     // Initialize memory hashmap (empty for now)
     MemoryWord *memory = NULL; // Will store address-to-data mappings
+
+    readyQueue = createQueue(); // Create the Ready Queue
+    if (!readyQueue) {
+        fprintf(stderr, "Failed to create readyQueue\n");
+        return 1;
+    }
 
     // Create job_pool queue
     Queue *job_pool = createQueue();
