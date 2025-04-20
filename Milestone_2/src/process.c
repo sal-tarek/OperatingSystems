@@ -12,7 +12,9 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
     }
 
     newProcess->pid = pid;
-    newProcess->file_path = strdup(file_path);
+    char full_path[64];
+    snprintf(full_path, sizeof(full_path), "../programs/Program_%d.txt", pid);
+    newProcess->file_path = strdup(full_path);
     newProcess->arrival_time = arrival_time;
     newProcess->ready_time = 0;
     newProcess->burstTime = burst_time;
@@ -27,4 +29,16 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
     }
 
     return newProcess;
+}
+
+void displayProcess(Process *p) {
+    if (p != NULL) {
+        printf("Process ID: %d\n", p->pid);
+        printf("State: %d\n", p->state);  // You can map this to names if needed (NEW, READY, etc.)
+        printf("File Path: %s\n", p->file_path);
+        printf("Arrival Time: %d\n", p->arrival_time);
+        printf("Burst Time: %d\n", p->burstTime);
+        printf("Remaining Time: %d\n", p->remainingTime);
+        printf("------------------------\n");
+    }
 }
