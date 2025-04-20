@@ -1,11 +1,12 @@
 #include "../include/instruction.h"
+#include "../include/mutex.h"
 #include <string.h>
 #include <errno.h> // This is where EBUSY is defined
 
 // Define the actual mutexes
-pthread_mutex_t fileMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t inputMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t outputMutex = PTHREAD_MUTEX_INITIALIZER;
+mutex_t fileMutex;
+mutex_t inputMutex;
+mutex_t outputMutex;
 
 // Print string
 void printStr(char *x)
@@ -100,10 +101,9 @@ void printFromTo(int x, int y)
 }
 
 // Semaphore wait function (locks a mutex)
+/*
 void semWait(char *x)
 {
-    // Possible implementation:
-    /*
     int result = 0;
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
@@ -130,8 +130,23 @@ void semWait(char *x)
         // Handle other error cases
         perror("pthread_mutex_trylock");
     }
-    */
 }
 
 // Semaphore signal function (unlocks a mutex)
-void semSignal(char *x);
+void semSignal(char *x) {
+    if (strcmp(x, "file") == 0) {
+        // Lock the file mutex
+        result = mutex_unlock(&fileMutex);
+        printf("semSignal called on file\n");
+    } else if (strcmp(x, "userInput") == 0) {
+        result = mutex_unlock(&inputMutex);  // Lock the input mutex
+        printf("semSignal called on user input\n");
+    } else if (strcmp(x, "userOutput") == 0) {
+        result = mutex_unlock(&outputMutex);  // Lock the output mutex
+        printf("semSignal called on user output\n");
+    } else {
+        perror("invalid resource\n");
+        return;
+    }
+}
+    */
