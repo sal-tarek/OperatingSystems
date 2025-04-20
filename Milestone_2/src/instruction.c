@@ -9,32 +9,13 @@ mutex_t inputMutex;
 mutex_t outputMutex;
 
 // Print string
-void printStr(char *x)
+void print(char *printStatement)
 {
-    printf("%s", x);
+    printf("%s", printStatement);
 }
 
-// Print integer
-void printInt(int x)
-{
-    printf("%d", x);
-}
-
-// Assign string
-void assignStr(char **x, char *y)
-{
-    *x = malloc(strlen(y) + 1); // +1 for null terminator
-    if (*x != NULL)
-    {
-        strcpy(*x, y);
-    }
-}
-
-// Assign integer
-void assignInt(int *x, int y)
-{
-    *x = y;
-}
+// Assign
+void assignValue(Process process, char* userProvidedValue);
 
 // Assign integer from user input
 void assignInput(int *x)
