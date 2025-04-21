@@ -12,6 +12,13 @@ Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 Queue *ready_queue = NULL;
+Queue * blocked_queue = NULL;
+int clockCycle=0;
+// add header for mutex.h
+// mutex_t userInput_mutex = NULL;
+// mutex_t userOutput_mutex = NULL;
+// mutex_t file_mutex = NULL;
+
 
 int main() {
     // Initialize job_pool
@@ -26,6 +33,15 @@ int main() {
     if (!ready_queue) {
         fprintf(stderr, "Failed to create ready_queue\n");
         freeQueue(job_pool);
+        return 1;
+    }
+
+    //Initilaize blocked_queue
+    blocked_queue = createQueue();
+    if (!blocked_queue) {
+        fprintf(stderr, "Failed to create blocked_queue\n");
+        freeQueue(job_pool);
+        freeQueue(ready_queue);
         return 1;
     }
 
@@ -44,10 +60,12 @@ int main() {
     enqueue(job_pool, p1);
     enqueue(job_pool, p2);
     enqueue(job_pool, p3);
+    // populateMemory();
+    // printMemory();
 
     // Test 1: Populate memory at time 0
     printf("Populating memory at time 0...\n");
-    populateMemory(0);
+    populateMemory();
     printMemory();
     displayMemoryRange(0); // Show all memory ranges
 
@@ -107,21 +125,11 @@ int main() {
         freePCB(new_pcb);
     }
 
-    // Test 8: Populate memory at time 4 (P2, P3)
-    printf("Populating memory at time 4...\n");
-    populateMemory(4);
-    printMemory();
-    data = fetchDataByIndex("P3_PCB", &type);
-    if (data && type == TYPE_PCB) {
-        struct PCB *pcb = (struct PCB*)data;
-        printf("Fetched P3_PCB: PID=%d, State=%d\n", getPCBId(pcb), getPCBState(pcb));
-    }
-
     // Cleanup
     freeMemoryWord();
     freeIndex(&index_table);
     freeQueue(job_pool);
-    freeQueue(ready_queue);
+    //freeQueue(ready_queue);
 
     printf("Test completed.\n");
     return 0;

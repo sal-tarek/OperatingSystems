@@ -2,12 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include "memory_manager.h"
+#include "process.h"
+#include "PCB.h"
 
 // Global variables declared in main.c
 extern Queue *job_pool;
 extern MemoryWord *memory;
 extern IndexEntry *index_table;
 extern Queue *ready_queue;
+extern int clockCycle;
 
 // Hardcoded ranges for P1, P2, P3
 static MemoryRange ranges[] = {
@@ -76,33 +79,36 @@ void populatePCB(Process *process, MemoryRange range) {
     addIndexEntry(&index_table, key, range.pcb_start);
 }
 
-void populateMemory(int current_time) {
-    Process *curr = job_pool->front;
+void populateMemory() {
+    Process *curr = peek(job_pool);
     DataType type;
-
-    while (curr != NULL) {
-        if (curr->state == NEW && curr->arrival_time <= current_time) {
+    for (int i = 0; i < 3 ; i++) {
+        if (curr->arrival_time == clockCycle) {
             int pid = curr->pid - 1;
             if (pid < 0 || pid > 2) {
                 fprintf(stderr, "Invalid pid: %d\n", curr->pid);
-                curr = curr->next;
+                dequeue(job_pool);
+                curr = peek(job_pool);
                 continue;
             }
 
             MemoryRange range = ranges[pid];
             readInstructions(curr, range);
             populatePCB(curr, range);
-            curr->ready_time = current_time; // Set ready_time
+            //dequeue from job pool
+            dequeue(job_pool);
+            curr->ready_time = clockCycle; // Set ready_time
             enqueue(ready_queue, curr); // Add to ready_queue
-            curr->state = READY; // Set Process state to READY
         }
-        curr = curr->next;
+        enqueue(job_pool, dequeue(job_pool)); // Re-enqueue the process
+        curr = peek(job_pool);
+      }
     }
-}
+   
 void* fetchDataByIndex(const char *key, DataType *type_out) {
     int address = getIndexAddress(index_table, key);
     if (address == -1) {
-        fprintf(stderr, "Key not found: %s\n", key);
+        fprintf(stderr, "Key not found, it is not yet stored in memory: %s\n", key);
         return NULL;
     }
 

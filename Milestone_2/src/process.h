@@ -6,7 +6,6 @@ typedef enum { NEW, READY, RUNNING, WAITING, TERMINATED } ProcessState;
 
 typedef struct Process {
     int pid;                // Process ID (e.g., 1 for P1)
-    ProcessState state;     // Current state (NEW, READY, etc.)
     char *file_path;        // Path to file (e.g., "../programs/Program_1.txt")
     int arrival_time;       // Time the process arrives
     int ready_time;         // Time the process becomes ready
