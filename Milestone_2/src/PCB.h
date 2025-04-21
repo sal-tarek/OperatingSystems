@@ -30,5 +30,6 @@ void setPCBPriority(struct PCB *pcb, int priority);
 void setPCBProgramCounter(struct PCB *pcb, int pc);
 void setPCBMemLowerBound(struct PCB *pcb, int memLowerBound);
 void setPCBMemUpperBound(struct PCB *pcb, int memUpperBound);
+void printPCB(struct PCB *pcb);
 
 #endif // PCB_H

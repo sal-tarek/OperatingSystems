@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "PCB.h"
 
+
 struct PCB* createPCB(int pid) {
     struct PCB *pcb = (struct PCB*)malloc(sizeof(struct PCB));
     if (pcb == NULL) {
@@ -88,3 +89,14 @@ void setPCBMemUpperBound(struct PCB *pcb, int memUpperBound) {
         pcb->memUpperBound = memUpperBound;
     }
 }
+
+//if needed (for debugging maybe)
+void printPCB(struct PCB* pcb) {
+    printf("PCB Info:\n");
+    printf("ID: %d\n", pcb->id);
+    printf("State: %d\n", pcb->state);
+    printf("PC: %d\n", pcb->programCounter);
+    printf("Priority: %d\n", pcb->priority);
+    printf("Memory Bounds: [%d, %d]\n", pcb->memLowerBound, pcb->memUpperBound);
+}
+
