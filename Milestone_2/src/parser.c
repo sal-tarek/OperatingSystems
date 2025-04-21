@@ -15,13 +15,13 @@ static DecodeHashEntry decode_hashmap[DECODE_HASH_SIZE] = {
 
 // Static execution hashmap
 static ExecuteHashEntry execute_hashmap[EXECUTE_HASH_SIZE] = {
-    {PRINT, exec_print},
-    {ASSIGN, exec_assign},
-    {WRITEFILE, exec_write_file},
-    {READFILE, exec_read_file},
-    {PRINTFROMTO, exec_print_from_to},
-    {SEMWAIT, exec_sem_wait},
-    {SEMSIGNAL, exec_sem_signal}
+    {PRINT, print},
+    {ASSIGN, assign},
+    {WRITEFILE, writeFile},
+    {READFILE, readFile},
+    {PRINTFROMTO, printFromTo},
+    {SEMWAIT, semWait},
+    {SEMSIGNAL, semSignal}
 };
 
 // Fetch the current instruction for a process based on its PCB's program counter
@@ -44,7 +44,7 @@ char *fetch_instruction(MemoryWord *memory, IndexEntry *index, PCB *pcb, Process
     snprintf(key, sizeof(key), "P%d_Instruction_%d", process->pid, pcb->programCounter + 1);
     // Fetch the instruction from memory using the index
     DataType type;
-    char *instruction = fetchDataByIndex(index, memory, key, &type);
+    char *instruction = fetchDataByIndex(key, &type);
     if (instruction == NULL)
     {
         fprintf(stderr, "Failed to fetch instruction for key: %s\n", key);
@@ -118,7 +118,7 @@ void execute_instruction(MemoryWord *memory, PCB *pcb, Process *process, Instruc
     switch (instruction->type)
     {
     case PRINT:
-        print(instruction->arg1);
+        print(pcb->id, instruction->arg1);
         break;
     case ASSIGN:
         assign(pcb->id, &instruction->arg1, instruction->arg2);
@@ -131,7 +131,7 @@ void execute_instruction(MemoryWord *memory, PCB *pcb, Process *process, Instruc
         (void)readFromFile(instruction->arg1);
         break;
     case PRINTFROMTO:
-        printFromTo(instruction->arg1, instruction->arg2);
+        printFromTo(pcb->id, instruction->arg1, instruction->arg2);
         break;
     case SEMWAIT:
         semWait(instruction->arg1);
@@ -153,6 +153,5 @@ void execute_instruction(MemoryWord *memory, PCB *pcb, Process *process, Instruc
     if (process->remainingTime <= 0 || pcb->programCounter >= process->burstTime)
     {
         pcb->state = TERMINATED;
-        process->state = TERMINATED;
     }
 }
