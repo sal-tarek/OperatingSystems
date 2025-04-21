@@ -29,6 +29,7 @@ milestone1
 
 # IDE and Editor files
 .vscode/
+.vs/
 *.code-workspace
 *.suo
 *.user
@@ -48,3 +49,4 @@ CMakeFiles/
 Makefile
 cmake_install.cmake
 compile_commands.json
+

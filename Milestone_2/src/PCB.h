@@ -1,17 +1,35 @@
 #ifndef PCB_H
 #define PCB_H
 
-#include "process.h"  // for ProcessState
+#include "process.h"
 
-typedef struct PCB {
-    int id;                     // Unique ID for PCB
-    ProcessState state;         // State of the process
-    int priority;               // Priority (optional feature)
-    int programCounter;         // Tracks execution progress
-    int memLowerBound;          // Start of memory allocated
-    int memUpperBound;          // End of memory allocated
-} PCB;
+struct PCB {
+    int id;                // Process ID
+    ProcessState state;    // Process state
+    int priority;          // Priority
+    int programCounter;    // Program counter
+    int memLowerBound;     // Lower memory bound
+    int memUpperBound;     // Upper memory bound
+};
 
-PCB* createPCB(int id);         // Create PCB with given ID
+struct PCB* createPCB(int pid);
+struct PCB* createPCBWithBounds(int pid, int memLowerBound, int memUpperBound);
+void freePCB(struct PCB *pcb);
+
+// Getters
+int getPCBId(struct PCB *pcb);
+ProcessState getPCBState(struct PCB *pcb);
+int getPCBPriority(struct PCB *pcb);
+int getPCBProgramCounter(struct PCB *pcb);
+int getPCBMemLowerBound(struct PCB *pcb);
+int getPCBMemUpperBound(struct PCB *pcb);
+
+// Setters
+void setPCBState(struct PCB *pcb, ProcessState state);
+void setPCBPriority(struct PCB *pcb, int priority);
+void setPCBProgramCounter(struct PCB *pcb, int pc);
+void setPCBMemLowerBound(struct PCB *pcb, int memLowerBound);
+void setPCBMemUpperBound(struct PCB *pcb, int memUpperBound);
+void printPCB(struct PCB *pcb);
 
 #endif // PCB_H
