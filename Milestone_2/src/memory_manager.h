@@ -16,12 +16,12 @@ typedef struct {
     int pcb_count;
 } MemoryRange;
 
-void readInstructions(Process *process, MemoryWord **memory, IndexEntry **index, MemoryRange range);
-void populateVariables(Process *process, MemoryWord **memory, IndexEntry **index, MemoryRange range);
-void populatePCB(Process *process, MemoryWord **memory, IndexEntry **index, MemoryRange range);
-void populateMemory(Queue *job_pool, MemoryWord **memory, IndexEntry **index, int current_time);
-void* fetchDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key, DataType *type_out);
-int updateDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key, void *new_data, DataType type);
+void readInstructions(Process *process, MemoryRange range);
+void populateVariables(Process *process, MemoryRange range);
+void populatePCB(Process *process, MemoryRange range);
+void populateMemory(int current_time);
+void* fetchDataByIndex(const char *key, DataType *type_out);
+int updateDataByIndex(const char *key, void *new_data, DataType type);
 MemoryRange getProcessMemoryRange(int pid);
 void displayMemoryRange(int pid);
 

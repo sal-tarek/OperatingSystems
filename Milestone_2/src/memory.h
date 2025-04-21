@@ -15,7 +15,7 @@ typedef struct {
 void addMemoryData(MemoryWord **memory, int address, void *data, DataType type);
 void* getMemoryData(MemoryWord *memory, int address);
 int updateMemoryData(MemoryWord **memory, int address, void *new_data, DataType type);
-void freeMemoryWord(MemoryWord *memory);
-void printMemory(MemoryWord *memory);
+void freeMemoryWord();
+void printMemory();
 
 #endif // MEMORY_H
