@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "process.h"
-//#include "PCB.h"
+#include "PCB.h"
+#include "memory_manager.h"
 
 
 Process* createProcess(int pid, const char *file_path, int arrival_time, int burst_time) {
@@ -20,7 +21,6 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
     newProcess->ready_time = 0;
     newProcess->burstTime = burst_time;
     newProcess->remainingTime = burst_time;
-    newProcess->state = NEW;
     newProcess->next = NULL;
     //newProcess->pcb = NULL;  // Initialize PCB pointer to NULL
 
@@ -36,11 +36,35 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
 void displayProcess(Process *p) {
     if (p != NULL) {
         printf("Process ID: %d\n", p->pid);
-        printf("State: %d\n", p->state);  // You can map this to names if needed (NEW, READY, etc.)
+
+        // Prepare the key string for PCB (e.g., "P3_PCB")
+        char key[20];
+        snprintf(key, sizeof(key), "P%d_PCB", p->pid);
+
+        // Specify the type you're looking for
+        DataType type = TYPE_PCB;
+
+        // Fetch the PCB using the formatted key
+        struct PCB *pcb = (struct PCB *)fetchDataByIndex(key, &type);
+
+        // Make sure pcb is not NULL before accessing it
+        if (pcb != NULL) {
+            printf("PCB State: %d\n", pcb->state);
+        } else {
+            printf("PCB not found for PID %d\n", p->pid);
+        }
+
         printf("File Path: %s\n", p->file_path);
         printf("Arrival Time: %d\n", p->arrival_time);
         printf("Burst Time: %d\n", p->burstTime);
         printf("Remaining Time: %d\n", p->remainingTime);
         printf("------------------------\n");
+    }
+}
+
+void freeProcess(Process *p) {
+    if (p != NULL) {
+        free(p->file_path);
+        free(p);
     }
 }
