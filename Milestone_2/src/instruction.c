@@ -140,7 +140,7 @@ void printFromTo(int processId, char *arg1, char *arg2)
     }
 
     if (errCode1 == 0 && errCode2 == 0) {
-        if (y > x) {
+        if (x < y) {
             printf("second argument is smaller than first argument");
             return;
         }
