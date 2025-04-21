@@ -20,6 +20,12 @@ int main() {
     // Initialize memory hashmap (empty for now)
     MemoryWord *memory = NULL; // Will store address-to-data mappings
 
+    readyQueue = createQueue(); // Create the Ready Queue
+    if (!readyQueue) {
+        fprintf(stderr, "Failed to create readyQueue\n");
+        return 1;
+    }
+
     // Create job_pool queue
     Queue *job_pool = createQueue();
     if (!job_pool) {
