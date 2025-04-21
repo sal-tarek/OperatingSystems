@@ -23,8 +23,6 @@ void populateMemory(Queue *job_pool, MemoryWord **memory, IndexEntry **index, in
 void* fetchDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key, DataType *type_out);
 int updateDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key, void *new_data, DataType type);
 MemoryRange getProcessMemoryRange(int pid);
-int getVariableAddress(IndexEntry *index, int pid, const char *var_name);
-int isValidResourceKey(const char *key);
 void displayMemoryRange(int pid);
 
 #endif // MEMORY_MANAGER_H

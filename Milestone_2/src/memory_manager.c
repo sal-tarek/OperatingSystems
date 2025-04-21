@@ -101,7 +101,7 @@ void* fetchDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key, D
     MemoryWord *word = NULL;
     HASH_FIND_INT(memory, &address, word);
     if (!word || !word->data) {
-        fprintf(stderr, "No data at address: %s\n", key);
+        fprintf(stderr, "No data at address: %d\n", address);
         return NULL;
     }
 

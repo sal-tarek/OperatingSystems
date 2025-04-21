@@ -18,5 +18,6 @@ typedef struct Process {
 
 Process* createProcess(int pid, const char *file_path, int arrival_time, int burstTime);
 void displayProcess(Process *p);
+void freeProcess(Process *p);
 
 #endif // PROCESS_H

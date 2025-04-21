@@ -44,3 +44,9 @@ void displayProcess(Process *p) {
         printf("------------------------\n");
     }
 }
+void freeProcess(Process *p) {
+    if (p != NULL) {
+        free(p->file_path);
+        free(p);
+    }
+}

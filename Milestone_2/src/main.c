@@ -22,9 +22,9 @@ int main() {
     if (!p1 || !p2 || !p3) {
         fprintf(stderr, "Failed to create processes\n");
         freeQueue(job_pool);
-        // freeProcess(p1);
-        // freeProcess(p2);
-        // freeProcess(p3);
+        freeProcess(p1);
+        freeProcess(p2);
+        freeProcess(p3);
         return 1;
     }
 
@@ -72,6 +72,16 @@ int main() {
     }
 
     // // Test 5: Update variable (P1_Variable_1)
+    printf("Updating P1_Variable_1 to 'Updated Value'...\n");
+    char *new_value = "Updated Value";
+    if (updateDataByIndex(index, memory, "P1_Variable_1", new_value, TYPE_STRING) == 0) {
+        data = fetchDataByIndex(index, memory, "P1_Variable_1", &type);
+        if (data && type == TYPE_STRING) {
+            printf("Updated P1_Variable_1: %s\n", (char*)data);
+        }
+    } else {
+        printf("Failed to update P1_Variable_1\n");
+    }
    
 
     // Test 6: Update PCB fields directly
@@ -111,10 +121,10 @@ int main() {
         printf("Fetched P3_PCB: PID=%d, State=%d\n", getPCBId(pcb), getPCBState(pcb));
     }
 
-    // // Cleanup
-    // freeMemoryWord(memory);
-    // freeIndex(index);
-    // freeQueue(job_pool);
+    // Cleanup
+    freeMemoryWord(memory);
+    freeIndex(&index);
+    freeQueue(job_pool);
 
     printf("Test completed.\n");
     return 0;
