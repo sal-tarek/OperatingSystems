@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "../src/process.h"
+#include "../src/memory_manager.h"
 
 // Declare the global mutexes (extern = defined elsewhere) -- to be implemented
 /*
@@ -14,32 +16,23 @@
 
 // Function declarations
 
-// Print string
-void printStr(char *x);
+// Print
+void print(int processId, char *printable);
 
-// Print integer
-void printInt(int x);
-
-// Assign string
-void assignStr(char **x, char *y);
-
-// Assign integer
-void assignInt(int *x, int y);
-
-// Assign integer from user input
-void assignInput(int *x);
+// Assign with given value
+void assign(int processId, char *arg1, char *arg2);
 
 // Write string to file
-int writeToFile(char *filename, char *content);
+void writeFile(char *fileName, char *content);
 
 // Read string from file
-char* readFromFile(char *filename);
+char *readFromFile(char *fileName);
 
 // Print range of numbers
-void printFromTo(int x, int y);
+void printFromTo(int processId, char *arg1, char *arg2);
 
 // Semaphore functions
-void semWait(char *x);
-void semSignal(char *x);
+void semWait(char *resource);
+void semSignal(char *resource);
 
 #endif // INSTRUCTIONS_H

@@ -3,14 +3,14 @@
 
 #include "process.h"
 
-struct PCB {
+typedef struct {
     int id;                // Process ID
     ProcessState state;    // Process state
     int priority;          // Priority
     int programCounter;    // Program counter
     int memLowerBound;     // Lower memory bound
     int memUpperBound;     // Upper memory bound
-};
+} PCB;
 
 struct PCB* createPCB(int pid);
 struct PCB* createPCBWithBounds(int pid, int memLowerBound, int memUpperBound);
