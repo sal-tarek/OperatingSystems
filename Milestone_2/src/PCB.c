@@ -18,3 +18,29 @@ PCB* createPCB(int id) {
 
     return newPCB;
 }
+
+void freePCB(PCB* pcb) {
+    if (pcb) {
+        free(pcb);
+    }
+}
+void updatePCBState(PCB* pcb, ProcessState newState) {
+    if (pcb) {
+        pcb->state = newState;
+    }
+}
+void updatePCBProgramCounter(PCB* pcb, int newPC) {
+    if (pcb) {
+        pcb->programCounter = newPC;
+    }
+}
+
+//if needed (for debugging maybe)
+void printPCB(const PCB* pcb) {
+    printf("PCB Info:\n");
+    printf("ID: %d\n", pcb->id);
+    printf("State: %d\n", pcb->state);
+    printf("PC: %d\n", pcb->programCounter);
+    printf("Priority: %d\n", pcb->priority);
+    printf("Memory Bounds: [%d, %d]\n", pcb->memLowerBound, pcb->memUpperBound);
+}
