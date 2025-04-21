@@ -165,15 +165,74 @@ char *readFromFile(char *fileName)
     return buffer;
 }
 
-// Print numbers from x to y
-void printFromTo(int x, int y)
+// parses the input to get 2 integers and print the numbers between them (inclusive)
+void printFromTo(char *args)
 {
+    char *tokens[MAX_TOKENS];
+    int tokenCount = 0;
+
+    char buffer[MAX_ARG_LEN];
+    strncpy(buffer, args, MAX_ARG_LEN);
+
+    char *token = strtok(buffer, " ");
+    while (token && tokenCount < MAX_TOKENS) {
+        if (isReadFileStart(token)) {
+            char *next = strtok(NULL, " ");
+            if (!next) {
+                fprintf(stderr, "Error: readFile command missing filename.\n");
+                return;
+            }
+            tokens[tokenCount++] = mergeReadFileToken(token, next);
+        } else {
+            tokens[tokenCount++] = strdup(token);
+        }
+        token = strtok(NULL, " ");
+    }
+
+    if (tokenCount != 2) {
+        fprintf(stderr, "Error: assign expects exactly 2 arguments.\n");
+        for (int i = 0; i < tokenCount; i++) free(tokens[i]);
+        return;
+    }
+
+    char *arg1 = tokens[0];
+    char *arg2 = tokens[1];
+    char *firstInt = NULL;
+    char *secondInt = NULL;
+
+    if (strcmp(arg1, "input") == 0) {
+        firstInt = arg2;
+        secondInt = input("enter value: ");
+    } else if (strncmp(arg1, "readFile ", 9) == 0) {
+        firstInt = arg2;
+        secondInt = readFromFile(arg1 + 9);
+    } else if (strcmp(arg2, "input") == 0) {
+        firstInt = arg1;
+        secondInt = input("enter value: ");
+    } else if (strncmp(arg2, "readFile ", 9) == 0) {
+        firstInt = arg1;
+        secondInt = readFromFile(arg2 + 9);
+    } else {
+        firstInt = arg1;
+        secondInt = arg2;
+    }
+
+    if (!firstInt || !secondInt) {
+        fprintf(stderr, "Error: failed to resolve first integer or second integer.\n");
+        goto cleanup;
+    }
+
+    int x = atoi(firstInt), y = atoi(secondInt);
+
     for (int i = x; i <= y; i++)
     {
         printf("%d", i);
         if (i != y) printf(" ");
     }
     printf("\n");
+
+cleanup:
+    for (int i = 0; i < tokenCount; i++) free(tokens[i]);
 }
 
 // Semaphore wait function (locks a mutex)
