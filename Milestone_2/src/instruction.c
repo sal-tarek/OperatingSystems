@@ -49,7 +49,7 @@ void assign(int processId, char *arg1, char *arg2) {
     }
 
     char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, (strcmp(arg1, "a") == 0? 1 : 2));
 
     updateDataByIndex(varKey, value, "TYPE_STRING");
 
