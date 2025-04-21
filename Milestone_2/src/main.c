@@ -44,14 +44,13 @@ int main() {
     for (int i = 0; i < numQueues; i++) 
         readyQueues[i] = createQueue();
 
-    //Initilaize blocked_queue
+    // Create blocked_queue
     blocked_queue = createQueue();
     if (!blocked_queue) {
         fprintf(stderr, "Failed to create blocked_queue\n");
         freeQueue(job_pool);
-        for(int i=0; i<4 ;i++){
+        for(int i = 0; i < 4; i++)
             freeQueue(readyQueues[i]);
-        }
         return 1;
     }
 
@@ -62,9 +61,8 @@ int main() {
     if (!p1 || !p2 || !p3) {
         fprintf(stderr, "Failed to create processes\n");
         freeQueue(job_pool);
-        for(int i=0; i<4 ;i++){
+        for(int i = 0; i < 4; i++)
             freeQueue(readyQueues[i]);
-        }
         return 1;
     }
 
@@ -72,30 +70,22 @@ int main() {
     enqueue(job_pool, p1);
     enqueue(job_pool, p2);
     enqueue(job_pool, p3);
+    printf("Job Pool ");
     displayQueue(job_pool);
-    
-    // Test 1: Populate memory at time 0
-    printf("Populating memory at time 0...\n");
-    populateMemory();
-    printMemory();
-    displayMemoryRange(0); // Show all memory ranges
+    printf("\n");
 
-    // Trying Schedulers
-    // Uncomment the scheduler you want to test
 
+    // Schedulers
 
     // MLFQ
-
-    // while(getProcessState(1)!=TERMINATED|| getProcessState(2)!=TERMINATED|| getProcessState(3)!=TERMINATED) {
+    // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
+    //     populateMemory();
     //     runMLFQ(); 
     //     clockCycle++; 
     // }
 
-
-
     // RR
-
-    // // Get quantum from user
+    // Get quantum from user
     // int q;
     // do {
     //     printf("Enter quantum (positive integer): ");
@@ -110,20 +100,28 @@ int main() {
     //     int c;
     //     while ((c = getchar()) != '\n' && c != EOF); 
     // } while (q <= 0);
-        
-    // while(getProcessState(1)!=TERMINATED|| getProcessState(2)!=TERMINATED|| getProcessState(3)!=TERMINATED) {
+    // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
+    //     populateMemory();
     //     runRR(q); 
+    //     clockCycle++; 
+    // }
+
+    // FCFS
+    // while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
+    //     populateMemory();
+    //     runFCFS(); 
     //     clockCycle++; 
     // }
 
 
 
-    // FCFS
     
-    while(getProcessState(1)!=TERMINATED|| getProcessState(2)!=TERMINATED|| getProcessState(3)!=TERMINATED) {
-        runFCFS(); 
-        clockCycle++; 
-    }
+
+    // // Test 1: Populate memory at time 0
+    // printf("Populating memory at time 0...\n");
+    // populateMemory();
+    // printMemory();
+    // displayMemoryRange(0); // Show all memory ranges
 
 
     // // Test 2: Fetch instruction (P1_Instruction_1)
@@ -186,9 +184,8 @@ int main() {
     freeMemoryWord();
     freeIndex(&index_table);
     freeQueue(job_pool);
-    for(int i=0; i<4 ;i++){
+    for(int i = 0; i < 4; i++)
         freeQueue(readyQueues[i]);
-    }
 
     printf("Test completed.\n");
     return 0;

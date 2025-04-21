@@ -83,30 +83,38 @@ void populatePCB(Process *process, MemoryRange range) {
 }
 
 void populateMemory() {
-    Process *curr = peek(job_pool);
-    DataType type;
-    for (int i = 0; i < 3 ; i++) {
-        if (curr->arrival_time == clockCycle) {
-            int pid = curr->pid - 1;
-            if (pid < 0 || pid > 2) {
-                fprintf(stderr, "Invalid pid: %d\n", curr->pid);
-                dequeue(job_pool);
-                curr = peek(job_pool);
-                continue;
-            }
+    if(!isEmpty(job_pool)){
+        Process *curr = peek(job_pool);
+        DataType type;
+        for (int i = 0; i < 3 && !isEmpty(job_pool); i++) {
+            if (curr->arrival_time == clockCycle) {
+                int pid = curr->pid - 1;
+                if (pid < 0 || pid > 2) {
+                    fprintf(stderr, "Invalid pid: %d\n", curr->pid);
+                    dequeue(job_pool);
+                    curr = peek(job_pool);
+                    continue;
+                }
 
-            MemoryRange range = ranges[pid];
-            readInstructions(curr, range);
-            populatePCB(curr, range);
-            //dequeue from job pool
-            dequeue(job_pool);
-            curr->ready_time = clockCycle; // Set ready_time
-            enqueue(readyQueues[0], curr); // Add to ready_queue
+                MemoryRange range = ranges[pid];
+                readInstructions(curr, range);
+                populatePCB(curr, range);
+
+                //dequeue from job pool
+                dequeue(job_pool);
+                curr->ready_time = clockCycle; // Set ready_time
+                enqueue(readyQueues[0], curr); // Add to ready_queue
+            }
+            else{
+                enqueue(job_pool, dequeue(job_pool)); // Re-enqueue the process
+            }
+            curr = peek(job_pool);
         }
-        enqueue(job_pool, dequeue(job_pool)); // Re-enqueue the process
-        curr = peek(job_pool);
-      }
     }
+    else{
+        printf("Job pool is empty\n");
+    }
+}
    
 void* fetchDataByIndex(const char *key, DataType *type_out) {
     int address = getIndexAddress(index_table, key);

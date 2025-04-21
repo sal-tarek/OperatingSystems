@@ -9,7 +9,6 @@
 #include "index.h"
 
 
-
 Process* createProcess(int pid, const char *file_path, int arrival_time, int burst_time) {
     Process* newProcess = (Process*)malloc(sizeof(Process));
     if (!newProcess) {
@@ -25,7 +24,7 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
     newProcess->burstTime = burst_time;
     newProcess->remainingTime = burst_time;
     newProcess->next = NULL;
-    //newProcess->pcb = NULL;  // Initialize PCB pointer to NULL
+    newProcess->quantumUsed = 0;
 
     if (!newProcess->file_path) {
         fprintf(stderr, "Failed to allocate memory for file_path\n");
@@ -71,6 +70,7 @@ void freeProcess(Process *p) {
         free(p);
     }
 }
+
 void setProcessState(int pid, ProcessState newState) {
     DataType type;
     char* formatedInstruction= NULL;
@@ -88,7 +88,7 @@ void setProcessState(int pid, ProcessState newState) {
         default:
             break;
     }
-    void *data = fetchDataByIndex("formatedInstruction", &type);
+    void *data = fetchDataByIndex(formatedInstruction, &type);
     if (data && type == TYPE_PCB) {
         struct PCB *pcb = (struct PCB*)data;
         setPCBState(pcb, newState);
@@ -96,6 +96,7 @@ void setProcessState(int pid, ProcessState newState) {
         printf("Failed to update P1_PCB state\n");
     }
 }
+
 ProcessState getProcessState(int pid) {
     DataType type;
     char* formatedInstruction= NULL;
@@ -113,7 +114,7 @@ ProcessState getProcessState(int pid) {
         default:
             break;
     }
-    void *data = fetchDataByIndex("formatedInstruction", &type);
+    void *data = fetchDataByIndex(formatedInstruction, &type);
     if (data && type == TYPE_PCB) {
         struct PCB *pcb = (struct PCB*)data;
         return getPCBState(pcb);

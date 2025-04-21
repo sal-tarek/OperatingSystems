@@ -2,29 +2,30 @@
 #include <stdlib.h>
 #include "MLFQ.h"               
 
+int lastUsedLevel = -1;  // -1 means no pending process
+
 // runs one cycle of the MLFQ scheduler
 void runMLFQ() {
     printf("\nTime %d: \n \n", clockCycle);
 
     // Display the ready queues
-    for(int i=0;i<4;i++){
-        displayQueue(readyQueues[i]);
-    }
+    for(int i = 0; i < 4; i++)
+        displayQueueSimplified(readyQueues[i]);
 
-    int level = -1;
 
-    // Find the highest priority existing process in the queues
-    for (int i = 0; i < numQueues; i++) {
-        if (!isEmpty(readyQueues[i])) {
-            runningProcess = peek(readyQueues[i]);
-            level = i;
-            break;
+    // Find the highest priority existing process in the queues if no pending process
+    if(lastUsedLevel == -1){
+        for (int i = 0; i < numQueues; i++) {
+            if (!isEmpty(readyQueues[i])) {
+                runningProcess = peek(readyQueues[i]);
+                lastUsedLevel = i;
+                break;
+            }
         }
     }
-    
 
     if(runningProcess != NULL){
-        int timeQuantum = 1 << level; // time quantum = 2^i for queue i {Queue 0 --> 1, Queue 1 --> 2, Queue 2 --> 4, Queue 3 --> 8}
+        int timeQuantum = 1 << lastUsedLevel; // time quantum = 2^i for queue i {Queue 0 --> 1, Queue 1 --> 2, Queue 2 --> 4, Queue 3 --> 8}
 
         setProcessState(runningProcess->pid, RUNNING);
         runningProcess->quantumUsed++;
@@ -34,23 +35,27 @@ void runMLFQ() {
         printf("Executing %d\n", runningProcess->pid);
 
         if(runningProcess->remainingTime == 0) {
-            dequeue(readyQueues[level]);  // Now we safely remove it from the queue
+            dequeue(readyQueues[lastUsedLevel]);  // Now we safely remove it from the queue
             printf("Finished %d\n", runningProcess->pid);
             setProcessState(runningProcess->pid, TERMINATED);
+            runningProcess->quantumUsed = 0; 
+            runningProcess = NULL; 
+            lastUsedLevel = -1;
         }else if(runningProcess->quantumUsed == timeQuantum){
-            dequeue(readyQueues[level]);  
-            if(level != 3) {
-                enqueue(readyQueues[level+1], runningProcess); // Move to next queue
-                printf("moved %d level %d\n", runningProcess->pid, level+2);
+            dequeue(readyQueues[lastUsedLevel]);  
+            if(lastUsedLevel != 3) {
+                enqueue(readyQueues[lastUsedLevel+1], runningProcess); // Move to next queue
+                printf("moved %d Level %d\n", runningProcess->pid, lastUsedLevel+2);
             }
             else{
-                enqueue(readyQueues[level], runningProcess); // Stay in the same queue (Last Queue - RR)
-                printf("moved %d level %d\n", runningProcess->pid, level+1);
+                enqueue(readyQueues[lastUsedLevel], runningProcess); // Stay in the same queue (Last Queue - RR)
+                printf("moved %d Level %d\n", runningProcess->pid, lastUsedLevel+1);
             }
             runningProcess->quantumUsed = 0; 
             runningProcess = NULL; 
+            lastUsedLevel = -1;
         }
-        setProcessState(runningProcess->pid, READY);
+        else setProcessState(runningProcess->pid, READY);
     }
     else{
         printf("CPU is idle\n", clockCycle);

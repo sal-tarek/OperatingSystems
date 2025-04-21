@@ -4,11 +4,11 @@
 #include "FCFS.h"
 
 void runFCFS() {
-    printf("\n=== FCFS Scheduling Simulation at time %d ===\n", clockCycle);
-    // Print state of the ready queue
-    printf("Ready Queue: ");
-    displayQueue(readyQueues[0]);
-    printf("\n");
+    printf("\nTime %d: \n \n", clockCycle);
+
+    // Print ready queue
+    printf("Ready ");
+    displayQueueSimplified(readyQueues[0]);
 
     // If no process is running, try to start the next process from the ready queue
     if (!isEmpty(readyQueues[0])) {
@@ -27,6 +27,6 @@ void runFCFS() {
             printf("Process %d finished execution at time %d\n", runningProcess->pid, clockCycle);
             runningProcess = NULL; // Clear runningProcess
         }
-        setProcessState(runningProcess->pid, READY);
+        else setProcessState(runningProcess->pid, READY);
     }
 }

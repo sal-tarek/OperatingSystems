@@ -8,7 +8,7 @@ void runRR(int quantum) {
     printf("\nTime %d: \n \n", clockCycle);
 
     // Display the ready queue
-    displayQueue(readyQueues[0]);   
+    displayQueueSimplified(readyQueues[0]);   
 
     runningProcess = peek(readyQueues[0]);
 
@@ -32,7 +32,7 @@ void runRR(int quantum) {
             runningProcess->quantumUsed = 0; 
             runningProcess = NULL; 
         }
-        setProcessState(runningProcess->pid, READY);
+        else setProcessState(runningProcess->pid, READY);
     }
     else{
         printf("CPU is idle\n", clockCycle);
