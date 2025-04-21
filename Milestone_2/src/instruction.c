@@ -110,7 +110,7 @@ void assign(Process *process, char *args) {
     char varKey[MAX_VAR_KEY_LEN];
     snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, variable);
 
-    updateDataByIndex(index, memory, varKey, value);
+    updateDataByIndex(index, memory, varKey, value, "TYPE_STRING");
 
 cleanup:
     for (int i = 0; i < tokenCount; i++) free(tokens[i]);
