@@ -11,7 +11,7 @@
 - [Salma Tarek Soliman] ([salmaaburahmah@gmail.com])
 - [Habiba Mahmoud] ([hrefaee72004@gmail.com])
 - [Layla Khaled] ([laila.khaled.04@gmail.com])
-- [Lama Abdeldayem] ([Email])
+- [Lama Abdeldayem] ([lamaadayaem1111@gmail.com])
 - [Yasmeen Tarek] ([yasmeen.tarek.elabsawy@gmail.com])
 - [Mai Hazem] ([maihazem607@gmail.com])
 
