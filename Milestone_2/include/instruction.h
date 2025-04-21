@@ -5,10 +5,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "../src/process.h"
-#include "memory_manager.h"
-
-extern MemoryWord *memory; // Will store address-to-data mappings
-extern IndexEntry *index;  // Will store instruction-to-address mappings
+#include "../src/memory_manager.h"
 
 // Declare the global mutexes (extern = defined elsewhere) -- to be implemented
 /*
@@ -23,7 +20,7 @@ extern IndexEntry *index;  // Will store instruction-to-address mappings
 void print(char *printStatement);
 
 // Assign with given value
-void assign(Process *process, char *args);
+void assign(int processId, char *arg1, char *arg2);
 
 // Write string to file
 void writeFile(char *fileName, char *content);
@@ -32,10 +29,10 @@ void writeFile(char *fileName, char *content);
 char *readFromFile(char *fileName);
 
 // Print range of numbers
-void printFromTo(char *args);
+void printFromTo(char *arg1, char *arg2);
 
 // Semaphore functions
-void semWait(char *x);
-void semSignal(char *x);
+void semWait(char *resource);
+void semSignal(char *resource);
 
 #endif // INSTRUCTIONS_H
