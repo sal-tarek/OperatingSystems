@@ -7,21 +7,9 @@
 void runFCFS(Queue *jobPool) {
     Queue *readyQueue = createQueue();
     int clock = 0;
-    int done = 0;// indicating wether queue is empty or not
 
     printf("=== FCFS Scheduling Simulation ===\n");
 
-    while (!done) {
-
-        printf("Clock: %d\n", clock);
-
-        // Move arrived processes to the ready queue
-        while (!isEmpty(jobPool) && peek(jobPool)->arrival_time <= clock){//the second condition is for simulating purposes
-            Process *arrived = dequeue(jobPool);
-            arrived->state = READY;
-            printf("Process %d arrived and moved to READY queue\n", arrived->pid);
-            enqueue(readyQueue, arrived);
-        }
 
         // Print state of the ready queue
         printf("Ready Queue: ");
@@ -55,10 +43,6 @@ void runFCFS(Queue *jobPool) {
 
         // Increment clock
         clock++;
-
-        // Check if all processes are finished
-        done = isEmpty(jobPool) && isEmpty(readyQueue);
-    }
 
     printf("=== FCFS Scheduling Completed ===\n");
 }
