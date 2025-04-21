@@ -1,7 +1,7 @@
 #ifndef MLFQ_H
 #define MLFQ_H
 
-#include "Queue.h"
+#include "queue.h"
 #include "process.h"
 
 #define numProcesses 3

@@ -8,12 +8,12 @@ void runRR(int quantum) {
     printf("\nTime %d: \n \n", clockCycle);
 
     // Display the ready queue
-    display(readyQueues[0]);   
+    displayQueue(readyQueues[0]);   
 
     runningProcess = peek(readyQueues[0]);
 
     if(runningProcess != NULL){
-        runningProcess->state = RUNNING;
+        setProcessState(runningProcess->pid, RUNNING);
         runningProcess->quantumUsed++;
         runningProcess->remainingTime--;
 
@@ -23,16 +23,16 @@ void runRR(int quantum) {
         if(runningProcess->remainingTime == 0) {
             dequeue(readyQueues[0]);  // Now we safely remove it from the queue
             printf("Finished %d\n", runningProcess->pid);
-            runningProcess->state = TERMINATED;
+            setProcessState(runningProcess->pid, TERMINATED);
         }else if(runningProcess->quantumUsed == quantum){
             dequeue(readyQueues[0]);  
             enqueue(readyQueues[0], runningProcess); 
             printf("moved %d level 0\n", runningProcess->pid);
             
-            runningProcess->state = READY;
             runningProcess->quantumUsed = 0; 
             runningProcess = NULL; 
         }
+        setProcessState(runningProcess->pid, READY);
     }
     else{
         printf("CPU is idle\n", clockCycle);

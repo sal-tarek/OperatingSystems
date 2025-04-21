@@ -5,6 +5,9 @@
 #include "process.h"
 #include "PCB.h"
 #include "memory_manager.h"
+#include "memory.h" 
+#include "index.h"
+
 
 
 Process* createProcess(int pid, const char *file_path, int arrival_time, int burst_time) {
@@ -66,5 +69,57 @@ void freeProcess(Process *p) {
     if (p != NULL) {
         free(p->file_path);
         free(p);
+    }
+}
+void setProcessState(int pid, ProcessState newState) {
+    DataType type;
+    char* formatedInstruction= NULL;
+    switch (pid)
+    {
+        case 1:
+            formatedInstruction="P1_PCB";
+            break;
+        case 2:
+            formatedInstruction="P2_PCB";
+            break;
+        case 3:
+            formatedInstruction="P3_PCB";
+            break;  
+        default:
+            break;
+    }
+    void *data = fetchDataByIndex("formatedInstruction", &type);
+    if (data && type == TYPE_PCB) {
+        struct PCB *pcb = (struct PCB*)data;
+        setPCBState(pcb, newState);
+    } else {
+        printf("Failed to update P1_PCB state\n");
+    }
+}
+ProcessState getProcessState(int pid) {
+    DataType type;
+    char* formatedInstruction= NULL;
+    switch (pid)
+    {
+        case 1:
+            formatedInstruction="P1_PCB";
+            break;
+        case 2:
+            formatedInstruction="P2_PCB";
+            break;
+        case 3:
+            formatedInstruction="P3_PCB";
+            break;  
+        default:
+            break;
+    }
+    void *data = fetchDataByIndex("formatedInstruction", &type);
+    if (data && type == TYPE_PCB) {
+        struct PCB *pcb = (struct PCB*)data;
+        return getPCBState(pcb);
+    }
+    else{
+        printf("Failed to get P1_PCB state\n");
+        return -1; 
     }
 }

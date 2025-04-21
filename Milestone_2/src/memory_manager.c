@@ -5,11 +5,14 @@
 #include "process.h"
 #include "PCB.h"
 
+#define numProcesses 3
+#define numQueues 4
+
 // Global variables declared in main.c
 extern Queue *job_pool;
 extern MemoryWord *memory;
 extern IndexEntry *index_table;
-extern Queue *ready_queue;
+extern Queue *readyQueues[numQueues]; 
 extern int clockCycle;
 
 // Hardcoded ranges for P1, P2, P3
@@ -98,7 +101,7 @@ void populateMemory() {
             //dequeue from job pool
             dequeue(job_pool);
             curr->ready_time = clockCycle; // Set ready_time
-            enqueue(ready_queue, curr); // Add to ready_queue
+            enqueue(readyQueues[0], curr); // Add to ready_queue
         }
         enqueue(job_pool, dequeue(job_pool)); // Re-enqueue the process
         curr = peek(job_pool);
