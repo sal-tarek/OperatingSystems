@@ -5,7 +5,10 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "../src/process.h"
+#include "memory_manager.h"
 
+extern MemoryWord *memory; // Will store address-to-data mappings
+extern IndexEntry *index;  // Will store instruction-to-address mappings
 
 // Declare the global mutexes (extern = defined elsewhere) -- to be implemented
 /*
@@ -17,19 +20,16 @@
 // Function declarations
 
 // Print
-void print(char* printStatement);
+void print(char *printStatement);
 
 // Assign with given value
-void assignValue(Process process, char* userProvidedValue);
-
-// Assign with user Input
-void assignInput(Process process);
+void assign(Process *process, char *args);
 
 // Write string to file
-int writeFile(char *filename, char *content);
+void writeFile(char *fileName, char *content);
 
 // Read string from file
-void readFromFile(char *filename);
+char *readFromFile(char *fileName);
 
 // Print range of numbers
 void printFromTo(int firstInt, int secondInt);
