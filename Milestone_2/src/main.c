@@ -16,6 +16,7 @@ Queue *readyQueues[numQueues];              // Ready Queue holding processes wai
 Process *runningProcess = NULL;             // currently running process (or NULL if none)
 int clockCycle;                             // current clock cycle of the simulation
 
+
 int main() {
     clockCycle = 0;
 
@@ -91,14 +92,13 @@ int main() {
 
     // FCFS
     
-    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P1 to readyQueue
-    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P2 to readyQueue
-    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P3 to readyQueue
-    // while(!isEmpty(readyQueues[0])) {
-    //     runFCFS(); 
-    //     clockCycle++; 
-    // }
-
+    enqueue(readyQueues[0], dequeue(job_pool)); // Move P1 to readyQueue
+    enqueue(readyQueues[0], dequeue(job_pool)); // Move P2 to readyQueue
+    enqueue(readyQueues[0], dequeue(job_pool)); // Move P3 to readyQueue
+    while(p1->state != TERMINATED || p2->state != TERMINATED || p3->state != TERMINATED) {
+        runFCFS(); 
+        clockCycle++; 
+    }
 
     // Cleanup (frees Process structs and file_path)
     freeQueue(job_pool);

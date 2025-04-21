@@ -1,7 +1,7 @@
 #ifndef ROUNDROBIN_H
 #define ROUNDROBIN_H
 
-#include "Queue.h"
+#include "queue.h"
 #include "process.h"
 
 #define numProcesses 3
