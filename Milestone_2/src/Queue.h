@@ -1,6 +1,7 @@
 // Queue.h
 #ifndef QUEUE_H
 #define QUEUE_H
+#include <stdbool.h>
 #include "process.h"
 
 typedef struct Queue {
@@ -10,10 +11,13 @@ typedef struct Queue {
 
 Queue* createQueue();
 void enqueue(Queue* q, Process* newProcess);
+void enqueueSortedByArrivalTime(Queue* q, Process* newProcess);
 Process* dequeue(Queue* q);
 Process* peek(Queue* q);
 int isEmpty(Queue* q);
-void display(Queue* q);
+void displayQueue(Queue* q);
 void freeQueue(Queue* q);
+bool isQueueEmpty(Queue* q);
+
 
 #endif // QUEUE_H

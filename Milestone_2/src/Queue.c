@@ -10,7 +10,7 @@ Queue* createQueue() {
 }
 
 void enqueue(Queue* q, Process* newProcess) {
-    newProcess->state = READY;
+    //newProcess->state = READY;
 
     if (q->rear == NULL) {
         q->front = q->rear = newProcess;
@@ -20,6 +20,35 @@ void enqueue(Queue* q, Process* newProcess) {
     q->rear->next = newProcess;
     q->rear = newProcess;
 }
+
+void enqueueSortedByArrivalTime(Queue* q, Process* newProcess) {
+    newProcess->next = NULL;
+
+    // Case 1: Queue is empty or newProcess should be placed at the front
+    if (q->front == NULL || newProcess->arrival_time < q->front->arrival_time) {
+        newProcess->next = q->front;
+        q->front = newProcess;
+        if (q->rear == NULL) {
+            q->rear = newProcess;
+        }
+        return;
+    }
+
+    // Case 2: Insert in the correct sorted position
+    Process* current = q->front;
+    while (current->next != NULL && current->next->arrival_time <= newProcess->arrival_time) {
+        current = current->next;
+    }
+
+    newProcess->next = current->next;
+    current->next = newProcess;
+
+    // If inserted at the end, update rear
+    if (newProcess->next == NULL) {
+        q->rear = newProcess;
+    }
+}
+
 
 Process* dequeue(Queue* q) {
     if (q->front == NULL) {
@@ -50,14 +79,14 @@ int isEmpty(Queue* q) {
     return (q->front == NULL);
 }
 
-void display(Queue* q) {
-    Process* curr = q->front;
-    printf("Queue: ");
+void displayQueue(Queue *q) {
+    Process *curr = q->front;
+    printf("Queue:\n");
     while (curr != NULL) {
-        printf("%d -> ", curr->pid);
+        displayProcess(curr);  // Print details of each process
         curr = curr->next;
     }
-    printf("NULL\n");
+    printf("End of Queue\n");
 }
 
 
@@ -71,4 +100,9 @@ void freeQueue(Queue* q) {
         curr = next;
     }
     free(q);
+}
+#include <stdbool.h>
+
+bool isQueueEmpty(Queue* q) {
+    return q == NULL || q->front == NULL;
 }
