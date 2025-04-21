@@ -17,6 +17,7 @@ typedef struct Process {
     int ready_time;           // Time the process becomes ready
     int burstTime;            // Total execution time required
     int remainingTime;        // Time left to execute
+    int quantumUsed;          // number of cycles used in the current quantum assigned to this process
     struct Process *next;     // For queue linked list
 } Process;
 

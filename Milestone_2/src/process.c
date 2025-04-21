@@ -19,6 +19,7 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
     newProcess->remainingTime = burst_time;
     newProcess->state = NEW;
     newProcess->next = NULL;
+    newProcess->quantumUsed = 0; 
 
     if (!newProcess->file_path) {
         fprintf(stderr, "Failed to allocate memory for file_path\n");

@@ -1,4 +1,3 @@
-// main.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,8 +5,18 @@
 #include "PCB.h"
 #include "Queue.h"
 #include "memory.h"
+#include "MLFQ.h"
+
+#define numProcesses 3
+#define numQueues 4
+
+Queue *readyQueues[numQueues];              // Ready Queue holding processes waiting to run by the chosen Scheduler
+Process *runningProcess = NULL;             // currently running process (or NULL if none)
+int clockCycle;                             // current clock cycle of the simulation
 
 int main() {
+    clockCycle = 0;
+
     // Initialize memory hashmap (empty for now)
     MemoryWord *memory = NULL; // Will store address-to-data mappings
 
@@ -18,6 +27,10 @@ int main() {
         return 1;
     }
 
+    // Create ready queues
+    for (int i = 0; i < numQueues; i++) 
+        readyQueues[i] = createQueue();
+
     // Create 3 Process structs
     Process *p1 = createProcess(1, "p1.txt", 0, 7);  // P1: arrival 0, burst 7
     Process *p2 = createProcess(2, "p2.txt", 2, 7);  // P2: arrival 2, burst 7
@@ -27,13 +40,43 @@ int main() {
     enqueue(job_pool, p1);
     enqueue(job_pool, p2);
     enqueue(job_pool, p3);
-
-    // Display job_pool (for verification)
     display(job_pool);
+    
 
-    // Cleanup
-    // freeQueue frees Process structs and file_path
+    // Trying Schedulers
+    // Uncomment the scheduler you want to test
+
+    enqueue(readyQueues[0], dequeue(job_pool)); // Move P1 to readyQueue
+    enqueue(readyQueues[0], dequeue(job_pool)); // Move P2 to readyQueue
+    enqueue(readyQueues[0], dequeue(job_pool)); // Move P3 to readyQueue
+    while(p1->state != TERMINATED || p2->state != TERMINATED || p3->state != TERMINATED) {
+        runMLFQ(); 
+        clockCycle++; 
+    }
+
+
+    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P1 to readyQueue
+    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P2 to readyQueue
+    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P3 to readyQueue
+    // while(!isAllProcessesTerminated(job_pool)) {
+    //     runRR(); 
+    //     clockCycle++; 
+    // }
+
+
+    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P1 to readyQueue
+    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P2 to readyQueue
+    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P3 to readyQueue
+    // while(!isAllProcessesTerminated(job_pool)) {
+    //     runFCFS(); 
+    //     clockCycle++; 
+    // }
+
+
+    // Cleanup (frees Process structs and file_path)
     freeQueue(job_pool);
 
     return 0;
 }
+
+
