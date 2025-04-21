@@ -40,6 +40,13 @@ char* extractFileName(const char* token) {
     return fileName;
 }
 
+char *mergeReadFileToken(char *token, char *next) {
+    char *output;
+    strcat(output, token);
+    strcat(output, next);
+    return output;
+}
+
 // Main Functions
 
 // Print "printStatement" to terminal
@@ -52,7 +59,7 @@ void print(char *printStatement)
 
 // Assigns value to a variable 
 // value and variable could be provided directly, read from a file, or read from terminal
-void assign(Process *process, char *args) {
+void assign(int processId, char *arg1, char *arg2) {
     char *tokens[MAX_TOKENS];
     int tokenCount = 0;
 
@@ -61,7 +68,7 @@ void assign(Process *process, char *args) {
 
     char *token = strtok(buffer, " ");
     while (token && tokenCount < MAX_TOKENS) {
-        if (isReadFileStart(token)) {
+        if (isReadFile(token)) {
             char *next = strtok(NULL, " ");
             if (!next) {
                 fprintf(stderr, "Error: readFile command missing filename.\n");
@@ -107,10 +114,12 @@ void assign(Process *process, char *args) {
         goto cleanup;
     }
 
-    char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, variable);
+    //char varKey[MAX_VAR_KEY_LEN];
+    //snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, variable);
 
-    updateDataByIndex(index, memory, varKey, value, "TYPE_STRING");
+    //updateDataByIndex(index, memory, varKey, value, "TYPE_STRING");
+
+    printf("varaiable: %s, value: %s", variable, value);
 
 cleanup:
     for (int i = 0; i < tokenCount; i++) free(tokens[i]);
@@ -166,7 +175,7 @@ char *readFromFile(char *fileName)
 }
 
 // parses the input to get 2 integers and print the numbers between them (inclusive)
-void printFromTo(char *args)
+void printFromTo(char *arg1, char *arg2)
 {
     char *tokens[MAX_TOKENS];
     int tokenCount = 0;
@@ -176,7 +185,7 @@ void printFromTo(char *args)
 
     char *token = strtok(buffer, " ");
     while (token && tokenCount < MAX_TOKENS) {
-        if (isReadFileStart(token)) {
+        if (isReadFile(token)) {
             char *next = strtok(NULL, " ");
             if (!next) {
                 fprintf(stderr, "Error: readFile command missing filename.\n");
@@ -235,8 +244,8 @@ cleanup:
     for (int i = 0; i < tokenCount; i++) free(tokens[i]);
 }
 
-// Semaphore wait function (locks a mutex)
 /*
+// Semaphore wait function (locks a mutex)
 void semWait(char *x)
 {
     int result = 0;
@@ -284,4 +293,4 @@ void semSignal(char *x) {
         return;
     }
 }
-    */
+*/
