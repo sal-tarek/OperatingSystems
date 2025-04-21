@@ -1,64 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "process.h"
-#include "Queue.h"
+#include "FCFS.h"
 
-void runFCFS(Queue *jobPool) {
-    Queue *readyQueue = createQueue();
-    int clock = 0;
-    int done = 0;// indicating wether queue is empty or not
+void runFCFS() {
+    printf("\nTime %d: \n \n", clockCycle);
 
-    printf("=== FCFS Scheduling Simulation ===\n");
+    // Print ready queue
+    printf("Ready ");
+    displayQueueSimplified(readyQueues[0]);
 
-    while (!done) {
-
-        printf("Clock: %d\n", clock);
-
-        // Move arrived processes to the ready queue
-        while (!isEmpty(jobPool) && peek(jobPool)->arrival_time <= clock){//the second condition is for simulating purposes
-            Process *arrived = dequeue(jobPool);
-            arrived->state = READY;
-            printf("Process %d arrived and moved to READY queue\n", arrived->pid);
-            enqueue(readyQueue, arrived);
-        }
-
-        // Print state of the ready queue
-        printf("Ready Queue: ");
-        display(readyQueue);
-        printf("\n");
-
-        // Run process at the front of the ready queue
-        if (!isEmpty(readyQueue)) {
-            Process *running = peek(readyQueue);
-
-            if (running->state != RUNNING) {
-                running->state = RUNNING;
-                printf("Process %d started running at time %d\n", running->pid, clock);
-            }
-
-            running->remainingTime--;
-
-            // Debugging remaining time
-            printf("Process %d remaining time: %d\n", running->pid, running->remainingTime);
-
-            if (running->remainingTime == 0) {
-                running = dequeue(readyQueue);
-                running->state = TERMINATED;
-                printf("Process %d finished execution at time %d\n", running->pid, clock);
-                free(running);
-            }
-        } 
-        else {
-            printf("CPU is IDLE at time %d\n", clock);
-        }
-
-        // Increment clock
-        clock++;
-
-        // Check if all processes are finished
-        done = isEmpty(jobPool) && isEmpty(readyQueue);
+    // If no process is running, try to start the next process from the ready queue
+    if (!isEmpty(readyQueues[0])) {
+        runningProcess = peek(readyQueues[0]);
     }
+    // If a process is running, execute it
+    if (runningProcess != NULL) {
+        setProcessState(runningProcess->pid, RUNNING); 
+        runningProcess->remainingTime--;
+        printf("Process %d remaining time: %d\n", runningProcess->pid, runningProcess->remainingTime);
 
-    printf("=== FCFS Scheduling Completed ===\n");
+        // Check if the process has finished
+        if (runningProcess->remainingTime == 0) {
+            dequeue(readyQueues[0]); // Remove the process from the queue
+            setProcessState(runningProcess->pid, TERMINATED); 
+            printf("Process %d finished execution at time %d\n", runningProcess->pid, clockCycle);
+            runningProcess = NULL; // Clear runningProcess
+        }
+        else setProcessState(runningProcess->pid, READY);
+    }
 }

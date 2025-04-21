@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include "PCB.h"
 #include <stdio.h>
+#include "memory_manager.h"
+#include "index.h"
+
 
 struct PCB* createPCB(int pid) {
     struct PCB *pcb = (struct PCB*)malloc(sizeof(struct PCB));
@@ -99,4 +102,6 @@ void printPCB(struct PCB* pcb) {
     printf("Priority: %d\n", pcb->priority);
     printf("Memory Bounds: [%d, %d]\n", pcb->memLowerBound, pcb->memUpperBound);
 }
+
+
 

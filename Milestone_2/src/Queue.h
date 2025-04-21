@@ -16,6 +16,7 @@ Process* dequeue(Queue* q);
 Process* peek(Queue* q);
 int isEmpty(Queue* q);
 void displayQueue(Queue* q);
+void displayQueueSimplified(Queue* q);
 void freeQueue(Queue* q);
 bool isQueueEmpty(Queue* q);
 
