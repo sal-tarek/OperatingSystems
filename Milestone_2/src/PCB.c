@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "PCB.h"
-
+#include <stdio.h>
 
 struct PCB* createPCB(int pid) {
     struct PCB *pcb = (struct PCB*)malloc(sizeof(struct PCB));
