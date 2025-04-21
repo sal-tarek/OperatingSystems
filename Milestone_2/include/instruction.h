@@ -32,7 +32,7 @@ void writeFile(char *fileName, char *content);
 char *readFromFile(char *fileName);
 
 // Print range of numbers
-void printFromTo(int firstInt, int secondInt);
+void printFromTo(char *args);
 
 // Semaphore functions
 void semWait(char *x);
