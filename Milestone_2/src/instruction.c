@@ -14,23 +14,31 @@ mutex_t outputMutex;
 
 // Helper function signatures
 safe_atoi(const char *str, int *out);
-
-// Take input from user
-char *input(char *functionality) {
-    char  *output;
-
-    printf("Please %s\n", functionality);
-    scanf("%s", output);
-
-    return output;
-}
+char *input(char *functionality);
 
 // Main Functions
 
 // Print "printStatement" to terminal
-void print(char *printStatement)
+void print(int processId, char *printable)
 {
-    printf("%s", printStatement);
+    char varKey[MAX_VAR_KEY_LEN];
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, 1);
+    char *storedData1 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
+
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, 2);
+    char *storedData2 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
+
+    char *varName1, varName2, varValue1, varValue2;
+    sscanf(storedData1, "%99[^:]:%99[^\n]", varName1, varValue1);
+    sscanf(storedData2, "%99[^:]:%99[^\n]", varName2, varValue2);
+
+    if (strcmp(printable, varName1) == 0) {
+        printf("%s", varValue1);
+    } else if (strcmp(printable, varName2) == 0) {
+        printf("%s", varValue2);
+    } else {
+        perror("Variable not found!");
+    }
 }
 
 #define MAX_TOKENS 4
@@ -49,11 +57,13 @@ void assign(int processId, char *arg1, char *arg2) {
     }
 
     char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, (strcmp(arg1, "a") == 0? 1 : 2));
 
-    updateDataByIndex(varKey, value, "TYPE_STRING");
+    char *store;
+    snprintf(store, 1024, "%s:%s", arg1, value);
+    updateDataByIndex(varKey, store, "TYPE_STRING");
 
-    printf("varaiable: %s, value: %s", arg1, value);
+    printf(store);
 }
 
 // Write string to file
@@ -107,17 +117,34 @@ char *readFromFile(char *fileName)
 }
 
 // parses the input to get 2 integers and print the numbers between them (inclusive)
-void printFromTo(char *arg1, char *arg2)
+void printFromTo(int processId, char *arg1, char *arg2)
 {
-    int x, y;
-    int errCode1 = safe_atoi(arg1, x);
-    int errCode2 = safe_atoi(arg2, y);
+    char varKey[MAX_VAR_KEY_LEN];
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, 1);
+    char *storedData1 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
+
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, 2);
+    char *storedData2 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
+
+    char *varName1, varName2, varValue1, varValue2;
+    sscanf(storedData1, "%99[^:]:%99[^\n]", varName1, varValue1);
+    sscanf(storedData2, "%99[^:]:%99[^\n]", varName2, varValue2);
+
+    int x, y, errCode1 = 2, errCode2 = 2;
+    if (strcmp(arg1, varName1) == 0) {
+        errCode1 = safe_atoi(arg1, x);
+        errCode2 = safe_atoi(arg2, y);
+    } else {
+        errCode1 = safe_atoi(arg1, y);
+        errCode2 = safe_atoi(arg2, x);
+    }
+
     if (errCode1 == 0 && errCode2 == 0) {
-        if (y > x) {
+        if (x < y) {
             printf("second argument is smaller than first argument");
             return;
         }
-
+        
         for (int i = x; i <= y; i++)
         {
             printf("%d", i);
@@ -204,6 +231,16 @@ int safe_atoi(const char *str, int *out) {
 
     *out = (int)value;
     return 0;
+}
+
+// Take input from user
+char *input(char *functionality) {
+    char  *output;
+
+    printf("Please %s\n", functionality);
+    scanf("%s", output);
+
+    return output;
 }
 
 /* Code that might be used later:

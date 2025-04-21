@@ -17,7 +17,7 @@
 // Function declarations
 
 // Print
-void print(char *printStatement);
+void print(int processId, char *printable);
 
 // Assign with given value
 void assign(int processId, char *arg1, char *arg2);
@@ -29,7 +29,7 @@ void writeFile(char *fileName, char *content);
 char *readFromFile(char *fileName);
 
 // Print range of numbers
-void printFromTo(char *arg1, char *arg2);
+void printFromTo(int processId, char *arg1, char *arg2);
 
 // Semaphore functions
 void semWait(char *resource);
