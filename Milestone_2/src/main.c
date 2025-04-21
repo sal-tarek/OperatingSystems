@@ -6,6 +6,7 @@
 #include "Queue.h"
 #include "memory.h"
 #include "MLFQ.h"
+#include "RoundRobin.h"
 
 #define numProcesses 3
 #define numQueues 4
@@ -19,12 +20,6 @@ int main() {
 
     // Initialize memory hashmap (empty for now)
     MemoryWord *memory = NULL; // Will store address-to-data mappings
-
-    readyQueue = createQueue(); // Create the Ready Queue
-    if (!readyQueue) {
-        fprintf(stderr, "Failed to create readyQueue\n");
-        return 1;
-    }
 
     // Create job_pool queue
     Queue *job_pool = createQueue();
@@ -52,28 +47,53 @@ int main() {
     // Trying Schedulers
     // Uncomment the scheduler you want to test
 
-    enqueue(readyQueues[0], dequeue(job_pool)); // Move P1 to readyQueue
-    enqueue(readyQueues[0], dequeue(job_pool)); // Move P2 to readyQueue
-    enqueue(readyQueues[0], dequeue(job_pool)); // Move P3 to readyQueue
-    while(p1->state != TERMINATED || p2->state != TERMINATED || p3->state != TERMINATED) {
-        runMLFQ(); 
-        clockCycle++; 
-    }
 
+    //  MLFQ
 
     // enqueue(readyQueues[0], dequeue(job_pool)); // Move P1 to readyQueue
     // enqueue(readyQueues[0], dequeue(job_pool)); // Move P2 to readyQueue
     // enqueue(readyQueues[0], dequeue(job_pool)); // Move P3 to readyQueue
-    // while(!isAllProcessesTerminated(job_pool)) {
-    //     runRR(); 
+    // while(p1->state != TERMINATED || p2->state != TERMINATED || p3->state != TERMINATED) {
+    //     runMLFQ(); 
     //     clockCycle++; 
     // }
 
 
+
+    // RR
+
     // enqueue(readyQueues[0], dequeue(job_pool)); // Move P1 to readyQueue
     // enqueue(readyQueues[0], dequeue(job_pool)); // Move P2 to readyQueue
     // enqueue(readyQueues[0], dequeue(job_pool)); // Move P3 to readyQueue
-    // while(!isAllProcessesTerminated(job_pool)) {
+    // // Get quantum from user
+    // int q;
+    // do {
+    //     printf("Enter quantum (positive integer): ");
+    //     if (scanf("%d", &q) != 1) { // Invalid input: not a number
+    //         printf("Invalid input. Please enter a number.\n");
+    //         q = -1; 
+    //     } else if (q <= 0) {
+    //         printf("Quantum must be a positive integer.\n");
+    //     }
+        
+    //     // clear the input buffer after using scanf
+    //     int c;
+    //     while ((c = getchar()) != '\n' && c != EOF); 
+    // } while (q <= 0);
+        
+    // while(p1->state != TERMINATED || p2->state != TERMINATED || p3->state != TERMINATED) {
+    //     runRR(q); 
+    //     clockCycle++; 
+    // }
+
+
+
+    // FCFS
+    
+    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P1 to readyQueue
+    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P2 to readyQueue
+    // enqueue(readyQueues[0], dequeue(job_pool)); // Move P3 to readyQueue
+    // while(p1->state != TERMINATED || p2->state != TERMINATED || p3->state != TERMINATED) {
     //     runFCFS(); 
     //     clockCycle++; 
     // }

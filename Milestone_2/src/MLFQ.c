@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "MLFQ.h"               
 
+// runs one cycle of the MLFQ scheduler
 void runMLFQ() {
     printf("\nTime %d: \n \n", clockCycle);
 
