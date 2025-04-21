@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "process.h"
+//#include "PCB.h"
+
 
 Process* createProcess(int pid, const char *file_path, int arrival_time, int burst_time) {
     Process* newProcess = (Process*)malloc(sizeof(Process));
@@ -10,7 +12,6 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
         fprintf(stderr, "Memory allocation for Process failed\n");
         exit(EXIT_FAILURE);
     }
-
     newProcess->pid = pid;
     char full_path[64];
     snprintf(full_path, sizeof(full_path), "../programs/Program_%d.txt", pid);
@@ -21,6 +22,7 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
     newProcess->remainingTime = burst_time;
     newProcess->state = NEW;
     newProcess->next = NULL;
+    //newProcess->pcb = NULL;  // Initialize PCB pointer to NULL
 
     if (!newProcess->file_path) {
         fprintf(stderr, "Failed to allocate memory for file_path\n");

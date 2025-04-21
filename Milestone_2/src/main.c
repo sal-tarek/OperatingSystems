@@ -1,86 +1,121 @@
-// main.c
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include "memory_manager.h"
 #include "process.h"
-#include "PCB.h"
 #include "Queue.h"
 #include "memory.h"
 #include "index.h"
-#include "memory_manager.h"
-
+#include "PCB.h"
 
 int main() {
-    // Initialize memory hashmap (empty for now)
-    MemoryWord *memory = NULL; // Will store address-to-data mappings
-    IndexEntry *index = NULL; // Will store instruction-to-address mappings
-
-    // Create job_pool queue
+    // Initialize job_pool
     Queue *job_pool = createQueue();
     if (!job_pool) {
         fprintf(stderr, "Failed to create job_pool\n");
         return 1;
     }
 
-    // Create 3 Process structs
-    Process *p1 = createProcess(1, "p1.txt", 0, 7);  // P1: arrival 0, burst 7
-    Process *p2 = createProcess(2, "p2.txt", 2, 7);  // P2: arrival 2, burst 7
-    Process *p3 = createProcess(3, "p3.txt", 5, 10); // P3: arrival 5, burst 10
- 
-    // Enqueue processes in job_pool
-    enqueueSortedByArrivalTime(job_pool, p1);
-    enqueueSortedByArrivalTime(job_pool, p2);
-    enqueueSortedByArrivalTime(job_pool, p3);
+    // Create processes
+    Process *p1 = createProcess(1, "../programs/Program_1.txt", 0, 10);
+    Process *p2 = createProcess(2, "../programs/Program_2.txt", 2, 8);
+    Process *p3 = createProcess(3, "../programs/Program_3.txt", 4, 12);
+    if (!p1 || !p2 || !p3) {
+        fprintf(stderr, "Failed to create processes\n");
+        freeQueue(job_pool);
+        // freeProcess(p1);
+        // freeProcess(p2);
+        // freeProcess(p3);
+        return 1;
+    }
 
-    // Display job_pool (for verification)
-    displayQueue(job_pool);
+    // Enqueue processes
+    enqueue(job_pool, p1);
+    enqueue(job_pool, p2);
+    enqueue(job_pool, p3);
 
-//simulating a clock and populating accordingly
-//     int i =0;
-//     while (!isQueueEmpty(job_pool)) {
-//         printf("time stamp:%d\n",i);
-//        //call populateMemory to read instructions and populate PCB
-//        populateMemory(job_pool, &memory, &index, i);
-//        i++;
-//     //printf("Memory after populating:\n");
-//     printMemory(memory);
-//   }
+    // Initialize memory and index
+    MemoryWord *memory = NULL;
+    IndexEntry *index = NULL;
 
-   // trying to populate all the processes in the job_pool
-    //   populateMemory(job_pool, &memory, &index, 5);
-    //   printMemory(memory);
+    // Test 1: Populate memory at time 0
+    printf("Populating memory at time 0...\n");
+    populateMemory(job_pool, &memory, &index, 0);
+    printMemory(memory);
+    displayMemoryRange(0); // Show all memory ranges
 
-    
-       // how to fecth for PCB elements
-    //         //PID:1
-    //         // Address: 10 => Data: State:NEW
-    //         // Address: 11 => Data: Priority:0
-    //         // Address: 12 => Data: PC:0
-    //         // Address: 13 => Data: MemLower:0
-    //         // Address: 14 => Data: MemUpper:14
+    // Test 2: Fetch instruction (P1_Instruction_1)
+    DataType type;
+    void *data = fetchDataByIndex(index, memory, "P1_Instruction_1", &type);
+    if (data && type == TYPE_STRING) {
+        printf("Fetched P1_Instruction_1: %s\n", (char*)data);
+    } else {
+        printf("Failed to fetch P1_Instruction_1\n");
+    }
 
+    // Test 3: Fetch variable (P1_Variable_1)
+    data = fetchDataByIndex(index, memory, "P1_Variable_1", &type);
+    if (data && type == TYPE_STRING) {
+        printf("Fetched P1_Variable_1: %s\n", (char*)data);
+    } else {
+        printf("Failed to fetch P1_Variable_1\n");
+    }
 
-    // //fetch data by index
-    // char *data = fetchDataByIndex(index, memory, "P1_PCB_4");
-    // if (data) {
-    //     printf("Fetched data for P1_Instruction_1: %s\n", data);
-    // } else {
-    //     printf("Data not found for P1_Instruction_1\n");
-    // }
+    // Test 4: Fetch PCB (P1_PCB)
+    data = fetchDataByIndex(index, memory, "P1_PCB", &type);
+    if (data && type == TYPE_PCB) {
+        struct PCB *pcb = (struct PCB*)data;
+        printf("Fetched P1_PCB: PID=%d, State=%d, PC=%d, MemLower=%d, MemUpper=%d\n",
+               getPCBId(pcb), getPCBState(pcb), getPCBProgramCounter(pcb),
+               getPCBMemLowerBound(pcb), getPCBMemUpperBound(pcb));
+    } else {
+        printf("Failed to fetch P1_PCB\n");
+    }
 
-    // // Update data by index
-    // int result = updateDataByIndex(index, memory, "P1_Variable_1", "42"); // User input
-    // if (result == 0) {
-    //     printf("Updated data for P1_Variable_1 successfully\n");
-    //     printMemory(memory);
-    // } else {
-    //     printf("Failed to update data for P1_Variable_1\n");
-    // }
-    
+    // // Test 5: Update variable (P1_Variable_1)
+   
 
-    // Cleanup
-    // freeQueue frees Process structs and file_path
-    //freeQueue(job_pool);
+    // Test 6: Update PCB fields directly
+    printf("Updating P1_PCB state to RUNNING and PC to 2...\n");
+    data = fetchDataByIndex(index, memory, "P1_PCB", &type);
+    if (data && type == TYPE_PCB) {
+        struct PCB *pcb = (struct PCB*)data;
+        setPCBState(pcb, RUNNING);
+        setPCBProgramCounter(pcb, 2);
+        printf("Updated P1_PCB: PID=%d, State=%d, PC=%d\n",
+               getPCBId(pcb), getPCBState(pcb), getPCBProgramCounter(pcb));
+    }
 
+    // Test 7: Replace PCB via updateDataByIndex
+    printf("Replacing P1_PCB with new PCB...\n");
+    struct PCB *new_pcb = createPCBWithBounds(1, 0, 14);
+    new_pcb->state = TERMINATED;
+    new_pcb->programCounter = 3;
+    if (updateDataByIndex(index, memory, "P1_PCB", new_pcb, TYPE_PCB) == 0) {
+        data = fetchDataByIndex(index, memory, "P1_PCB", &type);
+        if (data && type == TYPE_PCB) {
+            struct PCB *pcb = (struct PCB*)data;
+            printf("New P1_PCB: PID=%d, State=%d, PC=%d\n",
+                   getPCBId(pcb), getPCBState(pcb), getPCBProgramCounter(pcb));
+        }
+    } else {
+        printf("Failed to replace P1_PCB\n");
+    }
+
+    // Test 8: Populate memory at time 4 (P2, P3)
+    printf("Populating memory at time 4...\n");
+    populateMemory(job_pool, &memory, &index, 4);
+    printMemory(memory); 
+    data = fetchDataByIndex(index, memory, "P3_PCB", &type);
+    if (data && type == TYPE_PCB) {
+        struct PCB *pcb = (struct PCB*)data;
+        printf("Fetched P3_PCB: PID=%d, State=%d\n", getPCBId(pcb), getPCBState(pcb));
+    }
+
+    // // Cleanup
+    // freeMemoryWord(memory);
+    // freeIndex(index);
+    // freeQueue(job_pool);
+
+    printf("Test completed.\n");
     return 0;
 }

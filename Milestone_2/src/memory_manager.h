@@ -1,4 +1,3 @@
-// memory_manager.h
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
 
@@ -21,8 +20,11 @@ void readInstructions(Process *process, MemoryWord **memory, IndexEntry **index,
 void populateVariables(Process *process, MemoryWord **memory, IndexEntry **index, MemoryRange range);
 void populatePCB(Process *process, MemoryWord **memory, IndexEntry **index, MemoryRange range);
 void populateMemory(Queue *job_pool, MemoryWord **memory, IndexEntry **index, int current_time);
-char* fetchDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key);
-int updateDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key, const char *new_data);
-// MemoryRange getProcessMemoryRange(int pid);
+void* fetchDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key, DataType *type_out);
+int updateDataByIndex(IndexEntry *index, MemoryWord *memory, const char *key, void *new_data, DataType type);
+MemoryRange getProcessMemoryRange(int pid);
+int getVariableAddress(IndexEntry *index, int pid, const char *var_name);
+int isValidResourceKey(const char *key);
+void displayMemoryRange(int pid);
 
 #endif // MEMORY_MANAGER_H
