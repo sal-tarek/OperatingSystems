@@ -117,26 +117,28 @@ cleanup:
 }
 
 // Write string to file
-int writeToFile(char *filename, char *content)
+void writeToFile(char *filename, char *content)
 {
     FILE *fptr = fopen(filename, "w");
 
     if (fptr == NULL)
     {
         perror("Error opening file");
-        return 1;
+        return;
     }
 
     fprintf(fptr, "%s", content);
     fclose(fptr);
-
-    return 0;
 }
 
 // Read file content and return as string
-char *readFromFile(char *filename)
+char *readFromFile(char *fileName)
 {
-    FILE *fptr = fopen(filename, "r");
+    if (strcmp(fileName, "input") == 0) {
+        fileName = input("enter a file name");
+    }
+
+    FILE *fptr = fopen(fileName, "r");
 
     if (fptr == NULL)
     {
@@ -168,7 +170,8 @@ void printFromTo(int x, int y)
 {
     for (int i = x; i <= y; i++)
     {
-        printf("%d ", i);
+        printf("%d", i);
+        if (i != y) printf(" ");
     }
     printf("\n");
 }
