@@ -4,42 +4,46 @@
 #include "memory.h"
 #include "process.h"
 #include "PCB.h"
-#include "#instruction.h"
+#include "../include/instruction.h"
 
 // Constants
-#define MAX_NAME_LEN 50       // Maximum length for instruction/variable strings
-#define MAX_VAR_COUNT 3       // Number of variables per process
-#define DECODE_HASH_SIZE 7    // Number of instructions for decoding hashmap
-#define EXECUTE_HASH_SIZE 7   // Number of instructions for execution hashmap
+#define MAX_NAME_LEN 50     // Maximum length for instruction/variable strings
+#define MAX_VAR_COUNT 3     // Number of variables per process
+#define DECODE_HASH_SIZE 7  // Number of instructions for decoding hashmap
+#define EXECUTE_HASH_SIZE 7 // Number of instructions for execution hashmap
 
 // Enum for instruction types
-typedef enum {
-PRINT,
-ASSIGN,
-WRITEFILE,
-READFILE,
-PRINTFROMTO,
-SEMWAIT,
-SEMSIGNAL
+typedef enum
+{
+    PRINT,
+    ASSIGN,
+    WRITEFILE,
+    READFILE,
+    PRINTFROMTO,
+    SEMWAIT,
+    SEMSIGNAL
 } InstructionType;
 
 // Instruction structure for decoded instructions
-typedef struct {
-InstructionType type;           // Instruction type (e.g., PRINT)
-char arg1[MAX_NAME_LEN];       // First argument (e.g., "x")
-char arg2[MAX_NAME_LEN];       // Second argument (e.g., "input")
+typedef struct
+{
+    InstructionType type;    // Instruction type (e.g., PRINT)
+    char arg1[MAX_NAME_LEN]; // First argument (e.g., "x")
+    char arg2[MAX_NAME_LEN]; // Second argument (e.g., "input")
 } Instruction;
 
 // Decoding hashmap entry (maps string to instruction type)
-typedef struct {
-const char *key;               // Instruction string (e.g., "print")
-InstructionType value;         // Instruction type (e.g., PRINT)
+typedef struct
+{
+    const char *key;       // Instruction string (e.g., "print")
+    InstructionType value; // Instruction type (e.g., PRINT)
 } DecodeHashEntry;
 
 // Execution hashmap entry (maps instruction type to function pointer)
-typedef struct {
-InstructionType key;            // Instruction type (e.g., PRINT)
-void (*handler)(PCB *, Instruction *); // Function pointer to syntax function
+typedef struct
+{
+    InstructionType key;                   // Instruction type (e.g., PRINT)
+    void (*handler)(PCB *, Instruction *); // Function pointer to syntax function
 } ExecuteHashEntry;
 
 // Function prototypes

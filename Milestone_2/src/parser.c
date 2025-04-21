@@ -5,36 +5,38 @@
 
 // Static decoding hashmap
 static DecodeHashEntry decode_hashmap[DECODE_HASH_SIZE] = {
-{"print", PRINT},
-{"assign", ASSIGN},
-{"writeFile", WRITEFILE},
-{"readFile", READFILE},
-{"printFromTo", PRINTFROMTO},
-{"semWait", SEMWAIT},
-{"semSignal", SEMSIGNAL}
-};
+    {"print", PRINT},
+    {"assign", ASSIGN},
+    {"writeFile", WRITEFILE},
+    {"readFile", READFILE},
+    {"printFromTo", PRINTFROMTO},
+    {"semWait", SEMWAIT},
+    {"semSignal", SEMSIGNAL}};
 
 // Static execution hashmap
 static ExecuteHashEntry execute_hashmap[EXECUTE_HASH_SIZE] = {
-{PRINT, exec_print},
-{ASSIGN, exec_assign},
-{WRITEFILE, exec_write_file},
-{READFILE, exec_read_file},
-{PRINTFROMTO, exec_print_from_to},
-{SEMWAIT, exec_sem_wait},
-{SEMSIGNAL, exec_sem_signal}
+    {PRINT, exec_print},
+    {ASSIGN, exec_assign},
+    {WRITEFILE, exec_write_file},
+    {READFILE, exec_read_file},
+    {PRINTFROMTO, exec_print_from_to},
+    {SEMWAIT, exec_sem_wait},
+    {SEMSIGNAL, exec_sem_signal}
 };
 
 // Fetch the current instruction for a process based on its PCB's program counter
-char* fetch_instruction(MemoryWord* memory, IndexEntry* index, PCB* pcb, Process* process) {
+char *fetch_instruction(MemoryWord *memory, IndexEntry *index, PCB *pcb, Process *process)
+{
     // Validate PID and get memory range
     MemoryRange range = getProcessMemoryRange(process->pid);
-    if (range.inst_count == 0 && range.var_count == 0 && range.pcb_count == 0) {
+    if (range.inst_count == 0 && range.var_count == 0 && range.pcb_count == 0)
+    {
         fprintf(stderr, "Invalid PID %d in fetch_instruction\n", process->pid);
         return NULL;
     }
     // Check if program counter exceeds instruction count
-    if (pcb->programCounter >= range.inst_count) {
+    if (pcb->programCounter >= range.inst_count)
+    {
         return NULL; // No more instructions to fetch
     }
     // Generate key for the current instruction
@@ -42,13 +44,15 @@ char* fetch_instruction(MemoryWord* memory, IndexEntry* index, PCB* pcb, Process
     snprintf(key, sizeof(key), "P%d_Instruction_%d", process->pid, pcb->programCounter + 1);
     // Fetch the instruction from memory using the index
     DataType type;
-    char* instruction = fetchDataByIndex(index, memory, key, &type);
-    if (instruction == NULL) {
+    char *instruction = fetchDataByIndex(index, memory, key, &type);
+    if (instruction == NULL)
+    {
         fprintf(stderr, "Failed to fetch instruction for key: %s\n", key);
         return NULL;
     }
     // Verify the data type is a string
-    if (type != TYPE_STRING) {
+    if (type != TYPE_STRING)
+    {
         fprintf(stderr, "Invalid data type for instruction key %s: expected TYPE_STRING, got %d\n", key, type);
         return NULL;
     }
@@ -56,57 +60,68 @@ char* fetch_instruction(MemoryWord* memory, IndexEntry* index, PCB* pcb, Process
 }
 
 // Decode instruction string into Instruction struct
-Instruction decode_instruction(char *instruction_string) {
-Instruction result = {0}; // Initialize with zeros
+Instruction decode_instruction(char *instruction_string)
+{
+    Instruction result = {0}; // Initialize with zeros
 
-// Create a copy to avoid modifying the original string
-char *copy = strdup(instruction_string);
+    // Create a copy to avoid modifying the original string
+    char *copy = strdup(instruction_string);
 
-// Tokenize the string
-char *token = strtok(copy, " ");
+    // Tokenize the string
+    char *token = strtok(copy, " ");
 
-// Look up command in decoding hashmap
-for (int i = 0; i < DECODE_HASH_SIZE; i++) {
-if (strcmp(token, decode_hashmap[i].key) == 0) {
-result.type = decode_hashmap[i].value;
-break;
-}
-}
+    // Look up command in decoding hashmap
+    for (int i = 0; i < DECODE_HASH_SIZE; i++)
+    {
+        if (strcmp(token, decode_hashmap[i].key) == 0)
+        {
+            result.type = decode_hashmap[i].value;
+            break;
+        }
+    }
 
-// Extract arguments based on instruction type
-if (result.type == PRINT || result.type == SEMWAIT || result.type == SEMSIGNAL || result.type == READFILE) {
-// One argument 
-token = strtok(NULL, " ");
-if (token) {
-strncpy(result.arg1, token, MAX_NAME_LEN - 1);
-result.arg1[MAX_NAME_LEN - 1] = '\0';
-}
-} else if (result.type == ASSIGN || result.type == WRITEFILE || result.type == PRINTFROMTO) {
-// Two arguments 
-token = strtok(NULL, " ");
-if (token) {
-strncpy(result.arg1, token, MAX_NAME_LEN - 1);
-result.arg1[MAX_NAME_LEN - 1] = '\0';
-token = strtok(NULL, " ");
-if (token) {
-strncpy(result.arg2, token, MAX_NAME_LEN - 1);
-result.arg2[MAX_NAME_LEN - 1] = '\0';
-}
-}
-}
-free(copy);
-return result;
+    // Extract arguments based on instruction type
+    if (result.type == PRINT || result.type == SEMWAIT || result.type == SEMSIGNAL || result.type == READFILE)
+    {
+        // One argument
+        token = strtok(NULL, " ");
+        if (token)
+        {
+            strncpy(result.arg1, token, MAX_NAME_LEN - 1);
+            result.arg1[MAX_NAME_LEN - 1] = '\0';
+        }
+    }
+    else if (result.type == ASSIGN || result.type == WRITEFILE || result.type == PRINTFROMTO)
+    {
+        // Two arguments
+        token = strtok(NULL, " ");
+        if (token)
+        {
+            strncpy(result.arg1, token, MAX_NAME_LEN - 1);
+            result.arg1[MAX_NAME_LEN - 1] = '\0';
+            token = strtok(NULL, " ");
+            if (token)
+            {
+                strncpy(result.arg2, token, MAX_NAME_LEN - 1);
+                result.arg2[MAX_NAME_LEN - 1] = '\0';
+            }
+        }
+    }
+    free(copy);
+    return result;
 }
 
 // Execute instruction and update process state
-void execute_instruction(MemoryWord* memory, PCB* pcb, Process* process, Instruction* instruction) {
+void execute_instruction(MemoryWord *memory, PCB *pcb, Process *process, Instruction *instruction)
+{
     // Execute based on instruction type
-    switch (instruction->type) {
+    switch (instruction->type)
+    {
     case PRINT:
-        printStr(instruction->arg1);
+        print(instruction->arg1);
         break;
     case ASSIGN:
-        assignStr(&instruction->arg1, instruction->arg2);
+        assign(pcb->id, &instruction->arg1, instruction->arg2);
         break;
     case WRITEFILE:
         writeToFile(instruction->arg1, instruction->arg2);
@@ -116,7 +131,7 @@ void execute_instruction(MemoryWord* memory, PCB* pcb, Process* process, Instruc
         (void)readFromFile(instruction->arg1);
         break;
     case PRINTFROMTO:
-        printFromTo(atoi(instruction->arg1), atoi(instruction->arg2));
+        printFromTo(instruction->arg1, instruction->arg2);
         break;
     case SEMWAIT:
         semWait(instruction->arg1);
@@ -132,10 +147,11 @@ void execute_instruction(MemoryWord* memory, PCB* pcb, Process* process, Instruc
 
     // Update program counter and remaining time
     pcb->programCounter++;
-    process->remainingTime--; // 
+    process->remainingTime--; //
 
     // Check for process termination
-    if (process->remainingTime <= 0 || pcb->programCounter >= process->burstTime) {
+    if (process->remainingTime <= 0 || pcb->programCounter >= process->burstTime)
+    {
         pcb->state = TERMINATED;
         process->state = TERMINATED;
     }
