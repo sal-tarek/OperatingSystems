@@ -7,6 +7,7 @@
 #include "memory.h"
 #include "MLFQ.h"
 #include "RoundRobin.h"
+#include "FCFS.h"
 
 #define numProcesses 3
 #define numQueues 4
@@ -48,7 +49,7 @@ int main() {
     // Uncomment the scheduler you want to test
 
 
-    //  MLFQ
+    // MLFQ
 
     // enqueue(readyQueues[0], dequeue(job_pool)); // Move P1 to readyQueue
     // enqueue(readyQueues[0], dequeue(job_pool)); // Move P2 to readyQueue
@@ -93,7 +94,7 @@ int main() {
     // enqueue(readyQueues[0], dequeue(job_pool)); // Move P1 to readyQueue
     // enqueue(readyQueues[0], dequeue(job_pool)); // Move P2 to readyQueue
     // enqueue(readyQueues[0], dequeue(job_pool)); // Move P3 to readyQueue
-    // while(p1->state != TERMINATED || p2->state != TERMINATED || p3->state != TERMINATED) {
+    // while(!isEmpty(readyQueues[0])) {
     //     runFCFS(); 
     //     clockCycle++; 
     // }

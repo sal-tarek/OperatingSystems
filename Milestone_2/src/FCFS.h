@@ -1,5 +1,5 @@
-#ifndef ROUNDROBIN_H
-#define ROUNDROBIN_H
+#ifndef FCFS_H
+#define FCFS_H
 
 #include "Queue.h"
 #include "process.h"
@@ -11,7 +11,7 @@ extern Queue *readyQueues[numQueues];
 extern Process *runningProcess;
 extern int clockCycle;
 
-// Function to run the RoundRobin scheduler
-void runRR();
+// Function to run the First Come First Serve scheduler
+void runFCFS();
 
 #endif 

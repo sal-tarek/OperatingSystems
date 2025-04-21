@@ -3,46 +3,44 @@
 #include <string.h>
 #include "process.h"
 #include "Queue.h"
+#include "FCFS.h"
 
-void runFCFS(Queue *jobPool) {
-    Queue *readyQueue = createQueue();
-    int clock = 0;
+const char* processStateToString(ProcessState state) {
+    switch (state) {
+        case NEW: return "NEW";
+        case READY: return "READY";
+        case RUNNING: return "RUNNING";
+        case WAITING: return "WAITING";
+        case TERMINATED: return "TERMINATED";
+        default: return "UNKNOWN";
+    }
+}
+void runFCFS() {
+    printf("=== FCFS Scheduling Simulation at time %d ===\n", clockCycle);
 
-    printf("=== FCFS Scheduling Simulation ===\n");
+    // Print state of the ready queue
+    printf("Ready Queue: ");
+    display(readyQueues[0]);
+    printf("\n");
 
+    // If no process is running, try to start the next process from the ready queue
+    if (!isEmpty(readyQueues[0])) {
+        runningProcess = peek(readyQueues[0]);
+    }
+    // If a process is running, execute it
+    if (runningProcess != NULL) {
+        runningProcess->state = RUNNING;
+        runningProcess->remainingTime--;
+        printf("Process %d remaining time: %d\n", runningProcess->pid, runningProcess->remainingTime);
 
-        // Print state of the ready queue
-        printf("Ready Queue: ");
-        display(readyQueue);
-        printf("\n");
-
-        // Run process at the front of the ready queue
-        if (!isEmpty(readyQueue)) {
-            Process *running = peek(readyQueue);
-
-            if (running->state != RUNNING) {
-                running->state = RUNNING;
-                printf("Process %d started running at time %d\n", running->pid, clock);
-            }
-
-            running->remainingTime--;
-
-            // Debugging remaining time
-            printf("Process %d remaining time: %d\n", running->pid, running->remainingTime);
-
-            if (running->remainingTime == 0) {
-                running = dequeue(readyQueue);
-                running->state = TERMINATED;
-                printf("Process %d finished execution at time %d\n", running->pid, clock);
-                free(running);
-            }
-        } 
-        else {
-            printf("CPU is IDLE at time %d\n", clock);
+        // Check if the process has finished
+        if (runningProcess->remainingTime == 0) {
+            dequeue(readyQueues[0]); // Remove the process from the queue
+            runningProcess->state = TERMINATED;
+            printf("Process %d finished execution at time %d\n", runningProcess->pid, clockCycle);
+            printf("Process state %s\n", processStateToString(runningProcess->state));
+            free(runningProcess); // Free the process
+            runningProcess = NULL; // Clear runningProcess
         }
-
-        // Increment clock
-        clock++;
-
-    printf("=== FCFS Scheduling Completed ===\n");
+    }
 }
