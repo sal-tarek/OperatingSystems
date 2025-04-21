@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "process.h"
 #include "PCB.h"
+#include "#instruction.h"
 
 // Constants
 #define MAX_NAME_LEN 50       // Maximum length for instruction/variable strings
@@ -43,21 +44,12 @@ void (*handler)(PCB *, Instruction *); // Function pointer to syntax function
 
 // Function prototypes
 // Fetching
-char *fetch_instruction(MemoryWord *memory, PCB *pcb, Process *process);
+char *fetch_instruction(MemoryWord *memory, IndexEntry *index, PCB *pcb, Process *process);
 
 // Decoding
 Instruction decode_instruction(char *instruction_string);
 
 // Execution - Main function
 void execute_instruction(MemoryWord *memory, PCB *pcb, Process *process, Instruction *instruction);
-
-// Declare the execution functions
-void exec_print(PCB *pcb, Instruction *instr);
-void exec_assign(PCB *pcb, Instruction *instr);
-void exec_write_file(PCB *pcb, Instruction *instr);
-void exec_read_file(PCB *pcb, Instruction *instr);
-void exec_print_from_to(PCB *pcb, Instruction *instr);
-void exec_sem_wait(PCB *pcb, Instruction *instr);
-void exec_sem_signal(PCB *pcb, Instruction *instr);
 
 #endif // PARSER_H
