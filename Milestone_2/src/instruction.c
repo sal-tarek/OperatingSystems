@@ -48,14 +48,72 @@ void print(char *printStatement)
     printf("%s", printStatement);
 }
 
-// Assign
-void assignValue(Process process, char* userProvidedValue);
+#define MAX_TOKENS 4
 
-// Assign integer from user input
-void assignInput(int *x)
-{
-    printf("Please enter a value: ");
-    scanf("%d", x);
+// Assigns value to a variable 
+// value and variable could be provided directly, read from a file, or read from terminal
+void assign(Process *process, char *args) {
+    char *tokens[MAX_TOKENS];
+    int tokenCount = 0;
+
+    char buffer[MAX_ARG_LEN];
+    strncpy(buffer, args, MAX_ARG_LEN);
+
+    char *token = strtok(buffer, " ");
+    while (token && tokenCount < MAX_TOKENS) {
+        if (isReadFileStart(token)) {
+            char *next = strtok(NULL, " ");
+            if (!next) {
+                fprintf(stderr, "Error: readFile command missing filename.\n");
+                return;
+            }
+            tokens[tokenCount++] = mergeReadFileToken(token, next);
+        } else {
+            tokens[tokenCount++] = strdup(token);
+        }
+        token = strtok(NULL, " ");
+    }
+
+    if (tokenCount != 2) {
+        fprintf(stderr, "Error: assign expects exactly 2 arguments.\n");
+        for (int i = 0; i < tokenCount; i++) free(tokens[i]);
+        return;
+    }
+
+    char *arg1 = tokens[0];
+    char *arg2 = tokens[1];
+    char *variable = NULL;
+    char *value = NULL;
+
+    if (strcmp(arg1, "input") == 0) {
+        variable = arg2;
+        value = input("Enter value: ");
+    } else if (strncmp(arg1, "readFile ", 9) == 0) {
+        variable = arg2;
+        value = readFromFile(arg1 + 9);
+    } else if (strcmp(arg2, "input") == 0) {
+        variable = arg1;
+        value = input("Enter value: ");
+    } else if (strncmp(arg2, "readFile ", 9) == 0) {
+        variable = arg1;
+        value = readFromFile(arg2 + 9);
+    } else {
+        variable = arg1;
+        value = arg2;
+    }
+
+    if (!variable || !value) {
+        fprintf(stderr, "Error: failed to resolve variable or value.\n");
+        goto cleanup;
+    }
+
+    char varKey[MAX_VAR_KEY_LEN];
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, variable);
+
+    updateDataByIndex(index, memory, varKey, value);
+
+cleanup:
+    for (int i = 0; i < tokenCount; i++) free(tokens[i]);
 }
 
 // Write string to file
