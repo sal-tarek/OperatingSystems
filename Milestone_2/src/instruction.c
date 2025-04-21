@@ -8,7 +8,41 @@ mutex_t fileMutex;
 mutex_t inputMutex;
 mutex_t outputMutex;
 
-// Print string
+#define MAX_VAR_KEY_LEN 15
+#define MAX_ARG_LEN 100
+
+// Helper functions
+
+// Take input from user
+char *input(char *functionality) {
+    char  *output;
+
+    printf("Please %s\n", functionality);
+    scanf("%s", output);
+
+    return output;
+}
+
+// Detects if the token is `input`
+int isInput(const char* token) {
+    return strcmp(token, "input") == 0;
+}
+
+// Detects if the token starts with "readFile"
+int isReadFile(const char* token) {
+    return strncmp(token, "readFile ", 9) == 0;
+}
+
+// Extracts filename from "readFile filename"
+char* extractFileName(const char* token) {
+    char* fileName = malloc(MAX_ARG_LEN);
+    sscanf(token, "readFile %[^\n]", fileName);
+    return fileName;
+}
+
+// Main Functions
+
+// Print "printStatement" to terminal
 void print(char *printStatement)
 {
     printf("%s", printStatement);
