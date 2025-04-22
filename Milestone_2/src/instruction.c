@@ -2,7 +2,7 @@
 #include <errno.h>
 #include <limits.h>
 #include "../include/instruction.h"
-#include "../include/mutex.h"
+#include "mutex.h"
 
 // Define the actual mutexes
 mutex_t fileMutex;
@@ -159,18 +159,18 @@ void printFromTo(int processId, char *arg1, char *arg2)
 }
 
 // Semaphore wait function (locks a mutex)
-void semWait(char *x)
+void semWait(int processId, char *x)
 {
     int result = 0;
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
-        result = mutex_lock(&fileMutex);
+        result = mutex_lock(&fileMutex, processId);
         printf("semWait called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
-        result = mutex_lock(&inputMutex);  // Lock the input mutex
+        result = mutex_lock(&inputMutex, processId);  // Lock the input mutex
         printf("semWait called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
-        result = mutex_lock(&outputMutex);  // Lock the output mutex
+        result = mutex_lock(&outputMutex, processId);  // Lock the output mutex
         printf("semWait called on user output\n");
     } else {
         perror("invalid resource\n");
@@ -187,16 +187,16 @@ void semWait(char *x)
 }
 
 // Semaphore signal function (unlocks a mutex)
-void semSignal(char *x) {
+void semSignal(int processId, char *x) {
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
-        mutex_unlock(&fileMutex);
+        mutex_unlock(&fileMutex, processId);
         printf("semSignal called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
-        mutex_unlock(&inputMutex);  // Unlock the input mutex
+        mutex_unlock(&inputMutex, processId);  // Unlock the input mutex
         printf("semSignal called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
-        mutex_unlock(&outputMutex);  // Unlock the output mutex
+        mutex_unlock(&outputMutex, processId);  // Unlock the output mutex
         printf("semSignal called on user output\n");
     } else {
         perror("invalid resource\n");
