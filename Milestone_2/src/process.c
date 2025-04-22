@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "process.h"
+#include "PCB.h"
+#include "memory_manager.h"
 
 Process* createProcess(int pid, const char *file_path, int arrival_time, int burstTime) {
     Process* newProcess = (Process*)malloc(sizeof(Process));
@@ -19,6 +21,8 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
     newProcess->remainingTime = burstTime;
     newProcess->state = NEW;  // Set state as enum
    // newProcess->pcb = createPCB(pid);  // Create and assign PCB
+    newProcess->burstTime = burst_time;
+    newProcess->remainingTime = burst_time;
     newProcess->next = NULL;
 
     if (!newProcess->file_path) {
@@ -33,11 +37,36 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
 void displayProcess(Process *p) {
     if (p != NULL) {
         printf("Process ID: %d\n", p->pid);
+
+        // Prepare the key string for PCB (e.g., "P3_PCB")
+        char key[20];
+        snprintf(key, sizeof(key), "P%d_PCB", p->pid);
+
+        // Specify the type you're looking for
+        DataType type = TYPE_PCB;
+
+        // Fetch the PCB using the formatted key
+        struct PCB *pcb = (struct PCB *)fetchDataByIndex(key, &type);
+
+        // Make sure pcb is not NULL before accessing it
+        if (pcb != NULL) {
+            printf("PCB State: %d\n", pcb->state);
+        } else {
+            printf("PCB not found for PID %d\n", p->pid);
+        }
+
         printf("State: %d\n", p->state);  // State as enum
         printf("File Path: %s\n", p->file_path);
         printf("Arrival Time: %d\n", p->arrival_time);
         printf("Burst Time: %d\n", p->burstTime);
         printf("Remaining Time: %d\n", p->remainingTime);
         printf("------------------------\n");
+    }
+}
+
+void freeProcess(Process *p) {
+    if (p != NULL) {
+        free(p->file_path);
+        free(p);
     }
 }

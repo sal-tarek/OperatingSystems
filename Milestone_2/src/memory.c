@@ -5,6 +5,9 @@
 #include "PCB.h"
 #include "uthash.h"
 
+// Global variable declared in main.c
+extern MemoryWord *memory;
+
 void addMemoryData(MemoryWord **memory, int address, void *data, DataType type) {
     MemoryWord *word = NULL;
     HASH_FIND_INT(*memory, &address, word);
@@ -56,7 +59,7 @@ int updateMemoryData(MemoryWord **memory, int address, void *new_data, DataType 
     return 0;
 }
 
-void freeMemoryWord(MemoryWord *memory) {
+void freeMemoryWord() {
     MemoryWord *current, *tmp;
     HASH_ITER(hh, memory, current, tmp) {
         HASH_DEL(memory, current);
@@ -69,7 +72,7 @@ void freeMemoryWord(MemoryWord *memory) {
     }
 }
 
-void printMemory(MemoryWord *memory) {
+void printMemory() {
     MemoryWord *curr, *tmp;
     printf("Memory Contents:\n");
     HASH_ITER(hh, memory, curr, tmp) {
