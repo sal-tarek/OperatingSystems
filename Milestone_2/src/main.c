@@ -7,6 +7,7 @@
 #include "index.h"
 #include "PCB.h"
 #include "mutex.h"
+
 // Global variables
 Queue *job_pool = NULL;
 MemoryWord *memory = NULL;

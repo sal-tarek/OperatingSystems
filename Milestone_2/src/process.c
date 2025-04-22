@@ -19,10 +19,7 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
     newProcess->ready_time = 0;
     newProcess->burstTime = burstTime;
     newProcess->remainingTime = burstTime;
-    newProcess->state = NEW;  // Set state as enum
    // newProcess->pcb = createPCB(pid);  // Create and assign PCB
-    newProcess->burstTime = burst_time;
-    newProcess->remainingTime = burst_time;
     newProcess->next = NULL;
 
     if (!newProcess->file_path) {
@@ -54,8 +51,7 @@ void displayProcess(Process *p) {
         } else {
             printf("PCB not found for PID %d\n", p->pid);
         }
-
-        printf("State: %d\n", p->state);  // State as enum
+        
         printf("File Path: %s\n", p->file_path);
         printf("Arrival Time: %d\n", p->arrival_time);
         printf("Burst Time: %d\n", p->burstTime);
