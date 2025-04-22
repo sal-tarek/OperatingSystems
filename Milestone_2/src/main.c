@@ -6,7 +6,7 @@
 #include "memory.h"
 #include "index.h"
 #include "PCB.h"
-
+#include "mutex.h"
 int main() {
     // Initialize job_pool
     Queue *job_pool = createQueue();
@@ -87,13 +87,13 @@ int main() {
 
     // Test 7: Replace PCB via updateDataByIndex
     printf("Replacing P1_PCB with new PCB...\n");
-    struct PCB *new_pcb = createPCBWithBounds(1, 0, 14);
+     PCB *new_pcb = createPCBWithBounds(1, 0, 14);
     new_pcb->state = TERMINATED;
     new_pcb->programCounter = 3;
     if (updateDataByIndex(index, memory, "P1_PCB", new_pcb, TYPE_PCB) == 0) {
         data = fetchDataByIndex(index, memory, "P1_PCB", &type);
         if (data && type == TYPE_PCB) {
-            struct PCB *pcb = (struct PCB*)data;
+             PCB *pcb = ( PCB*)data;
             printf("New P1_PCB: PID=%d, State=%d, PC=%d\n",
                    getPCBId(pcb), getPCBState(pcb), getPCBProgramCounter(pcb));
         }
