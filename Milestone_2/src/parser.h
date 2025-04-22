@@ -52,8 +52,8 @@ Instruction decode_instruction(char *instruction_string);
 void execute_instruction(MemoryWord *memory, PCB *pcb, Process *process, Instruction *instruction);
 
 // Declare the execution functions
-void exec_print(PCB *pcb, Instruction *instr);
-void exec_assign(PCB *pcb, Instruction *instr);
+void exec_print(struct PCB *pcb, Instruction *instr);
+void exec_assign(sPCB *pcb, Instruction *instr);
 void exec_write_file(PCB *pcb, Instruction *instr);
 void exec_read_file(PCB *pcb, Instruction *instr);
 void exec_print_from_to(PCB *pcb, Instruction *instr);
