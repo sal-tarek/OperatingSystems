@@ -17,7 +17,6 @@ typedef struct {
 } MemoryRange;
 
 void readInstructions(Process *process, MemoryRange range);
-void populateVariables(Process *process, MemoryRange range);
 void populatePCB(Process *process, MemoryRange range);
 void populateMemory();
 void* fetchDataByIndex(const char *key, DataType *type_out);

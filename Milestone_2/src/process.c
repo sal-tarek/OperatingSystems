@@ -1,13 +1,11 @@
-// process.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "process.h"
 #include "PCB.h"
 #include "memory_manager.h"
-#include "memory.h" 
+#include "memory.h"
 #include "index.h"
-
 
 Process* createProcess(int pid, const char *file_path, int arrival_time, int burst_time) {
     Process* newProcess = (Process*)malloc(sizeof(Process));
@@ -38,24 +36,23 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
 void displayProcess(Process *p) {
     if (p != NULL) {
         printf("Process ID: %d\n", p->pid);
-
-        // Prepare the key string for PCB (e.g., "P3_PCB")
         char key[20];
-        snprintf(key, sizeof(key), "P%d_PCB", p->pid);
-
-        // Specify the type you're looking for
-        DataType type = TYPE_PCB;
-
-        // Fetch the PCB using the formatted key
+        ProcessState state = getProcessState(p->pid);
+        switch (state) {
+            case NEW: printf("State: NEW\n"); break;
+            case READY: printf("State: READY\n"); break;
+            case RUNNING: printf("State: RUNNING\n"); break;
+            case WAITING: printf("State: WAITING\n"); break;
+            case TERMINATED: printf("State: TERMINATED\n"); break;
+            default: printf("State: UNKNOWN\n");
+        }
+        DataType type;
         struct PCB *pcb = (struct PCB *)fetchDataByIndex(key, &type);
-
-        // Make sure pcb is not NULL before accessing it
-        if (pcb != NULL) {
-            printf("PCB State: %d\n", pcb->state);
+        if (pcb != NULL && type == TYPE_PCB) {
+            printf("PCB State: %d\n", getPCBState(pcb));
         } else {
             printf("PCB not found for PID %d\n", p->pid);
         }
-
         printf("File Path: %s\n", p->file_path);
         printf("Arrival Time: %d\n", p->arrival_time);
         printf("Burst Time: %d\n", p->burstTime);
@@ -72,55 +69,28 @@ void freeProcess(Process *p) {
 }
 
 void setProcessState(int pid, ProcessState newState) {
+    char key[20];
+    snprintf(key, sizeof(key), "P%d_PCB", pid);
     DataType type;
-    char* formatedInstruction= NULL;
-    switch (pid)
-    {
-        case 1:
-            formatedInstruction="P1_PCB";
-            break;
-        case 2:
-            formatedInstruction="P2_PCB";
-            break;
-        case 3:
-            formatedInstruction="P3_PCB";
-            break;  
-        default:
-            break;
-    }
-    void *data = fetchDataByIndex(formatedInstruction, &type);
+    void *data = fetchDataByIndex(key, &type);
     if (data && type == TYPE_PCB) {
         struct PCB *pcb = (struct PCB*)data;
         setPCBState(pcb, newState);
     } else {
-        printf("Failed to update P1_PCB state\n");
+        fprintf(stderr, "Failed to update PCB state for PID %d\n", pid);
     }
 }
 
 ProcessState getProcessState(int pid) {
+    char key[20];
+    snprintf(key, sizeof(key), "P%d_PCB", pid);
     DataType type;
-    char* formatedInstruction= NULL;
-    switch (pid)
-    {
-        case 1:
-            formatedInstruction="P1_PCB";
-            break;
-        case 2:
-            formatedInstruction="P2_PCB";
-            break;
-        case 3:
-            formatedInstruction="P3_PCB";
-            break;  
-        default:
-            break;
-    }
-    void *data = fetchDataByIndex(formatedInstruction, &type);
+    void *data = fetchDataByIndex(key, &type);
     if (data && type == TYPE_PCB) {
         struct PCB *pcb = (struct PCB*)data;
         return getPCBState(pcb);
-    }
-    else{
-        printf("Failed to get P1_PCB state\n");
-        return -1; 
+    } else {
+        fprintf(stderr, "Failed to get PCB state for PID %d\n", pid);
+        return -1;
     }
 }
