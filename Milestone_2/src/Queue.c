@@ -52,7 +52,7 @@ void enqueueSortedByArrivalTime(Queue* q, Process* newProcess) {
 
 Process* dequeue(Queue* q) {
     if (q->front == NULL) {
-        printf("Queue is empty\n");
+        printf("Can't dequeue, Queue is empty\n");
         return NULL;
     }
 
@@ -69,7 +69,7 @@ Process* dequeue(Queue* q) {
 
 Process* peek(Queue* q) {
     if (q->front == NULL) {
-        printf("Queue is empty\n");
+        printf("No peek, Queue is empty\n");
         return NULL;
     }
     return q->front;
@@ -87,6 +87,16 @@ void displayQueue(Queue *q) {
         curr = curr->next;
     }
     printf("End of Queue\n");
+}
+
+void displayQueueSimplified(Queue* q) {
+    Process* curr = q->front;
+    printf("Queue: ");
+    while (curr != NULL) {
+        printf("%d -> ", curr->pid);
+        curr = curr->next;
+    }
+    printf("NULL\n");
 }
 
 
