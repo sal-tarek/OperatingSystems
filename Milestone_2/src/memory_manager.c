@@ -56,15 +56,11 @@ void readInstructions(Process *process, MemoryRange range) {
     for (int i = 0; i < var_count; i++) {
         addMemoryData(&memory, range.var_start + i, variables[i], TYPE_STRING);
         char key[32];
-        snprintf(key, sizeof(key), "P%d_Variable_%d", process->pid, i + 1);
+        snprintf(key, sizeof(key), "P%d_Variable_%s", process->pid, variables[i]);
         addIndexEntry(&index_table, key, range.var_start + i);
         free(variables[i]);
     }
     free(variables);
-}
-
-void populateVariables(Process *process, MemoryRange range) {
-    // No-op: Variables handled in readInstructions
 }
 
 void populatePCB(Process *process, MemoryRange range) {

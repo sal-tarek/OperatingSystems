@@ -1,7 +1,7 @@
 #ifndef FCFS_H
 #define FCFS_H
 
-#include "queue.h"
+#include "Queue.h"
 #include "process.h"
 
 #define numProcesses 3

@@ -117,15 +117,15 @@ int main() {
 
     
 
-    // // Test 1: Populate memory at time 0
-    // printf("Populating memory at time 0...\n");
-    // populateMemory();
-    // printMemory();
-    // displayMemoryRange(0); // Show all memory ranges
+    // Test 1: Populate memory at time 0
+    printf("Populating memory at time 0...\n");
+    populateMemory();
+    printMemory();
+    displayMemoryRange(0); // Show all memory ranges
 
 
     // // Test 2: Fetch instruction (P1_Instruction_1)
-    // DataType type;
+    DataType type;
     // void *data = fetchDataByIndex("P1_Instruction_1", &type);
     // if (data && type == TYPE_STRING) {
     //     printf("Fetched P1_Instruction_1: %s\n", (char*)data);
@@ -133,13 +133,13 @@ int main() {
     //     printf("Failed to fetch P1_Instruction_1\n");
     // }
 
-    // // Test 3: Fetch variable (P1_Variable_1)
-    // data = fetchDataByIndex("P1_Variable_1", &type);
-    // if (data && type == TYPE_STRING) {
-    //     printf("Fetched P1_Variable_1: %s\n", (char*)data);
-    // } else {
-    //     printf("Failed to fetch P1_Variable_1\n");
-    // }
+    // Test 3: Fetch variable (P1_Variable_1)
+    void *data = fetchDataByIndex("P1_Variable_a", &type);
+    if (data && type == TYPE_STRING) {
+        printf("Fetched P1_Variable_a: %s\n", (char*)data);
+    } else {
+        printf("Failed to fetch P1_Variable_1\n");
+    }
 
     // // Test 4: Fetch PCB (P1_PCB)
     // data = fetchDataByIndex("P1_PCB", &type);
