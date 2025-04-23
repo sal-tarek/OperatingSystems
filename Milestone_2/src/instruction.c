@@ -22,20 +22,11 @@ char *input(char *functionality);
 void print(int processId, char *printable)
 {
     char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, 1);
-    char *storedData1 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, printable);
+    char *storedData = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
 
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, 2);
-    char *storedData2 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
-
-    char *varName1, varName2, varValue1, varValue2;
-    sscanf(storedData1, "%99[^:]:%99[^\n]", varName1, varValue1);
-    sscanf(storedData2, "%99[^:]:%99[^\n]", varName2, varValue2);
-
-    if (strcmp(printable, varName1) == 0) {
-        printf("%s", varValue1);
-    } else if (strcmp(printable, varName2) == 0) {
-        printf("%s", varValue2);
+    if (storedData != NULL) {
+        printf("%s", storedData);
     } else {
         perror("Variable not found!");
     }
@@ -43,27 +34,12 @@ void print(int processId, char *printable)
 
 #define MAX_TOKENS 4
 
-// Assigns value to a variable 
-// value could be provided directly, read from a file, or read from terminal
+// Assigns value to a variable
 void assign(int processId, char *arg1, char *arg2) {
-    char *value = NULL;
-
-    if (strcmp(arg2, "input") == 0) {
-        value = input("enter a value to store in variable");
-    } else if (strncmp(arg2, "readFile ", 9) == 0) {
-        value = readFromFile(arg2 + 9);
-    } else {
-        value = arg2;
-    }
-
     char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, (strcmp(arg1, "a") == 0? 1 : 2));
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
 
-    char *store;
-    snprintf(store, 1024, "%s:%s", arg1, value);
-    updateDataByIndex(varKey, store, "TYPE_STRING");
-
-    printf(store);
+    updateDataByIndex(varKey, arg2, "TYPE_STRING");
 }
 
 // Write string to file
@@ -85,10 +61,6 @@ void writeToFile(char *filename, char *content)
 // Read file content and return as string
 char *readFromFile(char *fileName)
 {
-    if (strcmp(fileName, "input") == 0) {
-        fileName = input("enter a file name");
-    }
-
     FILE *fptr = fopen(fileName, "r");
 
     if (fptr == NULL)
@@ -120,27 +92,16 @@ char *readFromFile(char *fileName)
 void printFromTo(int processId, char *arg1, char *arg2)
 {
     char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, 1);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
     char *storedData1 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
 
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, 2);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg2);
     char *storedData2 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
 
-    char *varName1, varName2, varValue1, varValue2;
-    sscanf(storedData1, "%99[^:]:%99[^\n]", varName1, varValue1);
-    sscanf(storedData2, "%99[^:]:%99[^\n]", varName2, varValue2);
-
-    int x, y, errCode1 = 2, errCode2 = 2;
-    if (strcmp(arg1, varName1) == 0) {
-        errCode1 = safe_atoi(arg1, x);
-        errCode2 = safe_atoi(arg2, y);
-    } else {
-        errCode1 = safe_atoi(arg1, y);
-        errCode2 = safe_atoi(arg2, x);
-    }
+    int x, y, errCode1 = safe_atoi(storedData1, &x), errCode2 = safe_atoi(storedData2, &y);
 
     if (errCode1 == 0 && errCode2 == 0) {
-        if (x < y) {
+        if (x > y) {
             printf("second argument is smaller than first argument");
             return;
         }
