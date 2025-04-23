@@ -7,13 +7,24 @@
 void runRR(int quantum) {     
     printf("\nTime %d: \n \n", clockCycle);
 
-    // Display the ready queue
-    displayQueueSimplified(readyQueues[0]);   
+    // Print ready queue
+    printf("Ready ");
+    displayQueueSimplified(readyQueues[0]); 
 
-    runningProcess = peek(readyQueues[0]);
-
+    // Fetch the next process from the ready queue & Handling Blocked processes
+    while (!isEmpty(readyQueues[0])) {
+        if(peek(readyQueues[0])->state == WAITING) 
+            dequeue(readyQueues[0]); 
+        else{
+            runningProcess = peek(readyQueues[0]);
+            break;
+        }
+    }
+        
     if(runningProcess != NULL){
         setProcessState(runningProcess->pid, RUNNING);
+        runningProcess->state = RUNNING;
+
         runningProcess->quantumUsed++;
         runningProcess->remainingTime--;
 
@@ -32,7 +43,10 @@ void runRR(int quantum) {
             runningProcess->quantumUsed = 0; 
             runningProcess = NULL; 
         }
-        else setProcessState(runningProcess->pid, READY);
+        else{ 
+            setProcessState(runningProcess->pid, READY);
+            runningProcess->state = READY;
+        }
     }
     else{
         printf("CPU is idle\n", clockCycle);

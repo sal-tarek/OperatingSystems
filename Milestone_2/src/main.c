@@ -79,11 +79,11 @@ int main() {
     // Schedulers
 
     // MLFQ
-    // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
-    //     populateMemory();
-    //     runMLFQ(); 
-    //     clockCycle++; 
-    // }
+    while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
+        populateMemory();
+        runMLFQ(); 
+        clockCycle++; 
+    }
 
     // RR
     // Get quantum from user

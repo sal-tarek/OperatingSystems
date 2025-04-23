@@ -21,5 +21,7 @@ void displayProcess(Process *p);
 void freeProcess(Process *p);
 ProcessState getProcessState(int pid);
 void setProcessState(int pid, ProcessState newState);
+int getProcessPriority(int pid);
+void setProcessPriority(int pid, int priority);
 
 #endif // PROCESS_H

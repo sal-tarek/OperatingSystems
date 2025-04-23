@@ -13,14 +13,19 @@ void runMLFQ() {
         displayQueueSimplified(readyQueues[i]);
 
 
-    // Find the highest priority existing process in the queues if no pending process
+    // Find the highest priority process in the queues if no pending process & handling Blocked processes
     if(lastUsedLevel == -1){
         for (int i = 0; i < numQueues; i++) {
-            if (!isEmpty(readyQueues[i])) {
-                runningProcess = peek(readyQueues[i]);
-                lastUsedLevel = i;
-                break;
+            while (!isEmpty(readyQueues[i])) {
+                if(peek(readyQueues[i])->state == WAITING) 
+                    dequeue(readyQueues[i]); 
+                else{
+                    runningProcess = peek(readyQueues[i]);
+                    lastUsedLevel = i;
+                    break;
+                }
             }
+            if(runningProcess != NULL) break; // Exit if we found a process
         }
     }
 
@@ -28,6 +33,8 @@ void runMLFQ() {
         int timeQuantum = 1 << lastUsedLevel; // time quantum = 2^i for queue i {Queue 0 --> 1, Queue 1 --> 2, Queue 2 --> 4, Queue 3 --> 8}
 
         setProcessState(runningProcess->pid, RUNNING);
+        runningProcess->state = RUNNING; 
+
         runningProcess->quantumUsed++;
         runningProcess->remainingTime--;
 
@@ -38,6 +45,7 @@ void runMLFQ() {
             dequeue(readyQueues[lastUsedLevel]);  // Now we safely remove it from the queue
             printf("Finished %d\n", runningProcess->pid);
             setProcessState(runningProcess->pid, TERMINATED);
+            runningProcess->state = TERMINATED;
             runningProcess->quantumUsed = 0; 
             runningProcess = NULL; 
             lastUsedLevel = -1;
@@ -45,6 +53,7 @@ void runMLFQ() {
             dequeue(readyQueues[lastUsedLevel]);  
             if(lastUsedLevel != 3) {
                 enqueue(readyQueues[lastUsedLevel+1], runningProcess); // Move to next queue
+                setProcessPriority(runningProcess->pid, getProcessPriority(runningProcess->pid)+1); // Increase priority
                 printf("moved %d Level %d\n", runningProcess->pid, lastUsedLevel+2);
             }
             else{
@@ -55,7 +64,10 @@ void runMLFQ() {
             runningProcess = NULL; 
             lastUsedLevel = -1;
         }
-        else setProcessState(runningProcess->pid, READY);
+        else{
+            setProcessState(runningProcess->pid, READY);
+            runningProcess->state = READY;
+        }
     }
     else{
         printf("CPU is idle\n", clockCycle);
