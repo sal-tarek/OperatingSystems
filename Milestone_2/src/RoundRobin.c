@@ -13,7 +13,7 @@ void runRR(int quantum) {
 
     // Fetch the next process from the ready queue & Handling Blocked processes
     while (!isEmpty(readyQueues[0])) {
-        if(peek(readyQueues[0])->state == WAITING) 
+        if(peek(readyQueues[0])->state == BLOCKED) 
             dequeue(readyQueues[0]); 
         else{
             runningProcess = peek(readyQueues[0]);

@@ -17,7 +17,7 @@ void runMLFQ() {
     if(lastUsedLevel == -1){
         for (int i = 0; i < numQueues; i++) {
             while (!isEmpty(readyQueues[i])) {
-                if(peek(readyQueues[i])->state == WAITING) 
+                if(peek(readyQueues[i])->state == BLOCKED) 
                     dequeue(readyQueues[i]); 
                 else{
                     runningProcess = peek(readyQueues[i]);

@@ -5,6 +5,7 @@
 
 // Maximum processes that can wait for a resource
 #define MAX_BLOCKED_PROCESSES 10
+#define MAX_GLOBAL_BLOCKED 3
 
 // Mutex structure (opaque pointer)
 typedef struct mutex_t mutex_t;

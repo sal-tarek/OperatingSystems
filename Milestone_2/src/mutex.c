@@ -4,10 +4,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-// Define constants
-#define MAX_GLOBAL_BLOCKED 50
-// Enum for process states
-
 
 // Mutex structure definition
 struct mutex_t {
