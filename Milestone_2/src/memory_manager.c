@@ -135,6 +135,8 @@ void populatePCB(Process *process) {
     }
 
     setPCBState(pcb, READY);
+    process->state = READY;
+
     addMemoryData(&memory, ranges[ranges_count].pcb_start, pcb, TYPE_PCB);
     char key[32];
     snprintf(key, sizeof(key), "P%d_PCB", process->pid);
@@ -161,7 +163,7 @@ void populateMemory() {
                 populatePCB(curr);
                 ranges_count++; // Increment ranges_count
 
-                //dequeue from job pool
+                // Dequeue from job pool
                 dequeue(job_pool);
                 curr->ready_time = clockCycle; // Set ready_time
                 enqueue(readyQueues[0], curr); // Add to ready_queue

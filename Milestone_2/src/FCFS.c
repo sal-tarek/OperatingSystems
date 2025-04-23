@@ -10,13 +10,21 @@ void runFCFS() {
     printf("Ready ");
     displayQueueSimplified(readyQueues[0]);
 
-    // If no process is running, try to start the next process from the ready queue
-    if (!isEmpty(readyQueues[0])) {
-        runningProcess = peek(readyQueues[0]);
+    // Fetch the next process from the ready queue & Handling Blocked processes
+    while (!isEmpty(readyQueues[0])) {
+        if(peek(readyQueues[0])->state == WAITING) 
+            dequeue(readyQueues[0]); 
+        else{
+            runningProcess = peek(readyQueues[0]);
+            break;
+        }
     }
+
     // If a process is running, execute it
     if (runningProcess != NULL) {
         setProcessState(runningProcess->pid, RUNNING); 
+        runningProcess->state = RUNNING;
+
         runningProcess->remainingTime--;
         printf("Process %d remaining time: %d\n", runningProcess->pid, runningProcess->remainingTime);
 
@@ -27,6 +35,9 @@ void runFCFS() {
             printf("Process %d finished execution at time %d\n", runningProcess->pid, clockCycle);
             runningProcess = NULL; // Clear runningProcess
         }
-        else setProcessState(runningProcess->pid, READY);
+        else{ 
+            setProcessState(runningProcess->pid, READY);
+            runningProcess->state = READY; 
+        }
     }
 }

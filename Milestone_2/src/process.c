@@ -95,3 +95,32 @@ ProcessState getProcessState(int pid) {
         return ERROR;
     }
 }
+
+// Fetch priority from pcb
+int getProcessPriority(int pid) {
+    char key[20];
+    snprintf(key, sizeof(key), "P%d_PCB", pid);
+    DataType type;
+    void *data = fetchDataByIndex(key, &type);
+    if (data && type == TYPE_PCB) {
+        struct PCB *pcb = (struct PCB*)data;
+        return getPCBPriority(pcb);
+    } else {
+        fprintf(stderr, "Failed to fetch PCB for PID %d\n", pid);
+        return ERROR;
+    }
+}
+
+// Set priority in pcb
+void setProcessPriority(int pid, int newPriority) {
+    char key[20];
+    snprintf(key, sizeof(key), "P%d_PCB", pid);
+    DataType type;
+    void *data = fetchDataByIndex(key, &type);
+    if (data && type == TYPE_PCB) {
+        struct PCB *pcb = (struct PCB*)data;
+        setPCBPriority(pcb, newPriority);
+    } else {
+        fprintf(stderr, "Failed to update PCB priority for PID %d\n", pid);
+    }
+}
