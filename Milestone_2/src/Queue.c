@@ -79,6 +79,16 @@ int isEmpty(Queue* q) {
     return (q->front == NULL);
 }
 
+int getQueueSize(Queue* q) {
+    int size = 0;
+    Process* current = q->front;
+    while (current != NULL) {
+        size++;
+        current = current->next;
+    }
+    return size;
+}
+
 void displayQueue(Queue *q) {
     Process *curr = q->front;
     printf("Queue:\n");
