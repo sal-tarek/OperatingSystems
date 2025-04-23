@@ -55,9 +55,9 @@ int main() {
     }
 
     // Create processes
-    Process *p1 = createProcess(1, "../programs/Program_1.txt", 0, 7);
-    Process *p2 = createProcess(2, "../programs/Program_2.txt", 2, 7);
-    Process *p3 = createProcess(3, "../programs/Program_3.txt", 5, 10);
+    Process *p1 = createProcess(1, "../programs/Program_1.txt", 0);
+    Process *p2 = createProcess(2, "../programs/Program_2.txt", 3);
+    Process *p3 = createProcess(3, "../programs/Program_3.txt", 0);
     if (!p1 || !p2 || !p3) {
         fprintf(stderr, "Failed to create processes\n");
         freeQueue(job_pool);
@@ -114,32 +114,30 @@ int main() {
     // }
 
 
-
-    
-
     // Test 1: Populate memory at time 0
     printf("Populating memory at time 0...\n");
+    printf("size: %d\n", getQueueSize(job_pool));
     populateMemory();
     printMemory();
-    displayMemoryRange(0); // Show all memory ranges
+    // displayMemoryRange(0); // Show all memory ranges
 
 
     // // Test 2: Fetch instruction (P1_Instruction_1)
-    DataType type;
+   
     // void *data = fetchDataByIndex("P1_Instruction_1", &type);
     // if (data && type == TYPE_STRING) {
     //     printf("Fetched P1_Instruction_1: %s\n", (char*)data);
     // } else {
     //     printf("Failed to fetch P1_Instruction_1\n");
     // }
-
-    // Test 3: Fetch variable (P1_Variable_1)
-    void *data = fetchDataByIndex("P1_Variable_a", &type);
-    if (data && type == TYPE_STRING) {
-        printf("Fetched P1_Variable_a: %s\n", (char*)data);
-    } else {
-        printf("Failed to fetch P1_Variable_1\n");
-    }
+    // DataType type;
+    // // Test 3: Fetch variable (P1_Variable_1)
+    // void *data = fetchDataByIndex("P1_Variable_c", &type);
+    // if (data && type == TYPE_STRING) {
+    //     printf("Fetched P1_Variable_c: %s\n", (char*)data);
+    // } else {
+    //     printf("Failed to fetch P1_Variable_c\n");
+    // }
 
     // // Test 4: Fetch PCB (P1_PCB)
     // data = fetchDataByIndex("P1_PCB", &type);

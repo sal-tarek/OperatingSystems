@@ -15,6 +15,7 @@ void enqueueSortedByArrivalTime(Queue* q, Process* newProcess);
 Process* dequeue(Queue* q);
 Process* peek(Queue* q);
 int isEmpty(Queue* q);
+int getQueueSize(Queue* q);
 void displayQueue(Queue* q);
 void displayQueueSimplified(Queue* q);
 void freeQueue(Queue* q);

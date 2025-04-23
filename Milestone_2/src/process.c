@@ -7,7 +7,7 @@
 #include "memory.h"
 #include "index.h"
 
-Process* createProcess(int pid, const char *file_path, int arrival_time, int burst_time) {
+Process* createProcess(int pid, const char *file_path, int arrival_time) {
     Process* newProcess = (Process*)malloc(sizeof(Process));
     if (!newProcess) {
         fprintf(stderr, "Memory allocation for Process failed\n");
@@ -17,10 +17,11 @@ Process* createProcess(int pid, const char *file_path, int arrival_time, int bur
     char full_path[64];
     snprintf(full_path, sizeof(full_path), "../programs/Program_%d.txt", pid);
     newProcess->file_path = strdup(full_path);
+    newProcess->state = NEW;
     newProcess->arrival_time = arrival_time;
     newProcess->ready_time = 0;
-    newProcess->burstTime = burst_time;
-    newProcess->remainingTime = burst_time;
+    newProcess->burstTime = 0;
+    newProcess->remainingTime = 0;
     newProcess->next = NULL;
     newProcess->quantumUsed = 0;
 
@@ -37,7 +38,7 @@ void displayProcess(Process *p) {
     if (p != NULL) {
         printf("Process ID: %d\n", p->pid);
         char key[20];
-        ProcessState state = getProcessState(p->pid);
+        ProcessState state = p->state;
         switch (state) {
             case NEW: printf("State: NEW\n"); break;
             case READY: printf("State: READY\n"); break;
@@ -90,7 +91,7 @@ ProcessState getProcessState(int pid) {
         struct PCB *pcb = (struct PCB*)data;
         return getPCBState(pcb);
     } else {
-        fprintf(stderr, "Failed to get PCB state for PID %d\n", pid);
-        return -1;
+        fprintf(stderr, "Failed to fetch PCB for PID %d\n", pid);
+        return ERROR;
     }
 }
