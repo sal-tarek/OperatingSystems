@@ -13,7 +13,7 @@ mutex_t outputMutex;*/
 #define MAX_ARG_LEN 100
 
 // Helper function signatures
-safe_atoi(const char *str, int *out);
+int safe_atoi(const char *str, int *out);
 char *input(char *functionality);
 
 // Main Functions
