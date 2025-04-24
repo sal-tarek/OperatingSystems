@@ -241,10 +241,15 @@ void execute_instruction(PCB *pcb, Process* process, Instruction *instruction)
         fprintf(stderr, "Error: PCB is NULL for process %d\n", process->pid);
         return;
     }
+    if (!process)
+    {
+        fprintf(stderr, "Error: process is NULL\n");
+        return;
+    }
 
     trim_trailing_whitespace(instruction->arg1);
-    trim_trailing_whitespace(instruction->arg1);
-    printf("Debugging: instruction type: %d\n", instruction->type);
+    trim_trailing_whitespace(instruction->arg2);
+
     // Execute the instruction
     switch (instruction->type)
     {
@@ -266,6 +271,8 @@ void execute_instruction(PCB *pcb, Process* process, Instruction *instruction)
         break;
     case SEMWAIT:
         printf("Debugging: Resource being used: %s\n", instruction->arg1);
+        printf("Debugging: instruction type: %p\n", process);
+        printf("Debugging: prcoess accessing test: %d", process->state);
         semWait(process, instruction->arg1);
         break;
     case SEMSIGNAL:
@@ -299,6 +306,8 @@ void exec_cycle(Process* process)
 
     // Fetch instruction
     char *instruction_str = fetch_instruction(pcb, process->pid);
+    // printf("Debugging: memory dump after fetch\n");
+    // printMemory();
     if (!instruction_str)
     {
         fprintf(stderr, "Error: Failed to fetch instruction for process %d\n", process->pid);
@@ -307,18 +316,23 @@ void exec_cycle(Process* process)
 
     // Decode instruction
     Instruction instruction = decode_instruction(instruction_str);
+    // printf("Debugging: memory dump after decode\n");
+    // printMemory();
     if (instruction.arg1[0] == '\0' && instruction.arg2[0] == '\0')
     {
         fprintf(stderr, "Error: Failed to decode instruction for process %d: %s\n", process->pid, instruction_str);
-        free(instruction_str);
+        // free(instruction_str);
         return;
     }
 
     // Execute instruction (PC will be incremented inside execute_instruction)
+    printf("Debugging: prcoess accessing test: %d\n", process->pid);
     execute_instruction(pcb, process, &instruction);
+    // printf("Debugging: memory dump after execute\n");
+    // printMemory();
 
     // Clean up
-    free(instruction_str);
+    // free(instruction_str);
 }
 
 // Minimal main function to test decode_instruction and execute_instruction

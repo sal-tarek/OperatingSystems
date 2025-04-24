@@ -18,7 +18,7 @@ void runMLFQ() {
         for (int i = 0; i < numQueues; i++) {
             while (!isEmpty(readyQueues[i])) {
                 if(peek(readyQueues[i])->state == BLOCKED) 
-                    dequeue(readyQueues[i]); 
+                    dequeue(readyQueues[i]);
                 else{
                     runningProcess = peek(readyQueues[i]);
                     lastUsedLevel = i;
@@ -38,7 +38,7 @@ void runMLFQ() {
         runningProcess->quantumUsed++;
         runningProcess->remainingTime--;
 
-        exec_cycle(&runningProcess); // Simulate the execution of the process
+        exec_cycle(runningProcess); // Simulate the execution of the process
         printf("Executing %d\n", runningProcess->pid);
 
         if(runningProcess->remainingTime == 0) {

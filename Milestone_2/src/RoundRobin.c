@@ -28,7 +28,7 @@ void runRR(int quantum) {
         runningProcess->quantumUsed++;
         runningProcess->remainingTime--;
 
-        exec_cycle(&runningProcess); // Simulate the execution of the process
+        exec_cycle(runningProcess); // Simulate the execution of the process
         printf("Executing %d\n", runningProcess->pid);
 
         if(runningProcess->remainingTime == 0) {

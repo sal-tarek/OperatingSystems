@@ -21,16 +21,18 @@ mutex_t userInput_mutex = {"userInput", true, NULL, {0}, 0};
 mutex_t userOutput_mutex = {"userOutput", true, NULL, {0}, 0};
 mutex_t file_mutex = {"file", true, NULL, {0}, 0};
 
-// Global general blocked queue
-Queue *global_blocked_queue;
-
 void remove_from_global_blocked_queue(Process *process)
 {
+    printf("Debugging: process to be removed from global blocked queue %d", process->pid);
     while(!isEmpty(global_blocked_queue))
     {
+        displayQueueSimplified(global_blocked_queue);
+
         if(process == global_blocked_queue->front)
         {
+            printf("Debugging: inside if statement in remove_from_global_queue\n");
             dequeue(global_blocked_queue);
+            enqueue(readyQueues[getProcessPriority(process->pid)], process);
             break;
         }
         else
@@ -81,6 +83,7 @@ int mutex_lock(mutex_t *mutex, Process* process)
         setProcessState(process->pid, BLOCKED); // set PCB State to BLOCKED
 
         enqueue(global_blocked_queue, process); // Add to global blocked queue
+        displayQueueSimplified(global_blocked_queue);
 
         printf("Process %d blocked waiting for %s\n", process->pid, mutex->name);
     }
@@ -168,7 +171,7 @@ mutex_t *get_mutex_by_name(const char *name)
 }
 
 // Clean up when a process terminates
-void cleanup_process_mutexes(PCB *process)
+void cleanup_process_mutexes(Process *process)
 {
     if (process == NULL)
         return;

@@ -21,7 +21,7 @@ int clockCycle;                             // current clock cycle of the simula
 Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
-Queue * blocked_queue = NULL;
+Queue *global_blocked_queue = NULL;
 
 int main() {
     clockCycle = 0;
@@ -40,7 +40,11 @@ int main() {
     for (int i = 0; i < numQueues; i++) 
         readyQueues[i] = createQueue();
 
+    // Create global blocked queue
+    global_blocked_queue = createQueue();
+
     // Create blocked_queue
+    /*
     blocked_queue = createQueue();
     if (!blocked_queue) {
         fprintf(stderr, "Failed to create blocked_queue\n");
@@ -48,7 +52,7 @@ int main() {
         for(int i = 0; i < 4; i++)
             freeQueue(readyQueues[i]);
         return 1;
-    }
+    }*/
 
     // Create processes
     Process *p1 = createProcess(1, "../programs/Program_1.txt", 0);
@@ -76,8 +80,9 @@ int main() {
     // MLFQ
     while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
         populateMemory();
+        printMemory();
         runMLFQ(); 
-        clockCycle++; 
+        if (clockCycle++ == 30) break;
     }
 
     // RR
