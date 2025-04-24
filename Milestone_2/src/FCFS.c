@@ -24,6 +24,9 @@ void runFCFS() {
     if (runningProcess != NULL) {
         setProcessState(runningProcess->pid, RUNNING); 
         runningProcess->state = RUNNING;
+        
+        exec_cycle(runningProcess->pid); // Simulate the execution of the process
+        printf("Executing %d\n", runningProcess->pid);
 
         runningProcess->remainingTime--;
         printf("Process %d remaining time: %d\n", runningProcess->pid, runningProcess->remainingTime);

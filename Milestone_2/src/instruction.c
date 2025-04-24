@@ -4,11 +4,6 @@
 #include "../include/instruction.h"
 #include "mutex.h"
 
-/* Define the actual mutexes
-mutex_t fileMutex;
-mutex_t inputMutex;
-mutex_t outputMutex;*/
-
 #define MAX_VAR_KEY_LEN 15
 #define MAX_ARG_LEN 100
 
@@ -27,7 +22,7 @@ void print(int processId, char *printable)
     if (storedData != NULL) {
         printf("%s", storedData);
     } else {
-        perror("Variable not found!");
+        printf("Variable not found!\n");
     }
 }
 
@@ -38,7 +33,7 @@ void assign(int processId, char *arg1, char *arg2) {
     char varKey[MAX_VAR_KEY_LEN];
     snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
 
-    updateDataByIndex(varKey, arg2,TYPE_STRING);
+    updateDataByIndex(varKey, arg2, TYPE_STRING);
 }
 
 // Write string to file
@@ -118,19 +113,19 @@ void printFromTo(int processId, char *arg1, char *arg2)
     }
 }
 
-/* Semaphore wait function(locks a mutex)
+// Semaphore wait function(locks a mutex)
 void semWait(int processId, char *x)
 {
     int result = 0;
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
-        result = mutex_lock(&fileMutex, processId);
+        result = mutex_lock(&file_mutex, processId);
         printf("semWait called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
-        result = mutex_lock(&inputMutex, processId);  // Lock the input mutex
+        result = mutex_lock(&userInput_mutex, processId);  // Lock the input mutex
         printf("semWait called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
-        result = mutex_lock(&outputMutex, processId);  // Lock the output mutex
+        result = mutex_lock(&userOutput_mutex, processId);  // Lock the output mutex
         printf("semWait called on user output\n");
     } else {
         perror("invalid resource\n");
@@ -142,37 +137,45 @@ void semWait(int processId, char *x)
         printf("Mutex was not locked, now locked.\n");
     } else {
         // Mutex was already locked by another thread
-        printf("Mutex is already locked by another process.\n");
+        printf("Mutex is already locked by another process.\n Process %d will be blocked\n", processId);
     }
-}*/
+}
 
-/* Semaphore signal function(unlocks a mutex)
+// Semaphore signal function(unlocks a mutex)
 void semSignal(int processId, char *x) {
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
-        mutex_unlock(&fileMutex, processId);
+        mutex_unlock(&file_mutex, processId);
         printf("semSignal called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
-        mutex_unlock(&inputMutex, processId);  // Unlock the input mutex
+        mutex_unlock(&userInput_mutex, processId);  // Unlock the input mutex
         printf("semSignal called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
-        mutex_unlock(&outputMutex, processId);  // Unlock the output mutex
+        mutex_unlock(&userOutput_mutex, processId);  // Unlock the output mutex
         printf("semSignal called on user output\n");
     } else {
         perror("invalid resource\n");
         return;
     }
-}*/
+}
 
 // Helper Functions implementation
 
 // parses a string to an int
 // returns 0 on success, 1 on invalid input (not a number), and 2 if out of int range
 int safe_atoi(const char *str, int *out) {
+    if (str == NULL || *str == '\0') {
+        // Invalid string input
+        return 1;
+    }
+
     char *end;
     errno = 0; // clear errno before call
 
     long value = strtol(str, &end, 10);
+
+    // Debugging print
+    printf("Input string: %s, End: %s, Value: %ld\n", str, end, value);
 
     if (end == str || *end != '\0') {
         // No digits found, or extra characters after the number
@@ -192,6 +195,7 @@ int safe_atoi(const char *str, int *out) {
     *out = (int)value;
     return 0;
 }
+
 
 /* Code that might be used later:
     char *tokens[MAX_TOKENS];

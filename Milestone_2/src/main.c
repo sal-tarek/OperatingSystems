@@ -23,11 +23,6 @@ MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 Queue * blocked_queue = NULL;
 
-// add header for mutex.h
-// mutex_t userInput_mutex = NULL;
-// mutex_t userOutput_mutex = NULL;
-// mutex_t file_mutex = NULL;
-
 int main() {
     clockCycle = 0;
 
@@ -123,14 +118,16 @@ int main() {
     // displayMemoryRange(0); // Show all memory ranges
 
 
-    // // Test 2: Fetch instruction (P1_Instruction_1)
+    // Test 2: Fetch instruction (P1_Instruction_1)
    
+    // DataType type;
     // void *data = fetchDataByIndex("P1_Instruction_1", &type);
     // if (data && type == TYPE_STRING) {
     //     printf("Fetched P1_Instruction_1: %s\n", (char*)data);
     // } else {
     //     printf("Failed to fetch P1_Instruction_1\n");
     // }
+
     // DataType type;
     // // Test 3: Fetch variable (P1_Variable_1)
     // void *data = fetchDataByIndex("P1_Variable_c", &type);
@@ -189,5 +186,3 @@ int main() {
     printf("Test completed.\n");
     return 0;
 }
-
-

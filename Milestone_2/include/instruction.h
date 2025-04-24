@@ -5,13 +5,11 @@
 #include <stdlib.h>
 #include "../src/process.h"
 #include "../src/memory_manager.h"
+#include "../src/mutex.h"
 
-// Declare the global mutexes (extern = defined elsewhere) -- to be implemented
-/*
-    extern mutex fileMutex;
-    extern mutex inputMutex;
-    extern mutex outputMutex;
-*/
+extern mutex_t userInput_mutex;
+extern mutex_t userOutput_mutex;
+extern mutex_t file_mutex;
 
 // Function declarations
 

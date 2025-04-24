@@ -38,7 +38,7 @@ void runMLFQ() {
         runningProcess->quantumUsed++;
         runningProcess->remainingTime--;
 
-        // Execute(current->pid);              // Simulate the execution of the process
+        exec_cycle(runningProcess->pid); // Simulate the execution of the process
         printf("Executing %d\n", runningProcess->pid);
 
         if(runningProcess->remainingTime == 0) {
@@ -47,7 +47,7 @@ void runMLFQ() {
             setProcessState(runningProcess->pid, TERMINATED);
             runningProcess->state = TERMINATED;
             runningProcess->quantumUsed = 0; 
-            runningProcess = NULL; 
+            runningProcess = NULL;
             lastUsedLevel = -1;
         }else if(runningProcess->quantumUsed == timeQuantum){
             dequeue(readyQueues[lastUsedLevel]);  
