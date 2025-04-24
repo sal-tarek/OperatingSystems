@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include "../src/process.h"
 #include "../src/memory_manager.h"
 
