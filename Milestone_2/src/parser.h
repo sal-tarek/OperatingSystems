@@ -17,7 +17,7 @@ typedef enum
 {
     PRINT,
     ASSIGN,
-    WRITEFILE,
+    WRITETOFILE,
     READFILE,
     PRINTFROMTO,
     SEMWAIT,

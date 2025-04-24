@@ -4,10 +4,10 @@
 #include "../include/instruction.h"
 #include "mutex.h"
 
-// Define the actual mutexes
+/* Define the actual mutexes
 mutex_t fileMutex;
 mutex_t inputMutex;
-mutex_t outputMutex;
+mutex_t outputMutex;*/
 
 #define MAX_VAR_KEY_LEN 15
 #define MAX_ARG_LEN 100
@@ -23,7 +23,7 @@ void print(int processId, char *printable)
 {
     char varKey[MAX_VAR_KEY_LEN];
     snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, printable);
-    char *storedData = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
+    char *storedData = (char *)fetchDataByIndex(varKey,TYPE_STRING);
 
     if (storedData != NULL) {
         printf("%s", storedData);
@@ -39,7 +39,7 @@ void assign(int processId, char *arg1, char *arg2) {
     char varKey[MAX_VAR_KEY_LEN];
     snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
 
-    updateDataByIndex(varKey, arg2, "TYPE_STRING");
+    updateDataByIndex(varKey, arg2,TYPE_STRING);
 }
 
 // Write string to file
@@ -119,7 +119,7 @@ void printFromTo(int processId, char *arg1, char *arg2)
     }
 }
 
-// Semaphore wait function (locks a mutex)
+/* Semaphore wait function(locks a mutex)
 void semWait(int processId, char *x)
 {
     int result = 0;
@@ -145,9 +145,9 @@ void semWait(int processId, char *x)
         // Mutex was already locked by another thread
         printf("Mutex is already locked by another process.\n");
     }
-}
+}*/
 
-// Semaphore signal function (unlocks a mutex)
+/* Semaphore signal function(unlocks a mutex)
 void semSignal(int processId, char *x) {
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
@@ -163,7 +163,7 @@ void semSignal(int processId, char *x) {
         perror("invalid resource\n");
         return;
     }
-}
+}*/
 
 // Helper Functions implementation
 

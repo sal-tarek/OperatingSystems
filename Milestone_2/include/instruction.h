@@ -23,7 +23,7 @@ void print(int processId, char *printable);
 void assign(int processId, char *arg1, char *arg2);
 
 // Write string to file
-void writeFile(char *fileName, char *content);
+void writeToFile(char *fileName, char *content);
 
 // Read string from file
 char *readFromFile(char *fileName);

@@ -1,28 +1,28 @@
 #include "parser.h"
 #include <string.h>
 #include <stdlib.h>
-#include "instruction.h"
+#include "../include/instruction.h"
 
 // Static decoding hashmap
 static DecodeHashEntry decode_hashmap[DECODE_HASH_SIZE] = {
     {"print", PRINT},
     {"assign", ASSIGN},
-    {"writeFile", WRITEFILE},
+    {"writeToFile", WRITETOFILE},
     {"readFile", READFILE},
     {"printFromTo", PRINTFROMTO},
     {"semWait", SEMWAIT},
     {"semSignal", SEMSIGNAL}};
 
 // Fetch the current instruction for a process based on its PCB's program counter
-char* fetch_instruction(PCB* pcb, int pid)
+char* fetch_instruction(PCB* pcb, int pid){
     // Validate PID and get memory range
-    MemoryRange range = getProcessMemoryRange(pid);
-    if (range.inst_count == 0 && range.var_count == 0 && range.pcb_count == 0)
+    MemoryRange r = getProcessMemoryRange(pid);
+    if (r.inst_count == 0 && r.var_count == 0 && r.pcb_count == 0)
     {
         return NULL; // Error already logged by getProcessMemoryRange
     }
     // Check if program counter exceeds instruction count
-    if (pcb->programCounter >= range.inst_count)
+    if (pcb->programCounter >= r.inst_count)
     {
         return NULL; // No more instructions to fetch
     }
@@ -117,7 +117,7 @@ Instruction decode_instruction(char* instruction_string) {
             result.arg1[MAX_NAME_LEN - 1] = '\0';
         }
     }
-    else if (result.type == ASSIGN || result.type == WRITEFILE || result.type == PRINTFROMTO) {
+    else if (result.type == ASSIGN || result.type == WRITETOFILE || result.type == PRINTFROMTO) {
         // Expect exactly 2 arguments
         if (tokenCount != 3) {
             fprintf(stderr, "Error: %s expects exactly 2 arguments, got %d\n", tokens[0], tokenCount - 1);
@@ -203,8 +203,8 @@ break;
 case ASSIGN:
 assign(pid, instruction->arg1, instruction->arg2);
 break;
-case WRITEFILE:
-writeFile(instruction->arg1, instruction->arg2);
+case WRITETOFILE:
+writeToFile(instruction->arg1, instruction->arg2);
 break;
 case READFILE:
 // Already handled in decode_instruction, but we can log the result
@@ -213,18 +213,18 @@ break;
 case PRINTFROMTO:
 printFromTo(pid, instruction->arg1, instruction->arg2);
 break;
-case SEMWAIT:
-semWait(instruction->arg1);
+/*case SEMWAIT:
+semWait(pid,instruction->arg1);
 break;
 case SEMSIGNAL:
-semSignal(instruction->arg1);
-break;
+semSignal(pid,instruction->arg1);
+break;*/
 default:
 fprintf(stderr, "Error: Unknown instruction type: %d\n", instruction->type);
 return;
 }
 // Increment the program counter using the passed PCB
-pcb->pc += 1;
+pcb->programCounter += 1;
 }
 
 // Execution cycle: Fetch, decode, and execute an instruction for a given process
@@ -236,7 +236,7 @@ void exec_cycle(int pid) {
     // Fetch the PCB using fetchDataByIndex
     DataType type;
     void* data = fetchDataByIndex(pcb_key, &type);
-    if (!data || type != PCB_TYPE) {
+    if (!data || type != TYPE_PCB) {
         fprintf(stderr, "Error: Failed to fetch PCB for process %d (key: %s)\n", pid, pcb_key);
         return;
     }
@@ -269,5 +269,4 @@ void exec_cycle(int pid) {
 
     // Clean up
     free(instruction_str);
-}
 }
