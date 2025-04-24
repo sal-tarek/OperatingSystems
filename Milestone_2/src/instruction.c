@@ -87,10 +87,12 @@ void printFromTo(int processId, char *arg1, char *arg2)
 {
     char varKey[MAX_VAR_KEY_LEN];
     snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
-    char *storedData1 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
+    DataType type1;
+    char *storedData1 = (char *)fetchDataByIndex(varKey, &type1);
 
     snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg2);
-    char *storedData2 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
+    DataType type2;
+    char *storedData2 = (char *)fetchDataByIndex(varKey, &type2);
 
     int x, y, errCode1 = safe_atoi(storedData1, &x), errCode2 = safe_atoi(storedData2, &y);
 

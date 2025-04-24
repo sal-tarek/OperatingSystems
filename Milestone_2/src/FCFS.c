@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "FCFS.h"
+#include "parser.h"
 
 void runFCFS() {
     printf("\nTime %d: \n \n", clockCycle);

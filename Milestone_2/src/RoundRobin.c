@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "RoundRobin.h"
+#include "parser.h"
 
 // runs one cycle of the RR scheduler
 void runRR(int quantum) {     

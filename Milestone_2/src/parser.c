@@ -18,7 +18,7 @@ static DecodeHashEntry decode_hashmap[DECODE_HASH_SIZE] = {
 char *fetch_instruction(PCB *pcb, int pid)
 {
     // Validate PID and get memory range
-    MemoryRange r = getProcessMemoryRange(pid);
+    // MemoryRange r = getProcessMemoryRange(pid);
     /*
     if (r.inst_count == 0 && r.var_count == 0 && r.pcb_count == 0)
     {
@@ -33,6 +33,7 @@ char *fetch_instruction(PCB *pcb, int pid)
         return NULL; // No more instructions to fetch
     }
         */
+       
     // Generate key for the current instruction
     char key[32];
     snprintf(key, sizeof(key), "P%d_Instruction_%d", pid, pcb->programCounter + 1);

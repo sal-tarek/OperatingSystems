@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "MLFQ.h"               
+#include "MLFQ.h"     
+#include "parser.h"
 
 int lastUsedLevel = -1;  // -1 means no pending process
 

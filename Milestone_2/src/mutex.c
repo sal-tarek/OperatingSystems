@@ -9,8 +9,7 @@ struct mutex_t
 {
     char name[20];
     bool available;
-    PCB *
-        holder;
+    PCB *holder;
     PCB *blocked_queue[MAX_BLOCKED_PROCESSES];
     int blocked_count;
 };
@@ -191,24 +190,24 @@ mutex_t *get_mutex_by_name(const char *name)
 }
 
 // Clean up when a process terminates
-void cleanup_process_mutexes(PCB *process)
-{
-    if (process == NULL)
-        return;
+// void cleanup_process_mutexes(PCB *process)
+// {
+//     if (process == NULL)
+//         return;
 
-    if (userInput_mutex.holder == process)
-    {
-        mutex_unlock(&userInput_mutex, process);
-    }
-    if (userOutput_mutex.holder == process)
-    {
-        mutex_unlock(&userOutput_mutex, process);
-    }
-    if (file_mutex.holder == process)
-    {
-        mutex_unlock(&file_mutex, process);
-    }
-}
+//     if (userInput_mutex.holder == process)
+//     {
+//         mutex_unlock(&userInput_mutex, process);
+//     }
+//     if (userOutput_mutex.holder == process)
+//     {
+//         mutex_unlock(&userOutput_mutex, process);
+//     }
+//     if (file_mutex.holder == process)
+//     {
+//         mutex_unlock(&file_mutex, process);
+//     }
+// }
 
 /*
 int main() {
