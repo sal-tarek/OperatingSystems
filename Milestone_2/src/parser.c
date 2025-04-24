@@ -229,7 +229,7 @@ void trim_trailing_whitespace(char *str) {
 }
 
 // Execute instruction using the new handler functions and increment PC using the passed PCB
-void execute_instruction(PCB *pcb, int pid, Instruction *instruction)
+void execute_instruction(PCB *pcb, Process* process, Instruction *instruction)
 {
     if (!instruction)
     {
@@ -238,7 +238,7 @@ void execute_instruction(PCB *pcb, int pid, Instruction *instruction)
     }
     if (!pcb)
     {
-        fprintf(stderr, "Error: PCB is NULL for process %d\n", pid);
+        fprintf(stderr, "Error: PCB is NULL for process %d\n", process->pid);
         return;
     }
 
@@ -249,27 +249,27 @@ void execute_instruction(PCB *pcb, int pid, Instruction *instruction)
     switch (instruction->type)
     {
     case PRINT:
-        print(pid, instruction->arg1);
+        print(process->pid, instruction->arg1);
         break;
     case ASSIGN:
-        assign(pid, instruction->arg1, instruction->arg2);
+        assign(process->pid, instruction->arg1, instruction->arg2);
         break;
     case WRITETOFILE:
         writeToFile(instruction->arg1, instruction->arg2);
         break;
     case READFILE:
         // Already handled in decode_instruction, but we can log the result
-        printf("readFile result for process %d: %s\n", pid, instruction->arg1);
+        printf("readFile result for process %d: %s\n", process->pid, instruction->arg1);
         break;
     case PRINTFROMTO:
-        printFromTo(pid, instruction->arg1, instruction->arg2);
+        printFromTo(process->pid, instruction->arg1, instruction->arg2);
         break;
     case SEMWAIT:
         printf("Debugging: Resource being used: %s\n", instruction->arg1);
-        semWait(pid, instruction->arg1);
+        semWait(process, instruction->arg1);
         break;
     case SEMSIGNAL:
-        semSignal(pid, instruction->arg1);
+        semSignal(process, instruction->arg1);
         break;
     default:
         fprintf(stderr, "Error: Unknown instruction type: %d\n", instruction->type);
@@ -280,35 +280,28 @@ void execute_instruction(PCB *pcb, int pid, Instruction *instruction)
 }
 
 // Execution cycle: Fetch, decode, and execute an instruction for a given process
-void exec_cycle(int pid)
+void exec_cycle(Process* process)
 {
     // Format the PCB key as P<pid>_PCB
     char pcb_key[32]; // Sufficient size for "P<pid>_PCB"
-    snprintf(pcb_key, sizeof(pcb_key), "P%d_PCB", pid);
+    snprintf(pcb_key, sizeof(pcb_key), "P%d_PCB", process->pid);
 
     // Fetch the PCB using fetchDataByIndex
     DataType type;
     void *data = fetchDataByIndex(pcb_key, &type);
     if (!data || type != TYPE_PCB)
     {
-        fprintf(stderr, "Error: Failed to fetch PCB for process %d (key: %s)\n", pid, pcb_key);
+        fprintf(stderr, "Error: Failed to fetch PCB for process %d (key: %s)\n", process->pid, pcb_key);
         return;
     }
 
     PCB *pcb = (PCB *)data;
 
-    // Check if the process is in the RUNNING state
-    if (pcb->state != RUNNING)
-    {
-        fprintf(stderr, "Error: Process %d is not in RUNNING state (current state: %d)\n", pid, pcb->state);
-        return;
-    }
-
     // Fetch instruction
-    char *instruction_str = fetch_instruction(pcb, pid);
+    char *instruction_str = fetch_instruction(pcb, process->pid);
     if (!instruction_str)
     {
-        fprintf(stderr, "Error: Failed to fetch instruction for process %d\n", pid);
+        fprintf(stderr, "Error: Failed to fetch instruction for process %d\n", process->pid);
         return;
     }
 
@@ -316,17 +309,18 @@ void exec_cycle(int pid)
     Instruction instruction = decode_instruction(instruction_str);
     if (instruction.arg1[0] == '\0' && instruction.arg2[0] == '\0')
     {
-        fprintf(stderr, "Error: Failed to decode instruction for process %d: %s\n", pid, instruction_str);
+        fprintf(stderr, "Error: Failed to decode instruction for process %d: %s\n", process->pid, instruction_str);
         free(instruction_str);
         return;
     }
 
     // Execute instruction (PC will be incremented inside execute_instruction)
-    execute_instruction(pcb, pid, &instruction);
+    execute_instruction(pcb, process, &instruction);
 
     // Clean up
     free(instruction_str);
 }
+
 // Minimal main function to test decode_instruction and execute_instruction
 /*
 int main() {
