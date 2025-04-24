@@ -14,7 +14,6 @@ mutex_t outputMutex;*/
 
 // Helper function signatures
 int safe_atoi(const char *str, int *out);
-char *input(char *functionality);
 
 // Main Functions
 
@@ -192,16 +191,6 @@ int safe_atoi(const char *str, int *out) {
 
     *out = (int)value;
     return 0;
-}
-
-// Take input from user
-char *input(char *functionality) {
-    char  *output;
-
-    printf("Please %s\n", functionality);
-    scanf("%s", output);
-
-    return output;
 }
 
 /* Code that might be used later:

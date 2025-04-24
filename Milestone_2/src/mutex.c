@@ -161,10 +161,12 @@ void cleanup_process_mutexes(PCB *process) {
     if (file_mutex.holder == process) {
         mutex_unlock(&file_mutex, process);
     }}
+    /*
     int main() {
         printf("Mutex System Initialization...\n");
     
     
         return 0;
     }
+        */
     
