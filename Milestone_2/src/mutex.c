@@ -176,11 +176,10 @@ mutex_t *get_mutex_by_name(const char *name)
 }
 
 // Clean up when a process terminates
-void cleanup_process_mutexes(Process *process)
-{
-    if (process == NULL)
-        return;
-
+// void cleanup_process_mutexes(Process *process)
+// {
+//     if (process == NULL)
+//         return;
 //     if (userInput_mutex.holder == process)
 //     {
 //         mutex_unlock(&userInput_mutex, process);
