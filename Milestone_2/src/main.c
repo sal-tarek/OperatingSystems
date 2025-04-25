@@ -75,17 +75,23 @@ int main() {
     printf("\n");
 
 
-    // Schedulers
+    while(clockCycle < 5) {
+        printf("Time %d\n", clockCycle);
+        populateMemory();
+        printMemory();
+        clockCycle++;
+        }
+   
 
     // MLFQ
-    while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
-        populateMemory();
-        //printMemory();
-        runMLFQ(); 
-        //runFCFS();
-        //runRR(2);
-        if (clockCycle++ == 30) break;
-    }
+    // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
+    //     populateMemory();
+    //     //printMemory();
+    //     runMLFQ(); 
+    //     //runFCFS();
+    //     //runRR(2);
+    //     if (clockCycle++ == 30) break;
+    // }
 
     // RR
     // Get quantum from user

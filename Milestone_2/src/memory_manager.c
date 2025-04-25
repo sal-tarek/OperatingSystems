@@ -24,7 +24,7 @@ MemoryRange ranges[MAX_PROCESSES];
 int ranges_count = 0; // Number of processes with assigned ranges
 int current_memory_usage = 0; // Track total memory words used
 
-void readInstructions(Process *process) {
+void readInstructionsOnly(Process *process) {
     // Temporary array to store variable names
     char **variables = (char**)calloc(10, sizeof(char*)); // Initial capacity for variables
     int var_capacity = 10;
@@ -43,6 +43,25 @@ void readInstructions(Process *process) {
     while (fgets(line, sizeof(line), file)) {
         line[strcspn(line, "\n")] = 0;
         inst_count++;
+
+        // add the line to instructions string in process struct
+    if (process->instructions == NULL) {
+        // First line, allocate memory
+        process->instructions = strdup(line);
+    } else {
+        // Reallocate memory to fit existing content plus new line
+        size_t new_size = strlen(process->instructions) + strlen(line) + 2; // +2 for newline and null terminator
+        char *temp = realloc(process->instructions, new_size);
+        
+        if (temp != NULL) {
+            process->instructions = temp;
+            strcat(process->instructions, "\n");  // Add newline separator
+            strcat(process->instructions, line);  // Append the new line
+        } else {
+            // Handle memory allocation failure
+            // (could add error handling here)
+        }
+    }
 
         // Check for variables in "assign" instructions
         if (strncmp(line, "assign ", 7) == 0) {
@@ -63,33 +82,80 @@ void readInstructions(Process *process) {
             }
         }
     }
-    rewind(file); // Reset file pointer to read again for storage
+    fclose(file);
+    // assign instructions and variables counts to the process
+    process->instruction_count = inst_count;
+    process->variable_count = var_count;
+    process->variables = (char**)calloc(var_count, sizeof(char*));
+    for (int i = 0; i < var_count; i++) {
+        process->variables[i] = strdup(variables[i]);
+    }
+}
 
+    void addInstAndVars(Process *process) {
+    //readInstructionsOnly(process); // Read instructions and variables
     // Check if the process fits in memory
+    int inst_count = process->instruction_count;
+    int var_count = process->variable_count;
+    char **variables = process->variables;
+    if (variables == NULL) {
+        fprintf(stderr, "No variables found for PID %d\n", process->pid);
+        return;
+    }
+    // Check if the process can fit in memory
     int total_words_needed = inst_count + var_count + 1; // Instructions + Variables + PCB
     if (current_memory_usage + total_words_needed > MAX_MEMORY_WORDS) {
         fprintf(stderr, "Sorry, we can't store PID %d: we only have %d words left and the program needs %d words from memory\n",
                 process->pid, MAX_MEMORY_WORDS - current_memory_usage, total_words_needed);
-        fclose(file);
-        free(variables);
+        process->variables = NULL; // Set to NULL to indicate no variables
+        process->instruction_count = 0; // Reset instruction count
+        process->variable_count = 0; // Reset variable count
         return;
     }
 
     // Assign starting address for instructions
     ranges[ranges_count].inst_start = (ranges_count == 0) ? 0 : ranges[ranges_count - 1].pcb_start + 1;
     ranges[ranges_count].inst_count = inst_count;
+     
+    FILE *file = fopen(process->file_path, "r");
+    if (!file) {
+        fprintf(stderr, "Failed to open %s\n", process->file_path);
+        free(variables);
+        return;
+    }
 
-    // Read instructions and store them
-    int inst_idx = 0;
-    while (fgets(line, sizeof(line), file)) {
-        line[strcspn(line, "\n")] = 0;
+  // Assuming process->instructions already contains all the instructions
+// Parse through the stored instructions and add each line to memory
+
+char *instruction_ptr = process->instructions;
+char line[256];
+int inst_idx = 0;
+
+// If we have stored instructions
+if (instruction_ptr) {
+    while (*instruction_ptr) {
+        // Clear the line buffer
+        memset(line, 0, sizeof(line));
+        // Copy characters until we hit a newline or end of string
+        int line_idx = 0;
+        while (*instruction_ptr && *instruction_ptr != '\n' && line_idx < sizeof(line) - 1) {
+            line[line_idx++] = *instruction_ptr++;
+        }
+        // Add null terminator
+        line[line_idx] = 0;
+        // Skip the newline character if present
+        if (*instruction_ptr == '\n') {
+            instruction_ptr++;
+        }
+        // Add the line to memory
         addMemoryData(&memory, ranges[ranges_count].inst_start + inst_idx, line, TYPE_STRING);
+        // Create and add index entry
         char key[32];
         snprintf(key, sizeof(key), "P%d_Instruction_%d", process->pid, inst_idx + 1);
         addIndexEntry(&index_table, key, ranges[ranges_count].inst_start + inst_idx);
         inst_idx++;
     }
-    fclose(file);
+}
 
     // Update burstTime with the number of instructions
     process->burstTime = ranges[ranges_count].inst_count;
@@ -147,7 +213,7 @@ void populateMemory() {
                     continue;
                 }
 
-                readInstructions(curr);
+                addInstAndVars(curr); // Read instructions and variables
                 populatePCB(curr);
                 ranges_count++; // Increment ranges_count
 
