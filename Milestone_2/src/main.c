@@ -78,11 +78,11 @@ int main() {
     // Schedulers
 
     // MLFQ
-    while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
-        populateMemory();
-        runMLFQ(); 
-        if (clockCycle++ == 30) break;
-    }
+    // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
+    //     populateMemory();
+    //     runMLFQ(); 
+    //     clockCycle++;
+    // }
 
     // RR
     // Get quantum from user
@@ -107,12 +107,12 @@ int main() {
     // }
 
     // FCFS
-    // while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
-    //     populateMemory();
-    //     displayProcess(runningProcess);
-    //     runFCFS(); 
-    //     clockCycle++; 
-    // }
+    while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
+        populateMemory();
+        displayProcess(runningProcess);
+        runFCFS(); 
+        clockCycle++; 
+    }
 
 
     // Test 1: Populate memory at time 0
