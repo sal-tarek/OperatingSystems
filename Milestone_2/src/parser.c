@@ -270,15 +270,6 @@ void exec_cycle(int pid) {
     // Clean up
     free(instruction_str);
 }
-// Minimal main function to test decode_instruction and execute_instruction
-int main() {
-    printf("Starting parser test...\n");
-
-    // Create a mock PCB
-    PCB mock_pcb = { 0 };
-    mock_pcb.id = 0;              // Process ID
-    mock_pcb.programCounter = 0;   // Start at instruction 0
-    mock_pcb.state = RUNNING;      // Process must be in RUNNING state
 
     // Mock instructions (simulating a .txt file)
     char* instructions[] = {
