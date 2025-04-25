@@ -23,16 +23,18 @@ mutex_t file_mutex = {"file", true, NULL, {0}, 0};
 
 void remove_from_global_blocked_queue(Process *process)
 {
-    printf("Debugging: process to be removed from global blocked queue %d", process->pid);
     while(!isEmpty(global_blocked_queue))
     {
+        printf("Before: Global Blocked ");
         displayQueueSimplified(global_blocked_queue);
 
         if(process == global_blocked_queue->front)
         {
-            printf("Debugging: inside if statement in remove_from_global_queue\n");
             dequeue(global_blocked_queue);
             enqueue(readyQueues[getProcessPriority(process->pid)], process);
+
+            printf("After: Global Blocked ");
+            displayQueueSimplified(global_blocked_queue);
             break;
         }
         else
@@ -72,6 +74,8 @@ int mutex_lock(mutex_t *mutex, Process* process)
         // Mutex is available, acquire it
         mutex->available = false;
         mutex->holder = process;  // Assign the process as the mutex holder
+        printf("Mutex %s acquired by process %d\n", mutex->name, process->pid);
+
         return 0;                 // Success
     }
     else
@@ -83,9 +87,8 @@ int mutex_lock(mutex_t *mutex, Process* process)
         setProcessState(process->pid, BLOCKED); // set PCB State to BLOCKED
 
         enqueue(global_blocked_queue, process); // Add to global blocked queue
-        displayQueueSimplified(global_blocked_queue);
 
-        printf("Process %d blocked waiting for %s\n", process->pid, mutex->name);
+        printf("Process %d is blocked waiting for %s\n", process->pid, mutex->name);
     }
     return 1; // Failure
 }
@@ -105,16 +108,18 @@ int mutex_unlock(mutex_t *mutex, Process* process)
         mutex->available = true;
         mutex->holder = NULL;
 
+        printf("Mutex %s released by process %d\n", mutex->name, process->pid);
+
         // Unblock the highest priority process waiting for this mutex
         if (mutex->blocked_count > 0)
         {
-            int highest_pri = -1;
+            int highest_pri = 5;
             int selected_idx = -1;
 
             // Find highest priority process in blocked queue
             for (int i = 0; i < mutex->blocked_count; i++)
             {
-                if (getProcessPriority(mutex->blocked_queue[i]->pid) > highest_pri)
+                if (getProcessPriority(mutex->blocked_queue[i]->pid) < highest_pri)
                 {
                     highest_pri = getProcessPriority(mutex->blocked_queue[i]->pid);
                     selected_idx = i;
@@ -142,7 +147,7 @@ int mutex_unlock(mutex_t *mutex, Process* process)
 
                 remove_from_global_blocked_queue(next_process);
 
-                printf("Process %d unblocked for %s\n", next_process->pid, mutex->name);
+                printf("Process %d will start using %s in its coming quantum\n", next_process->pid, mutex->name);
             }
         }
         return 0; // Success

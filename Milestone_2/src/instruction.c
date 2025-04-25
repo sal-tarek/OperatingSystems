@@ -140,7 +140,6 @@ void semWait(Process* process, char *x)
         result = mutex_lock(&file_mutex, process);
         printf("semWait called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
-        printf("Debugging: in semWait function");
         result = mutex_lock(&userInput_mutex, process);  // Lock the input mutex
         printf("semWait called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
@@ -151,13 +150,13 @@ void semWait(Process* process, char *x)
         return;
     }
 
-    if (result == 0) {
-        // Mutex was successfully locked (it wasn't locked before)
-        printf("Mutex was not locked, now locked.\n");
-    } else {
-        // Mutex was already locked by another thread
-        printf("Mutex is already locked by another process.\n");
-    }
+    // if (result == 0) {
+    //     // Mutex was successfully locked (it wasn't locked before)
+    //     printf("Mutex was not locked, now locked.\n");
+    // } else {
+    //     // Mutex was already locked by another thread
+    //     printf("Mutex is already locked by another process.\n");
+    // }
 }
 
 // Semaphore signal function (unlocks a mutex)

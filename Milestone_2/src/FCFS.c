@@ -6,19 +6,26 @@
 void runFCFS() {
     printf("\nTime %d: \n \n", clockCycle);
 
-    // Print ready queue
-    printf("Ready ");
-    displayQueueSimplified(readyQueues[0]);
-
     // Fetch the next process from the ready queue & Handling Blocked processes
     while (!isEmpty(readyQueues[0])) {
         if(peek(readyQueues[0])->state == BLOCKED) 
             dequeue(readyQueues[0]); 
         else{
             runningProcess = peek(readyQueues[0]);
-            break;
+            exec_cycle(runningProcess); // Execution of the next instruction of the process
+
+            if(runningProcess->state == BLOCKED) {
+                dequeue(readyQueues[0]); // Remove the process from the queue
+                runningProcess = NULL; // Clear runningProcess
+            }
+            else
+                break;
         }
     }
+
+    // Print ready queue
+    printf("Ready ");
+    displayQueueSimplified(readyQueues[0]);
 
     // If a process is running, execute it
     if (runningProcess != NULL) {

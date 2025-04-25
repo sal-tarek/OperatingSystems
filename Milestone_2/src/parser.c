@@ -270,9 +270,9 @@ void execute_instruction(PCB *pcb, Process* process, Instruction *instruction)
         printFromTo(process->pid, instruction->arg1, instruction->arg2);
         break;
     case SEMWAIT:
-        printf("Debugging: Resource being used: %s\n", instruction->arg1);
-        printf("Debugging: instruction type: %p\n", process);
-        printf("Debugging: prcoess accessing test: %d", process->state);
+        // printf("Debugging: Resource being used: %s\n", instruction->arg1);
+        // printf("Debugging: instruction type: %p\n", process);
+        // printf("Debugging: prcoess accessing test: %d", process->state);
         semWait(process, instruction->arg1);
         break;
     case SEMSIGNAL:
@@ -304,6 +304,7 @@ void exec_cycle(Process* process)
 
     PCB *pcb = (PCB *)data;
 
+    printf("Debugging: process accessing test: %d  program counter %d\n", process->pid, pcb->programCounter);
     // Fetch instruction
     char *instruction_str = fetch_instruction(pcb, process->pid);
     // printf("Debugging: memory dump after fetch\n");
@@ -326,7 +327,7 @@ void exec_cycle(Process* process)
     }
 
     // Execute instruction (PC will be incremented inside execute_instruction)
-    printf("Debugging: prcoess accessing test: %d\n", process->pid);
+    // printf("Debugging: prcoess accessing test: %d\n", process->pid);
     execute_instruction(pcb, process, &instruction);
     // printf("Debugging: memory dump after execute\n");
     // printMemory();
