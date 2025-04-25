@@ -82,6 +82,8 @@ int main() {
         populateMemory();
         //printMemory();
         runMLFQ(); 
+        //runFCFS();
+        //runRR(2);
         if (clockCycle++ == 30) break;
     }
 

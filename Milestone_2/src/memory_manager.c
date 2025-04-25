@@ -57,18 +57,6 @@ void readInstructions(Process *process) {
                     }
                 }
                 if (!exists) {
-                    // // Resize if necessary
-                    // if (var_count >= var_capacity) {
-                    //     var_capacity *= 2;
-                    //     char **new_vars = (char**)realloc(variables, var_capacity * sizeof(char*));
-                    //     if (!new_vars) {
-                    //         fclose(file);
-                    //         for (int i = 0; i < var_count; i++) free(variables[i]);
-                    //         free(variables);
-                    //         return;
-                    //     }
-                    //     variables = new_vars;
-                    // }
                     variables[var_count] = strdup(var_name);
                     var_count++;
                 }
