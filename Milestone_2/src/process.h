@@ -1,7 +1,7 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-typedef enum { NEW, READY, RUNNING, WAITING, TERMINATED, ERROR } ProcessState;
+typedef enum { NEW, READY, RUNNING, BLOCKED, TERMINATED, ERROR } ProcessState;
 
 
 typedef struct Process {

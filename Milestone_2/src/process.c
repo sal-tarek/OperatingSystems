@@ -43,7 +43,7 @@ void displayProcess(Process *p) {
             case NEW: printf("State: NEW\n"); break;
             case READY: printf("State: READY\n"); break;
             case RUNNING: printf("State: RUNNING\n"); break;
-            case WAITING: printf("State: WAITING\n"); break;
+            case BLOCKED: printf("State: WAITING\n"); break;
             case TERMINATED: printf("State: TERMINATED\n"); break;
             default: printf("State: UNKNOWN\n");
         }

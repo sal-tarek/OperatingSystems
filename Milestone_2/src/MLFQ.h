@@ -3,6 +3,7 @@
 
 #include "Queue.h"
 #include "process.h"
+#include "parser.h"
 
 #define numProcesses 3
 #define numQueues 4
