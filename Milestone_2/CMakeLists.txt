@@ -4,14 +4,44 @@ project(OS_Simulator C)
 # Set C standard
 set(CMAKE_C_STANDARD 99)
 
-# Include directories
-include_directories(include src)
+# Find GTK4 for the GUI executable
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTK4 REQUIRED gtk4)
 
-# Collect all .c files from src/
-file(GLOB SRC_FILES src/*.c)
+# Print GTK4 configuration for debugging
+message("GTK4_INCLUDE_DIRS: ${GTK4_INCLUDE_DIRS}")
+message("GTK4_LIBRARIES: ${GTK4_LIBRARIES}")
+message("GTK4_LIBRARY_DIRS: ${GTK4_LIBRARY_DIRS}")
+message("GTK4_CFLAGS_OTHER: ${GTK4_CFLAGS_OTHER}")
 
-# Exclude "main" binary or other non-C files if necessary
-list(REMOVE_ITEM SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/main")
+# Include directories for both simulator and GTK4
+include_directories(
+    include
+    src
+    src/views
+    ${GTK4_INCLUDE_DIRS}
+)
 
-# Add the executable
-add_executable(simulator ${SRC_FILES})
+# Link directories for GTK4
+link_directories(${GTK4_LIBRARY_DIRS})
+
+# Add GTK4-specific compiler flags
+add_definitions(${GTK4_CFLAGS_OTHER})
+
+# Collect all .c files from src/ for the simulator, excluding GUI-related files
+file(GLOB SIMULATOR_SRC_FILES 
+    src/*.c
+)
+# Exclude GUI files from simulator
+list(FILTER SIMULATOR_SRC_FILES EXCLUDE REGEX "src/views/.*")
+
+# Add the simulator executable (backend)
+add_executable(simulator ${SIMULATOR_SRC_FILES})
+
+# Add the GTK4 test executable (GUI)
+add_executable(gtk4-test
+    src/views/console_view.c
+)
+
+# Link GTK4 libraries to the GUI executable
+target_link_libraries(gtk4-test ${GTK4_LIBRARIES})

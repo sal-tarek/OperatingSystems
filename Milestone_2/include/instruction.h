@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../src/process.h"
-#include "../src/memory_manager.h"
-#include "../src/mutex.h"
+#include "process.h"
+#include "memory_manager.h"
+#include "mutex.h"
 
 extern mutex_t userInput_mutex;
 extern mutex_t userOutput_mutex;
