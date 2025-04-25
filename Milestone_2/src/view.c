@@ -246,7 +246,7 @@ void view_update_queue(int queue_index, GList *processes, int running_pid) {
         anim->alpha = 0.0;
         anim->animating = 1;
         anim->steps = 0;
-        anim->total_steps = 10; // 10 steps for fade-in (~0.2 seconds at 20ms per step)
+        anim->total_steps = 14; // 14 steps for fade-in (~0.2 seconds per step)
 
         // Check if this process existed in the old list
         int old_pos = -1;

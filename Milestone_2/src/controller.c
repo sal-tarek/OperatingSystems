@@ -1,5 +1,6 @@
 #include <gtk/gtk.h>
 #include "view.h"
+#include <glib.h>
 #include "process.h"
 #include "Queue.h"
 #include "MLFQ.h"
@@ -108,8 +109,12 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data) {
         getProcessState(2) != TERMINATED || 
         getProcessState(3) != TERMINATED) {
         populateMemory();
-        controller_update_all();
         runMLFQ();
+        
+        // Sleep
+        g_usleep(50000);
+
+        controller_update_all();
         clockCycle++;
     } else {
         gtk_widget_set_sensitive(button, FALSE); // Disable button when done
