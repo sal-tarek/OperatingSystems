@@ -7,20 +7,27 @@
 void runRR(int quantum) {     
     printf("\nTime %d: \n \n", clockCycle);
 
-    // Print ready queue
-    printf("Ready ");
-    displayQueueSimplified(readyQueues[0]); 
-
     // Fetch the next process from the ready queue & Handling Blocked processes
     while (!isEmpty(readyQueues[0])) {
         if(peek(readyQueues[0])->state == BLOCKED) 
             dequeue(readyQueues[0]); 
         else{
             runningProcess = peek(readyQueues[0]);
-            break;
+            exec_cycle(runningProcess); // Execution of the next instruction of the process
+
+            if(runningProcess->state == BLOCKED) {
+                dequeue(readyQueues[0]); // Remove the process from the queue
+                runningProcess = NULL; // Clear runningProcess
+            }
+            else
+                break;
         }
     }
         
+    // Print ready queue
+    printf("Ready ");
+    displayQueueSimplified(readyQueues[0]); 
+
     if(runningProcess != NULL){
         setProcessState(runningProcess->pid, RUNNING);
         runningProcess->state = RUNNING;
@@ -28,7 +35,6 @@ void runRR(int quantum) {
         runningProcess->quantumUsed++;
         runningProcess->remainingTime--;
 
-        // Execute(current->pid);              // Simulate the execution of the process
         printf("Executing %d\n", runningProcess->pid);
 
         if(runningProcess->remainingTime == 0) {
@@ -38,7 +44,7 @@ void runRR(int quantum) {
         }else if(runningProcess->quantumUsed == quantum){
             dequeue(readyQueues[0]);  
             enqueue(readyQueues[0], runningProcess); 
-            printf("moved %d level 0\n", runningProcess->pid);
+            printf("moved %d to level 0\n", runningProcess->pid);
             
             runningProcess->quantumUsed = 0; 
             runningProcess = NULL; 

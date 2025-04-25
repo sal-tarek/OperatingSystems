@@ -4,30 +4,32 @@
 #include "../include/instruction.h"
 #include "mutex.h"
 
-/* Define the actual mutexes
-mutex_t fileMutex;
-mutex_t inputMutex;
-mutex_t outputMutex;*/
-
 #define MAX_VAR_KEY_LEN 15
 #define MAX_ARG_LEN 100
 
 // Helper function signatures
 int safe_atoi(const char *str, int *out);
+char *input(char *functionality);
 
 // Main Functions
 
 // Print "printStatement" to terminal
 void print(int processId, char *printable)
 {
+    DataType type;
     char varKey[MAX_VAR_KEY_LEN];
     snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, printable);
-    char *storedData = (char *)fetchDataByIndex(varKey,TYPE_STRING);
+    char *storedData = (char *)fetchDataByIndex(varKey, &type);
+
+    if (type != TYPE_STRING) {
+        perror("Erroneous fetch\n");
+        return;
+    }
 
     if (storedData != NULL) {
         printf("%s", storedData);
     } else {
-        perror("Variable not found!");
+        perror("Variable not found!\n");
     }
 }
 
@@ -38,7 +40,7 @@ void assign(int processId, char *arg1, char *arg2) {
     char varKey[MAX_VAR_KEY_LEN];
     snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
 
-    updateDataByIndex(varKey, arg2,TYPE_STRING);
+    updateDataByIndex(varKey, arg2, TYPE_STRING);
 }
 
 // Write string to file
@@ -90,12 +92,23 @@ char *readFromFile(char *fileName)
 // parses the input to get 2 integers and print the numbers between them (inclusive)
 void printFromTo(int processId, char *arg1, char *arg2)
 {
+    DataType type;
     char varKey[MAX_VAR_KEY_LEN];
     snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
-    char *storedData1 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
+    char *storedData1 = (char *)fetchDataByIndex(varKey, &type);
+
+    if (type != TYPE_STRING) {
+        perror("Erroneous fetch\n");
+        return;
+    }
 
     snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg2);
-    char *storedData2 = (char *)fetchDataByIndex(varKey, "TYPE_STRING");
+    char *storedData2 = (char *)fetchDataByIndex(varKey, &type);
+
+    if (type != TYPE_STRING) {
+        perror("Erroneous fetch\n");
+        return;
+    }
 
     int x, y, errCode1 = safe_atoi(storedData1, &x), errCode2 = safe_atoi(storedData2, &y);
 
@@ -118,57 +131,62 @@ void printFromTo(int processId, char *arg1, char *arg2)
     }
 }
 
-/* Semaphore wait function(locks a mutex)
-void semWait(int processId, char *x)
+// Semaphore wait function (locks a mutex)
+void semWait(Process* process, char *x)
 {
     int result = 0;
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
-        result = mutex_lock(&fileMutex, processId);
+        result = mutex_lock(&file_mutex, process);
         printf("semWait called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
-        result = mutex_lock(&inputMutex, processId);  // Lock the input mutex
+        result = mutex_lock(&userInput_mutex, process);  // Lock the input mutex
         printf("semWait called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
-        result = mutex_lock(&outputMutex, processId);  // Lock the output mutex
+        result = mutex_lock(&userOutput_mutex, process);  // Lock the output mutex
         printf("semWait called on user output\n");
     } else {
         perror("invalid resource\n");
         return;
     }
 
-    if (result == 0) {
-        // Mutex was successfully locked (it wasn't locked before)
-        printf("Mutex was not locked, now locked.\n");
-    } else {
-        // Mutex was already locked by another thread
-        printf("Mutex is already locked by another process.\n");
-    }
-}*/
+    // if (result == 0) {
+    //     // Mutex was successfully locked (it wasn't locked before)
+    //     printf("Mutex was not locked, now locked.\n");
+    // } else {
+    //     // Mutex was already locked by another thread
+    //     printf("Mutex is already locked by another process.\n");
+    // }
+}
 
-/* Semaphore signal function(unlocks a mutex)
-void semSignal(int processId, char *x) {
+// Semaphore signal function (unlocks a mutex)
+void semSignal(Process* process, char *x) {
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
-        mutex_unlock(&fileMutex, processId);
+        mutex_unlock(&file_mutex, process);
         printf("semSignal called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
-        mutex_unlock(&inputMutex, processId);  // Unlock the input mutex
+        mutex_unlock(&userInput_mutex, process);  // Unlock the input mutex
         printf("semSignal called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
-        mutex_unlock(&outputMutex, processId);  // Unlock the output mutex
+        mutex_unlock(&userOutput_mutex, process);  // Unlock the output mutex
         printf("semSignal called on user output\n");
     } else {
         perror("invalid resource\n");
         return;
     }
-}*/
+}
 
 // Helper Functions implementation
 
 // parses a string to an int
 // returns 0 on success, 1 on invalid input (not a number), and 2 if out of int range
 int safe_atoi(const char *str, int *out) {
+    if (str == NULL || *str == '\0') {
+        // Invalid string input
+        return 1;
+    }
+
     char *end;
     errno = 0; // clear errno before call
 

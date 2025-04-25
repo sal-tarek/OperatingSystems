@@ -21,12 +21,7 @@ int clockCycle;                             // current clock cycle of the simula
 Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
-Queue * blocked_queue = NULL;
-
-// add header for mutex.h
-// mutex_t userInput_mutex = NULL;
-// mutex_t userOutput_mutex = NULL;
-// mutex_t file_mutex = NULL;
+Queue *global_blocked_queue = NULL;
 
 int main() {
     clockCycle = 0;
@@ -45,7 +40,11 @@ int main() {
     for (int i = 0; i < numQueues; i++) 
         readyQueues[i] = createQueue();
 
+    // Create global blocked queue
+    global_blocked_queue = createQueue();
+
     // Create blocked_queue
+    /*
     blocked_queue = createQueue();
     if (!blocked_queue) {
         fprintf(stderr, "Failed to create blocked_queue\n");
@@ -53,7 +52,7 @@ int main() {
         for(int i = 0; i < 4; i++)
             freeQueue(readyQueues[i]);
         return 1;
-    }
+    }*/
 
     // Create processes
     Process *p1 = createProcess(1, "../programs/Program_1.txt", 0);
@@ -82,7 +81,7 @@ int main() {
     while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
         populateMemory();
         runMLFQ(); 
-        clockCycle++; 
+        if (clockCycle++ == 30) break;
     }
 
     // RR
@@ -110,6 +109,7 @@ int main() {
     // FCFS
     // while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
     //     populateMemory();
+    //     displayProcess(runningProcess);
     //     runFCFS(); 
     //     clockCycle++; 
     // }
@@ -118,19 +118,21 @@ int main() {
     // Test 1: Populate memory at time 0
     printf("Populating memory at time 0...\n");
     printf("size: %d\n", getQueueSize(job_pool));
-    populateMemory();
+    // populateMemory();
     printMemory();
     // displayMemoryRange(0); // Show all memory ranges
 
 
-    // // Test 2: Fetch instruction (P1_Instruction_1)
+    // Test 2: Fetch instruction (P1_Instruction_1)
    
+    // DataType type;
     // void *data = fetchDataByIndex("P1_Instruction_1", &type);
     // if (data && type == TYPE_STRING) {
     //     printf("Fetched P1_Instruction_1: %s\n", (char*)data);
     // } else {
     //     printf("Failed to fetch P1_Instruction_1\n");
     // }
+
     // DataType type;
     // // Test 3: Fetch variable (P1_Variable_1)
     // void *data = fetchDataByIndex("P1_Variable_c", &type);
@@ -189,5 +191,3 @@ int main() {
     printf("Test completed.\n");
     return 0;
 }
-
-

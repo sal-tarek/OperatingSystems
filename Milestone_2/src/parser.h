@@ -47,9 +47,9 @@ char* fetch_instruction(PCB* pcb, int pid);
 Instruction decode_instruction(char* instruction_string);
 
 // Execution - Main function
-void execute_instruction(PCB* pcb, int pid, Instruction* instruction);
+void execute_instruction(PCB* pcb, Process *process, Instruction* instruction);
 
 // Execution Cycle
-void exec_cycle(int pid);
+void exec_cycle(Process *process);
 
 #endif // PARSER_H

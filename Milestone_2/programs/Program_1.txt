@@ -5,6 +5,3 @@ semSignal userInput
 semWait userOutput
 printFromTo a b
 semSignal userOutput
-
-
-
