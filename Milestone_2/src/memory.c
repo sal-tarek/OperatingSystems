@@ -21,7 +21,7 @@ void addMemoryData(MemoryWord **memory, int address, void *data, DataType type) 
         if (word->type == TYPE_STRING) {
             free(word->data);
         } else if (word->type == TYPE_PCB) {
-            free((struct PCB*)word->data);
+            free(( PCB*)word->data);
         }
         word->type = type;
     }
@@ -48,7 +48,7 @@ int updateMemoryData(MemoryWord **memory, int address, void *new_data, DataType 
     if (word->type == TYPE_STRING) {
         free(word->data);
     } else if (word->type == TYPE_PCB) {
-        free((struct PCB*)word->data);
+        free(( PCB*)word->data);
     }
     word->type = type;
     if (type == TYPE_STRING) {
@@ -66,7 +66,7 @@ void freeMemoryWord() {
         if (current->type == TYPE_STRING) {
             free(current->data);
         } else if (current->type == TYPE_PCB) {
-            free((struct PCB*)current->data);
+            free(( PCB*)current->data);
         }
         free(current);
     }
@@ -85,13 +85,13 @@ void printMemory() {
         if (curr->type == TYPE_STRING) {
             printf("%s\n", (char*)curr->data);
         } else if (curr->type == TYPE_PCB) {
-            struct PCB *pcb = (struct PCB*)curr->data;
+             PCB *pcb = ( PCB*)curr->data;
             const char *state_str;
             switch (getPCBState(pcb)) {
                 case NEW: state_str = "NEW"; break;
                 case READY: state_str = "READY"; break;
                 case RUNNING: state_str = "RUNNING"; break;
-                case WAITING: state_str = "WAITING"; break;
+                case BLOCKED: state_str = "WAITING"; break;
                 case TERMINATED: state_str = "TERMINATED"; break;
                 default: state_str = "UNKNOWN";
             }

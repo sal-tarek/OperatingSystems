@@ -3,16 +3,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include "../src/process.h"
 #include "../src/memory_manager.h"
+#include "../src/mutex.h"
 
-// Declare the global mutexes (extern = defined elsewhere) -- to be implemented
-/*
-    extern mutex fileMutex;
-    extern mutex inputMutex;
-    extern mutex outputMutex;
-*/
+extern mutex_t userInput_mutex;
+extern mutex_t userOutput_mutex;
+extern mutex_t file_mutex;
 
 // Function declarations
 
@@ -23,7 +20,7 @@ void print(int processId, char *printable);
 void assign(int processId, char *arg1, char *arg2);
 
 // Write string to file
-void writeFile(char *fileName, char *content);
+void writeToFile(char *fileName, char *content);
 
 // Read string from file
 char *readFromFile(char *fileName);
@@ -32,7 +29,7 @@ char *readFromFile(char *fileName);
 void printFromTo(int processId, char *arg1, char *arg2);
 
 // Semaphore functions
-void semWait(char *resource);
-void semSignal(char *resource);
+void semWait(Process *process, char *resource);
+void semSignal(Process *process, char *resource);
 
 #endif // INSTRUCTIONS_H

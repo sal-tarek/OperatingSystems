@@ -17,7 +17,7 @@ typedef enum
 {
     PRINT,
     ASSIGN,
-    WRITEFILE,
+    WRITETOFILE,
     READFILE,
     PRINTFROMTO,
     SEMWAIT,
@@ -39,19 +39,17 @@ typedef struct
     InstructionType value; // Instruction type (e.g., PRINT)
 } DecodeHashEntry;
 
-// Execution hashmap entry (maps instruction type to function pointer)
-typedef struct
-{
-    InstructionType key;                   // Instruction type (e.g., PRINT)
-    void (*handler)(PCB *, Instruction *); // Function pointer to syntax function
-} ExecuteHashEntry;
-
 // Function prototypes
 // Fetching
-char *fetch_instruction(MemoryWord *memory, IndexEntry *index, PCB *pcb, Process *process);
+char* fetch_instruction(PCB* pcb, int pid);
 
 // Decoding
-Instruction decode_instruction(char *instruction_string);
+Instruction decode_instruction(char* instruction_string);
 
 // Execution - Main function
-void execute_instruction(MemoryWord *memory, PCB *pcb, Process *process, Instruction *instruction);
+void execute_instruction(PCB* pcb, Process *process, Instruction* instruction);
+
+// Execution Cycle
+void exec_cycle(Process *process);
+
+#endif // PARSER_H

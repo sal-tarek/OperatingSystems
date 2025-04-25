@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "process.h"
 #include "Queue.h"
 
@@ -121,7 +122,6 @@ void freeQueue(Queue* q) {
     }
     free(q);
 }
-#include <stdbool.h>
 
 bool isQueueEmpty(Queue* q) {
     return q == NULL || q->front == NULL;
