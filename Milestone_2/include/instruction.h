@@ -29,7 +29,7 @@ char *readFromFile(char *fileName);
 void printFromTo(int processId, char *arg1, char *arg2);
 
 // Semaphore functions
-void semWait(int processId, char *resource);
-void semSignal(int processId, char *resource);
+void semWait(Process *process, char *resource);
+void semSignal(Process *process, char *resource);
 
 #endif // INSTRUCTIONS_H

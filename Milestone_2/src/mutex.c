@@ -3,14 +3,16 @@
 #include "mutex.h"
 #include <stdbool.h>
 #include <stdlib.h>
+#include "Queue.h"
+#include "process.h"
 
 // Mutex structure definition
 struct mutex_t
 {
     char name[20];
     bool available;
-    PCB *holder;
-    PCB *blocked_queue[MAX_BLOCKED_PROCESSES];
+    Process *holder;
+    Process *blocked_queue[MAX_BLOCKED_PROCESSES];
     int blocked_count;
 };
 
@@ -19,33 +21,25 @@ mutex_t userInput_mutex = {"userInput", true, NULL, {0}, 0};
 mutex_t userOutput_mutex = {"userOutput", true, NULL, {0}, 0};
 mutex_t file_mutex = {"file", true, NULL, {0}, 0};
 
-// Global general blocked queue
-PCB *global_blocked_queue[MAX_GLOBAL_BLOCKED];
-int global_blocked_count = 0;
-void add_to_global_blocked_queue(PCB *process)
+void remove_from_global_blocked_queue(Process *process)
 {
-    if (global_blocked_count < MAX_GLOBAL_BLOCKED)
+    while(!isEmpty(global_blocked_queue))
     {
-        global_blocked_queue[global_blocked_count++] = process;
-    }
-    else
-    {
-        fprintf(stderr, "Error: Global blocked queue full\n");
-    }
-}
+        printf("Before: Global Blocked ");
+        displayQueueSimplified(global_blocked_queue);
 
-void remove_from_global_blocked_queue(PCB *process)
-{
-    for (int i = 0; i < global_blocked_count; i++)
-    {
-        if (global_blocked_queue[i] == process)
+        if(process == global_blocked_queue->front)
         {
-            for (int j = i; j < global_blocked_count - 1; j++)
-            {
-                global_blocked_queue[j] = global_blocked_queue[j + 1];
-            }
-            global_blocked_count--;
+            dequeue(global_blocked_queue);
+            enqueue(readyQueues[getProcessPriority(process->pid)], process);
+
+            printf("After: Global Blocked ");
+            displayQueueSimplified(global_blocked_queue);
             break;
+        }
+        else
+        {
+            enqueue(global_blocked_queue, dequeue(global_blocked_queue));
         }
     }
 }
@@ -67,14 +61,9 @@ void mutex_init_system(void)
 }
 
 // Lock a mutex (semWait)
-int mutex_lock(mutex_t *mutex, int processId)
+int mutex_lock(mutex_t *mutex, Process* process)
 {
-    char varKey[7];
-    snprintf(varKey, 7, "P%d_PCB", processId);
-    DataType type_out;
-    PCB *process_pcb = fetchDataByIndex(varKey, &type_out);
-
-    if (mutex == NULL || process_pcb == NULL || type_out != TYPE_PCB)
+    if (mutex == NULL)
     {
         fprintf(stderr, "Error: Null parameter in mutex_lock\n");
         return 1; // Return 1 for error
@@ -84,83 +73,81 @@ int mutex_lock(mutex_t *mutex, int processId)
     {
         // Mutex is available, acquire it
         mutex->available = false;
-        process_pcb->state = BLOCKED; // Use enum value
-        mutex->holder = process_pcb;  // Assign the process as the mutex holder
-        process_pcb->state = RUNNING; // Use enum value
+        mutex->holder = process;  // Assign the process as the mutex holder
+        printf("Mutex %s acquired by process %d\n", mutex->name, process->pid);
+
         return 0;                 // Success
     }
     else
     {
         // Mutex is not available, block the process
-        if (mutex->blocked_count < MAX_BLOCKED_PROCESSES)
-        {
-            mutex->blocked_queue[mutex->blocked_count++] = process_pcb;
-            process_pcb->state = BLOCKED; // Use enum value
-            add_to_global_blocked_queue(process_pcb);
+        mutex->blocked_queue[mutex->blocked_count++] = process;
+         
+        process->state = BLOCKED; 
+        setProcessState(process->pid, BLOCKED); // set PCB State to BLOCKED
 
-            printf("Process %d blocked waiting for %s\n", process_pcb->id, mutex->name);
-        }
-        else
-        {
-            fprintf(stderr, "Error: Blocked queue full for %s\n", mutex->name);
-        }
+        enqueue(global_blocked_queue, process); // Add to global blocked queue
+
+        printf("Process %d is blocked waiting for %s\n", process->pid, mutex->name);
     }
     return 1; // Failure
 }
 
 // Unlock a mutex (semSignal)
-int mutex_unlock(mutex_t *mutex, int processId)
+int mutex_unlock(mutex_t *mutex, Process* process)
 {
-    char varKey[7];
-    snprintf(varKey, 7, "P%d_PCB", processId);
-    DataType type_out;
-    PCB *process_pcb = fetchDataByIndex(varKey, &type_out);
-
-    if (mutex == NULL || process_pcb == NULL || type_out != TYPE_PCB)
+    if (mutex == NULL)
     {
         fprintf(stderr, "Error: Null parameter in mutex_lock\n");
         return 1; // Return 1 for error
     }
 
-    if (!mutex->available && mutex->holder == process_pcb)
+    if (!mutex->available && mutex->holder == process)
     {
         // Release the mutex
         mutex->available = true;
         mutex->holder = NULL;
 
+        printf("Mutex %s released by process %d\n", mutex->name, process->pid);
+
         // Unblock the highest priority process waiting for this mutex
         if (mutex->blocked_count > 0)
         {
-            int highest_pri = -1;
+            int highest_pri = 5;
             int selected_idx = -1;
 
             // Find highest priority process in blocked queue
             for (int i = 0; i < mutex->blocked_count; i++)
             {
-                if (mutex->blocked_queue[i]->priority > highest_pri)
+                if (getProcessPriority(mutex->blocked_queue[i]->pid) < highest_pri)
                 {
-                    highest_pri = mutex->blocked_queue[i]->priority;
+                    highest_pri = getProcessPriority(mutex->blocked_queue[i]->pid);
                     selected_idx = i;
                 }
             }
 
             if (selected_idx != -1)
             {
-                PCB *next_process = mutex->blocked_queue[selected_idx];
+                Process *next_process = mutex->blocked_queue[selected_idx];
 
                 // Remove from blocked queue
                 for (int i = selected_idx; i < mutex->blocked_count - 1; i++)
                 {
                     mutex->blocked_queue[i] = mutex->blocked_queue[i + 1];
                 }
+
                 mutex->blocked_count--;
-                remove_from_global_blocked_queue(next_process);
 
                 // Acquire the mutex for this process
                 mutex->available = false;
                 mutex->holder = next_process;
+
                 next_process->state = READY;
-                printf("Process %d unblocked for %s\n", next_process->id, mutex->name);
+                setProcessState(next_process->pid, READY); // set PCB State to READY
+
+                remove_from_global_blocked_queue(next_process);
+
+                printf("Process %d will start using %s in its coming quantum\n", next_process->pid, mutex->name);
             }
         }
         return 0; // Success
@@ -171,8 +158,7 @@ int mutex_unlock(mutex_t *mutex, int processId)
     }
     else
     {
-        fprintf(stderr, "Error: Process %d doesn't hold mutex %s\n",
-            process_pcb->id, mutex->name);
+        fprintf(stderr, "Error: Process %d doesn't hold mutex %s\n",process->pid, mutex->name);
     }
     return 1; // Failure
 }
@@ -190,10 +176,10 @@ mutex_t *get_mutex_by_name(const char *name)
 }
 
 // Clean up when a process terminates
-// void cleanup_process_mutexes(PCB *process)
-// {
-//     if (process == NULL)
-//         return;
+void cleanup_process_mutexes(Process *process)
+{
+    if (process == NULL)
+        return;
 
 //     if (userInput_mutex.holder == process)
 //     {

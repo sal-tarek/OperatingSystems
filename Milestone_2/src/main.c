@@ -23,7 +23,7 @@ int clockCycle; // Current clock cycle of the simulation
 Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
-Queue *blocked_queue = NULL;
+Queue *global_blocked_queue = NULL;
 
 // Timeout callback to advance simulation
 static gboolean on_timeout(gpointer user_data) {
@@ -57,7 +57,11 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < numQueues; i++) 
         readyQueues[i] = createQueue();
 
+    // Create global blocked queue
+    global_blocked_queue = createQueue();
+
     // Create blocked_queue
+    /*
     blocked_queue = createQueue();
     if (!blocked_queue) {
         fprintf(stderr, "Failed to create blocked_queue\n");
@@ -65,7 +69,7 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < numQueues; i++)
             freeQueue(readyQueues[i]);
         return 1;
-    }
+    }*/
 
     // Create processes
     Process *p1 = createProcess(1, "../programs/Program_1.txt", 0);
@@ -76,7 +80,7 @@ int main(int argc, char *argv[]) {
         freeQueue(job_pool);
         for (int i = 0; i < numQueues; i++)
             freeQueue(readyQueues[i]);
-        freeQueue(blocked_queue);
+        freeQueue(global_blocked_queue);
         return 1;
     }
 
@@ -97,7 +101,7 @@ int main(int argc, char *argv[]) {
     freeQueue(job_pool);
     for (int i = 0; i < numQueues; i++)
         freeQueue(readyQueues[i]);
-    freeQueue(blocked_queue);
+    freeQueue(global_blocked_queue);
 
     return status;
 }
