@@ -12,14 +12,19 @@
 // Controller structure to hold references to View and Model data
 typedef struct {
     GtkWidget *view_window;
-    GtkWidget *running_process_label; 
-    GtkWidget *step_button; 
+    GtkWidget *running_process_label;
+    GtkWidget *step_button;
+    GtkWidget *automatic_button; // New button for automatic mode
+    GtkWidget *pause_button;    // New button to pause automatic mode
+    guint automatic_timer_id;   // Timer ID for automatic loop
 } Controller;
-
 
 static Controller *controller = NULL;
 
 static void on_step_clicked(GtkWidget *button, gpointer user_data);
+static void on_automatic_clicked(GtkWidget *button, gpointer user_data);
+static void on_pause_clicked(GtkWidget *button, gpointer user_data);
+static gboolean automatic_step(gpointer user_data);
 
 void controller_init(GtkApplication *app) {
     controller = g_new0(Controller, 1);
@@ -27,11 +32,16 @@ void controller_init(GtkApplication *app) {
     controller->view_window = view_init();
     controller->running_process_label = view_get_running_process_label();
     controller->step_button = view_get_step_button();
+    controller->automatic_button = view_get_automatic_button();
+    controller->pause_button = view_get_pause_button();
+    controller->automatic_timer_id = 0; // Initialize timer ID
 
     gtk_window_set_application(GTK_WINDOW(controller->view_window), app);
 
-    // Connect step button signal
+    // Connect button signals
     g_signal_connect(controller->step_button, "clicked", G_CALLBACK(on_step_clicked), NULL);
+    g_signal_connect(controller->automatic_button, "clicked", G_CALLBACK(on_automatic_clicked), NULL);
+    g_signal_connect(controller->pause_button, "clicked", G_CALLBACK(on_pause_clicked), NULL);
 }
 
 // Update queue display for a specific queue
@@ -98,6 +108,11 @@ void controller_update_all() {
 // Cleanup controller
 void controller_cleanup() {
     if (controller) {
+        // Remove automatic timer if active
+        if (controller->automatic_timer_id != 0) {
+            g_source_remove(controller->automatic_timer_id);
+            controller->automatic_timer_id = 0;
+        }
         g_free(controller);
         controller = NULL;
     }
@@ -117,7 +132,55 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data) {
         controller_update_all();
         clockCycle++;
     } else {
-        gtk_widget_set_sensitive(button, FALSE); // Disable button when done
+        gtk_widget_set_sensitive(button, FALSE); // Disable step button when done
+        gtk_widget_set_sensitive(controller->automatic_button, FALSE); // Disable automatic button
+    }
+}
+
+// Automatic button callback
+static void on_automatic_clicked(GtkWidget *button, gpointer user_data) {
+    if (controller->automatic_timer_id == 0) {
+        // Start automatic mode
+        controller->automatic_timer_id = g_timeout_add(1500, automatic_step, NULL); // 1.5 second interval
+        gtk_widget_set_sensitive(controller->automatic_button, FALSE); // Disable automatic button
+        gtk_widget_set_sensitive(controller->pause_button, TRUE);      // Enable pause button
+        gtk_widget_set_sensitive(controller->step_button, FALSE);      // Disable step button
+    }
+}
+
+// Pause button callback
+static void on_pause_clicked(GtkWidget *button, gpointer user_data) {
+    if (controller->automatic_timer_id != 0) {
+        // Stop automatic mode
+        g_source_remove(controller->automatic_timer_id);
+        controller->automatic_timer_id = 0;
+        gtk_widget_set_sensitive(controller->automatic_button, TRUE);  // Enable automatic button
+        gtk_widget_set_sensitive(controller->pause_button, FALSE);     // Disable pause button
+        gtk_widget_set_sensitive(controller->step_button, TRUE);       // Enable step button
+    }
+}
+
+// Automatic step callback
+static gboolean automatic_step(gpointer user_data) {
+    if (getProcessState(1) != TERMINATED || 
+        getProcessState(2) != TERMINATED || 
+        getProcessState(3) != TERMINATED) {
+        populateMemory();
+        runMLFQ();
+        
+        // Sleep
+        g_usleep(100000);
+
+        controller_update_all();
+        clockCycle++;
+        return G_SOURCE_CONTINUE; // Continue the timer
+    } else {
+        // All processes terminated, stop automatic mode
+        controller->automatic_timer_id = 0;
+        gtk_widget_set_sensitive(controller->automatic_button, FALSE); // Disable automatic button
+        gtk_widget_set_sensitive(controller->pause_button, FALSE);     // Disable pause button
+        gtk_widget_set_sensitive(controller->step_button, FALSE);      // Disable step button
+        return G_SOURCE_REMOVE; // Stop the timer
     }
 }
 

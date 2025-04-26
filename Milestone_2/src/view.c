@@ -133,6 +133,18 @@ static void draw_legend_callback(GtkDrawingArea *area, cairo_t *cr, int width, i
     cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
     cairo_move_to(cr, x + 20, y + 5);
     cairo_show_text(cr, "running");
+
+    x += 80;
+
+    // Red circle for "blocked"
+    cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+    cairo_arc(cr, x, y, 10, 0, 2 * G_PI);
+    cairo_fill(cr);
+
+    // "blocked" label
+    cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
+    cairo_move_to(cr, x + 20, y + 5);
+    cairo_show_text(cr, "blocked");
 }
 
 // Animation callback
@@ -172,6 +184,7 @@ GtkWidget* view_init() {
 
     // Create main grid
     GtkWidget *grid = gtk_grid_new();
+    gtk_grid_set_column_homogeneous(GTK_GRID(grid), FALSE);
     gtk_grid_set_row_spacing(GTK_GRID(grid), 10);
     gtk_grid_set_column_spacing(GTK_GRID(grid), 10);
     gtk_window_set_child(GTK_WINDOW(view->window), grid);
@@ -209,9 +222,23 @@ GtkWidget* view_init() {
     gtk_label_set_xalign(GTK_LABEL(view->running_process_label), 0.0);
     gtk_grid_attach(GTK_GRID(grid), view->running_process_label, 0, 6, 1, 1);
 
-    // Create step button
+    GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_box_set_homogeneous(GTK_BOX(button_box), TRUE);
+    
     view->step_button = gtk_button_new_with_label("Step");
-    gtk_grid_attach(GTK_GRID(grid), view->step_button, 0, 7, 1, 1);
+    gtk_widget_set_size_request(view->step_button, 80, 30);
+    gtk_box_append(GTK_BOX(button_box), view->step_button);
+    
+    view->automatic_button = gtk_button_new_with_label("Automatic");
+    gtk_widget_set_size_request(view->automatic_button, 80, 30);
+    gtk_box_append(GTK_BOX(button_box), view->automatic_button);
+    
+    view->pause_button = gtk_button_new_with_label("Pause");
+    gtk_widget_set_size_request(view->pause_button, 80, 30);
+    gtk_widget_set_sensitive(view->pause_button, FALSE);
+    gtk_box_append(GTK_BOX(button_box), view->pause_button);
+    
+    gtk_grid_attach(GTK_GRID(grid), button_box, 0, 7, 3, 1);
 
     // Initialize running PID
     view->running_pid = -1;
@@ -317,4 +344,11 @@ GtkWidget* view_get_running_process_label() {
 
 GtkWidget* view_get_step_button() {
     return view->step_button;
+}
+GtkWidget* view_get_automatic_button() {
+    return view->automatic_button;
+}
+
+GtkWidget* view_get_pause_button() {
+    return view->pause_button;
 }
