@@ -2,16 +2,20 @@
 #include <errno.h>
 #include <limits.h>
 #include "instruction.h"
-#include "mutex.h"
-
-#define MAX_VAR_KEY_LEN 15
-#define MAX_ARG_LEN 100
 
 // Helper function signatures
 int safe_atoi(const char *str, int *out);
-char *input(char *functionality);
 
 // Main Functions
+
+char *input(const char *prompt)
+{
+    console_view_printf(console, "%s", prompt);
+    static char buffer[MAX_ARG_LEN];
+    console_view_scanf(console, buffer, MAX_ARG_LEN);
+    buffer[strcspn(buffer, "\n")] = '\0';
+    return strdup(buffer);
+}
 
 // Print "printStatement" to terminal
 void print(int processId, char *printable)
@@ -27,9 +31,9 @@ void print(int processId, char *printable)
     }
 
     if (storedData != NULL) {
-        printf("%s", storedData);
+        console_view_printf(console, "%s/n", storedData);
     } else {
-        perror("Variable not found!\n");
+        console_view_printf(console, "Variable not found!\n");
     }
 }
 
@@ -50,11 +54,11 @@ void writeToFile(char *filename, char *content)
 
     if (fptr == NULL)
     {
-        perror("Failed to create the file");
+        console_view_printf(console, "Failed to create the file\n");
         return;
     }
 
-    printf("File created successfully.\n");
+    console_view_printf(console, "File %s created successfully.\n", filename);
     fprintf(fptr, "%s", content);
     fclose(fptr);
 }
@@ -66,7 +70,7 @@ char *readFromFile(char *fileName)
 
     if (fptr == NULL)
     {
-        perror("Error opening file");
+        console_view_printf(console, "Error opening file\n");
         return NULL;
     }
 
@@ -77,7 +81,7 @@ char *readFromFile(char *fileName)
     char *buffer = (char *)malloc(file_size + 1);
     if (!buffer)
     {
-        perror("Failed to allocate memory");
+        console_view_printf(console, "Failed to allocate memory\n");
         fclose(fptr);
         return NULL;
     }
@@ -98,7 +102,7 @@ void printFromTo(int processId, char *arg1, char *arg2)
     char *storedData1 = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING) {
-        perror("Erroneous fetch\n");
+        console_view_printf(console, "Erroneous fetch\n");
         return;
     }
 
@@ -106,7 +110,7 @@ void printFromTo(int processId, char *arg1, char *arg2)
     char *storedData2 = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING) {
-        perror("Erroneous fetch\n");
+        console_view_printf(console, "Erroneous fetch\n");
         return;
     }
 
@@ -114,20 +118,20 @@ void printFromTo(int processId, char *arg1, char *arg2)
 
     if (errCode1 == 0 && errCode2 == 0) {
         if (x > y) {
-            printf("second argument is smaller than first argument");
+            console_view_printf(console, "second argument is smaller than first argument");
             return;
         }
         
         for (int i = x; i <= y; i++)
         {
-            printf("%d", i);
-            if (i != y) printf(" ");
+            console_view_printf(console, "%d", i);
+            if (i != y) console_view_printf(console, " ");
         }
         printf("\n");
     } else if (errCode1 == 1 || errCode2 == 1) {
-        perror("either values are invalid inputs (not a number)");
+        console_view_printf(console, "either values are invalid inputs (not a number)");
     } else {
-        perror("either values is out of int range");
+        console_view_printf(console, "either values is out of int range");
     }
 }
 
@@ -138,15 +142,15 @@ void semWait(Process* process, char *x)
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
         result = mutex_lock(&file_mutex, process);
-        printf("semWait called on file\n");
+        console_view_printf(console, "semWait called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
         result = mutex_lock(&userInput_mutex, process);  // Lock the input mutex
-        printf("semWait called on user input\n");
+        console_view_printf(console, "semWait called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
         result = mutex_lock(&userOutput_mutex, process);  // Lock the output mutex
-        printf("semWait called on user output\n");
+        console_view_printf(console, "semWait called on user output\n");
     } else {
-        perror("invalid resource\n");
+        console_view_printf(console, "invalid resource\n");
         return;
     }
 
@@ -164,15 +168,15 @@ void semSignal(Process* process, char *x) {
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
         mutex_unlock(&file_mutex, process);
-        printf("semSignal called on file\n");
+        console_view_printf(console, "semSignal called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
         mutex_unlock(&userInput_mutex, process);  // Unlock the input mutex
-        printf("semSignal called on user input\n");
+        console_view_printf(console, "semSignal called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
         mutex_unlock(&userOutput_mutex, process);  // Unlock the output mutex
-        printf("semSignal called on user output\n");
+        console_view_printf(console, "semSignal called on user output\n");
     } else {
-        perror("invalid resource\n");
+        console_view_printf(console, "invalid resource\n");
         return;
     }
 }
