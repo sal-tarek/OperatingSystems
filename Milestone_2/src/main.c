@@ -23,7 +23,7 @@ MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 Queue *global_blocked_queue = NULL;
 
-int main() {
+int main2() {
     clockCycle = 0;
 
     // Initialize memory hashmap (empty for now)
@@ -75,12 +75,12 @@ int main() {
     printf("\n");
 
     //populate memory test
-    // while(clockCycle < 5) {
-    //     printf("Time %d\n", clockCycle);
-    //     populateMemory();
-    //     printMemory();
-    //     clockCycle++;
-    //     }
+    while(clockCycle < 5) {
+        printf("Time %d\n", clockCycle);
+        populateMemory();
+        printMemory();
+        clockCycle++;
+        }
    
 
     // //MLFQ
