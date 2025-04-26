@@ -91,7 +91,7 @@ void runMLFQ() {
         }
     }
     else{
-        printf("CPU is idle\n", clockCycle);
+        printf("CPU is idle\n");
     }
 
     return;

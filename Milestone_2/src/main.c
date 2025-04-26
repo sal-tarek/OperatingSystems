@@ -23,7 +23,7 @@ MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 Queue *global_blocked_queue = NULL;
 
-int main() {
+int main2() {
     clockCycle = 0;
 
     // Initialize memory hashmap (empty for now)
@@ -77,42 +77,49 @@ int main() {
 
     // Schedulers
 
-    // MLFQ
-    // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
+    // while(clockCycle<5){
     //     populateMemory();
+    //     clockCycle++;
+    // }
+
+    // MLFQ
+    // while((getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) && clockCycle<6) {
+    //     populateMemory();
+    //     printMemory();
     //     runMLFQ(); 
     //     clockCycle++;
     // }
 
     // RR
     // Get quantum from user
-    // int q;
-    // do {
-    //     printf("Enter quantum (positive integer): ");
-    //     if (scanf("%d", &q) != 1) { // Invalid input: not a number
-    //         printf("Invalid input. Please enter a number.\n");
-    //         q = -1; 
-    //     } else if (q <= 0) {
-    //         printf("Quantum must be a positive integer.\n");
-    //     }
+    int q;
+    do {
+        printf("Enter quantum (positive integer): ");
+        if (scanf("%d", &q) != 1) { // Invalid input: not a number
+            printf("Invalid input. Please enter a number.\n");
+            q = -1; 
+        } else if (q <= 0) {
+            printf("Quantum must be a positive integer.\n");
+        }
         
-    //     // clear the input buffer after using scanf
-    //     int c;
-    //     while ((c = getchar()) != '\n' && c != EOF); 
-    // } while (q <= 0);
-    // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
-    //     populateMemory();
-    //     runRR(q); 
-    //     clockCycle++; 
-    // }
-
-    // FCFS
-    while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
+        // clear the input buffer after using scanf
+        int c;
+        while ((c = getchar()) != '\n' && c != EOF); 
+    } while (q <= 0);
+    while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
         populateMemory();
-        displayProcess(runningProcess);
-        runFCFS(); 
+        printMemory();
+        runRR(q); 
         clockCycle++; 
     }
+
+    // // FCFS
+    // while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
+    //     populateMemory();
+    //     displayProcess(runningProcess);
+    //     runFCFS(); 
+    //     clockCycle++; 
+    // }
 
 
     // Test 1: Populate memory at time 0
