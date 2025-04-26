@@ -74,14 +74,21 @@ int main() {
     displayQueue(job_pool);
     printf("\n");
 
+    //populate memory test
+    // while(clockCycle < 5) {
+    //     printf("Time %d\n", clockCycle);
+    //     populateMemory();
+    //     printMemory();
+    //     clockCycle++;
+    //     }
+   
 
-    // Schedulers
-
-    // MLFQ
+    // //MLFQ
     // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
     //     populateMemory();
+    //     //printMemory();
     //     runMLFQ(); 
-    //     clockCycle++;
+    //     if (clockCycle++ == 30) break;
     // }
 
     // RR
@@ -106,20 +113,22 @@ int main() {
     //     clockCycle++; 
     // }
 
-    // FCFS
-    while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
-        populateMemory();
-        displayProcess(runningProcess);
-        runFCFS(); 
-        clockCycle++; 
-    }
+    //FCFS
+    // while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
+    //     populateMemory();
+    //     displayProcess(runningProcess);
+    //     runFCFS(); 
+    //     clockCycle++; 
+    // }
 
 
     // Test 1: Populate memory at time 0
-    printf("Populating memory at time 0...\n");
-    printf("size: %d\n", getQueueSize(job_pool));
+    
+    // printf("Populating memory at time 0...\n");
+    // printf("size: %d\n", getQueueSize(job_pool));
     // populateMemory();
-    printMemory();
+    // printMemory();
+
     // displayMemoryRange(0); // Show all memory ranges
 
 

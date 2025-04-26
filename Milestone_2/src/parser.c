@@ -184,6 +184,7 @@ Instruction decode_instruction(char *instruction_string)
         if (strcmp(tokens[2], "input") == 0)
         {
             char *userInput = input("Enter value for arg2: ");
+            
             if (!userInput)
             {
                 free(copy);

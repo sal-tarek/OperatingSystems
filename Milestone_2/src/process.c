@@ -7,6 +7,7 @@
 #include "memory.h"
 #include "index.h"
 
+
 Process* createProcess(int pid, const char *file_path, int arrival_time) {
     Process* newProcess = (Process*)malloc(sizeof(Process));
     if (!newProcess) {
@@ -14,6 +15,16 @@ Process* createProcess(int pid, const char *file_path, int arrival_time) {
         exit(EXIT_FAILURE);
     }
     newProcess->pid = pid;
+    //set file path as the parameter idk why not working
+    // if (file_path != NULL) {
+    //     newProcess->file_path = strdup(file_path);
+    //     if (!newProcess->file_path) {
+    //         fprintf(stderr, "Failed to allocate memory for file_path\n");
+    //         free(newProcess);
+    //         exit(EXIT_FAILURE);
+    //     }
+    //     return newProcess;
+    // }
     char full_path[64];
     snprintf(full_path, sizeof(full_path), "../programs/Program_%d.txt", pid);
     newProcess->file_path = strdup(full_path);
@@ -24,12 +35,18 @@ Process* createProcess(int pid, const char *file_path, int arrival_time) {
     newProcess->remainingTime = 0;
     newProcess->next = NULL;
     newProcess->quantumUsed = 0;
+    newProcess->instruction_count = 0;
+    newProcess->instructions = NULL; // Initialize to NULL
+    newProcess->variable_count = 0;
+    newProcess->variables = NULL; // Initialize to NULL
 
     if (!newProcess->file_path) {
         fprintf(stderr, "Failed to allocate memory for file_path\n");
         free(newProcess);
         exit(EXIT_FAILURE);
     }
+    // Read instructions and variables from the file
+    readInstructionsOnly(newProcess);
 
     return newProcess;
 }
@@ -58,6 +75,7 @@ void displayProcess(Process *p) {
         printf("Arrival Time: %d\n", p->arrival_time);
         printf("Burst Time: %d\n", p->burstTime);
         printf("Remaining Time: %d\n", p->remainingTime);
+        printf("instructions: %s\n", p->instructions);
         printf("------------------------\n");
     }
 }

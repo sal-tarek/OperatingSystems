@@ -21,7 +21,8 @@ extern MemoryRange ranges[MAX_PROCESSES]; // Store ranges for each process
 extern int ranges_count; // Number of processes with assigned ranges
 extern int current_memory_usage; // Track total memory words used
 
-void readInstructions(Process *process);
+void readInstructionsOnly(Process *process);
+void addInstAndVars(Process *process);
 void populatePCB(Process *process);
 void populateMemory(void);
 void* fetchDataByIndex(const char *key, DataType *type_out);
