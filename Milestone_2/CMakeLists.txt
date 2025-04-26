@@ -14,7 +14,7 @@ message("GTK4_LIBRARIES: ${GTK4_LIBRARIES}")
 message("GTK4_LIBRARY_DIRS: ${GTK4_LIBRARY_DIRS}")
 message("GTK4_CFLAGS_OTHER: ${GTK4_CFLAGS_OTHER}")
 
-# Include directories for both simulator and GTK4
+# Include directories for both simulator and GUI
 include_directories(
     include
     src
@@ -32,16 +32,18 @@ add_definitions(${GTK4_CFLAGS_OTHER})
 file(GLOB SIMULATOR_SRC_FILES 
     src/*.c
 )
-# Exclude GUI files from simulator
+
+# Exclude GUI files (src/views/*.c) from simulator build
 list(FILTER SIMULATOR_SRC_FILES EXCLUDE REGEX "src/views/.*")
 
-# Add the simulator executable (backend)
+# Add the simulator executable (backend only)
 add_executable(simulator ${SIMULATOR_SRC_FILES})
 
+# Collect all GUI source files from src/views/
+file(GLOB GUI_SRC_FILES src/views/*.c)
+
 # Add the GTK4 test executable (GUI)
-add_executable(gtk4-test
-    src/views/console_view.c
-)
+add_executable(gtk4-test ${GUI_SRC_FILES})
 
 # Link GTK4 libraries to the GUI executable
 target_link_libraries(gtk4-test ${GTK4_LIBRARIES})
