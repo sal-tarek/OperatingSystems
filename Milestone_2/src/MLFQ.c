@@ -27,7 +27,7 @@ void runMLFQ() {
         }
     }
     if(lastUsedLevel == -1){
-        for (int i = 0; i < numQueues; i++) {
+        for (int i = 0; i < MAX_NUM_QUEUES; i++) {
             while (!isEmpty(readyQueues[i])) {
                 if(peek(readyQueues[i])->state == BLOCKED) 
                     dequeue(readyQueues[i]);
@@ -47,10 +47,6 @@ void runMLFQ() {
             if(runningProcess != NULL) break; // Exit if we found a process
         }
     }
-
-    // Display the ready queues
-    for(int i = 0; i < 4; i++)
-        displayQueueSimplified(readyQueues[i]);
 
     if(runningProcess != NULL){
         int timeQuantum = 1 << lastUsedLevel; // time quantum = 2^i for queue i {Queue 0 --> 1, Queue 1 --> 2, Queue 2 --> 4, Queue 3 --> 8}
@@ -95,5 +91,8 @@ void runMLFQ() {
         printf("CPU is idle\n", clockCycle);
     }
 
+        // Display the ready queues
+    for(int i = 0; i < 4; i++)
+        displayQueueSimplified(readyQueues[i]);
     return;
 }

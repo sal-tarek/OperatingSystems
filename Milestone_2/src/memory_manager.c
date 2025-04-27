@@ -8,21 +8,9 @@
 #include "Queue.h"
 #include "memory.h"
 
-
-#define numProcesses 3
-#define numQueues 4
-
-// Global variables declared in main.c
-extern Queue *job_pool;
-extern MemoryWord *memory;
-extern IndexEntry *index_table;
-extern Queue *readyQueues[numQueues]; 
-extern int clockCycle;
-
-// Global array to store memory ranges for each process
-MemoryRange ranges[MAX_PROCESSES];
-int ranges_count = 0; // Number of processes with assigned ranges
-int current_memory_usage = 0; // Track total memory words used
+MemoryRange ranges[MAX_NUM_PROCESSES]; // Store ranges for each process
+int ranges_count; // Number of processes with assigned ranges
+int current_memory_usage; // Track total memory words used
 
 void readInstructions(Process *process) {
     // Temporary array to store variable names

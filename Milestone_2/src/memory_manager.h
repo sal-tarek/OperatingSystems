@@ -3,7 +3,8 @@
 
 #include "process.h"
 #include "memory.h"
-
+#include "index.h"
+#include "Queue.h"
 
 typedef struct {
     int inst_start;  // Start address for instructions
@@ -14,12 +15,17 @@ typedef struct {
     int pcb_count;   // Number of PCB entries (typically 1)
 } MemoryRange;
 
-#define MAX_PROCESSES 10 // Maximum number of processes to support
+#define MAX_NUM_PROCESSES 10    // Maximum number of processes to support
+#define MAX_NUM_QUEUES 4        // Maximum number of queues
 #define MAX_MEMORY_WORDS 60 // Maximum memory size
 
-extern MemoryRange ranges[MAX_PROCESSES]; // Store ranges for each process
-extern int ranges_count; // Number of processes with assigned ranges
-extern int current_memory_usage; // Track total memory words used
+
+// Global variables declared in main.c
+extern Queue *job_pool;
+extern MemoryWord *memory;
+extern IndexEntry *index_table;
+extern Queue *readyQueues[MAX_NUM_QUEUES]; 
+extern int clockCycle;
 
 void readInstructions(Process *process);
 void populatePCB(Process *process);

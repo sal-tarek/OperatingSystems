@@ -14,8 +14,8 @@ typedef struct {
     GtkWidget *view_window;
     GtkWidget *running_process_label;
     GtkWidget *step_button;
-    GtkWidget *automatic_button; // New button for automatic mode
-    GtkWidget *pause_button;    // New button to pause automatic mode
+    GtkWidget *automatic_button; // Button for automatic mode
+    GtkWidget *pause_button;    // Button to pause automatic mode
     guint automatic_timer_id;   // Timer ID for automatic loop
 } Controller;
 
@@ -26,27 +26,9 @@ static void on_automatic_clicked(GtkWidget *button, gpointer user_data);
 static void on_pause_clicked(GtkWidget *button, gpointer user_data);
 static gboolean automatic_step(gpointer user_data);
 
-void controller_init(GtkApplication *app) {
-    controller = g_new0(Controller, 1);
-
-    controller->view_window = view_init();
-    controller->running_process_label = view_get_running_process_label();
-    controller->step_button = view_get_step_button();
-    controller->automatic_button = view_get_automatic_button();
-    controller->pause_button = view_get_pause_button();
-    controller->automatic_timer_id = 0; // Initialize timer ID
-
-    gtk_window_set_application(GTK_WINDOW(controller->view_window), app);
-
-    // Connect button signals
-    g_signal_connect(controller->step_button, "clicked", G_CALLBACK(on_step_clicked), NULL);
-    g_signal_connect(controller->automatic_button, "clicked", G_CALLBACK(on_automatic_clicked), NULL);
-    g_signal_connect(controller->pause_button, "clicked", G_CALLBACK(on_pause_clicked), NULL);
-}
-
-// Update queue display for a specific queue
+// Update queue display for a specific ready queue
 void controller_update_queue_display(int queue_index) {
-    if (queue_index < 0 || queue_index >= numQueues) return;
+    if (queue_index < 0 || queue_index >= MAX_NUM_QUEUES) return;
 
     // Collect PIDs into a GList
     GList *pid_list = NULL;
@@ -61,6 +43,26 @@ void controller_update_queue_display(int queue_index) {
 
     // Update the view
     view_update_queue(queue_index, pid_list, running_pid);
+
+    // Free the list (view_update_queue makes a copy)
+    g_list_free(pid_list);
+}
+
+// Update blocked queue display
+void controller_update_blocked_queue_display(void) {
+    // Collect PIDs from global_blocked_queue
+    GList *pid_list = NULL;
+    Process *curr = global_blocked_queue->front;
+    while (curr != NULL) {
+        pid_list = g_list_append(pid_list, GINT_TO_POINTER(curr->pid));
+        curr = curr->next;
+    }
+
+    // Determine running PID
+    int running_pid = (runningProcess != NULL) ? runningProcess->pid : -1;
+
+    // Update the view for blocked queue (index 4)
+    view_update_queue(4, pid_list, running_pid);
 
     // Free the list (view_update_queue makes a copy)
     g_list_free(pid_list);
@@ -99,16 +101,41 @@ void controller_update_running_process() {
 
 // Update all displays (called per clock cycle)
 void controller_update_all() {
-    for (int i = 0; i < numQueues; i++) {
+    // Update ready queues
+    for (int i = 0; i < MAX_NUM_QUEUES; i++) {
         controller_update_queue_display(i);
     }
+    // Update blocked queue
+    controller_update_blocked_queue_display();
+    // Update running process
     controller_update_running_process();
+}
+
+void controller_init(GtkApplication *app) {
+    controller = g_new0(Controller, 1);
+
+    controller->view_window = view_init();
+    controller->running_process_label = view_get_running_process_label();
+    controller->step_button = view_get_step_button();
+    controller->automatic_button = view_get_automatic_button();
+    controller->pause_button = view_get_pause_button();
+    controller->automatic_timer_id = 0;
+
+    gtk_window_set_application(GTK_WINDOW(controller->view_window), app);
+
+    // Connect button signals
+    g_signal_connect(controller->step_button, "clicked", G_CALLBACK(on_step_clicked), NULL);
+    g_signal_connect(controller->automatic_button, "clicked", G_CALLBACK(on_automatic_clicked), NULL);
+    g_signal_connect(controller->pause_button, "clicked", G_CALLBACK(on_pause_clicked), NULL);
+
+    // Initialize simulation state
+    populateMemory();
+    controller_update_all();
 }
 
 // Cleanup controller
 void controller_cleanup() {
     if (controller) {
-        // Remove automatic timer if active
         if (controller->automatic_timer_id != 0) {
             g_source_remove(controller->automatic_timer_id);
             controller->automatic_timer_id = 0;
@@ -120,74 +147,74 @@ void controller_cleanup() {
 
 // Step button callback
 static void on_step_clicked(GtkWidget *button, gpointer user_data) {
-    if (getProcessState(1) != TERMINATED || 
-        getProcessState(2) != TERMINATED || 
-        getProcessState(3) != TERMINATED) {
+    int any_running = 0;
+    for (int i = 1; i <= MAX_NUM_PROCESSES; i++) {
+        if (getProcessState(i) != TERMINATED) {
+            any_running = 1;
+            break;
+        }
+    }
+    if (any_running) {
         populateMemory();
         runMLFQ();
-        
-        // Sleep
         g_usleep(50000);
-
         controller_update_all();
         clockCycle++;
     } else {
-        gtk_widget_set_sensitive(button, FALSE); // Disable step button when done
-        gtk_widget_set_sensitive(controller->automatic_button, FALSE); // Disable automatic button
+        gtk_widget_set_sensitive(button, FALSE);
+        gtk_widget_set_sensitive(controller->automatic_button, FALSE);
     }
 }
 
 // Automatic button callback
 static void on_automatic_clicked(GtkWidget *button, gpointer user_data) {
     if (controller->automatic_timer_id == 0) {
-        // Start automatic mode
-        controller->automatic_timer_id = g_timeout_add(1500, automatic_step, NULL); // 1.5 second interval
-        gtk_widget_set_sensitive(controller->automatic_button, FALSE); // Disable automatic button
-        gtk_widget_set_sensitive(controller->pause_button, TRUE);      // Enable pause button
-        gtk_widget_set_sensitive(controller->step_button, FALSE);      // Disable step button
+        controller->automatic_timer_id = g_timeout_add(1500, automatic_step, NULL);
+        gtk_widget_set_sensitive(controller->automatic_button, FALSE);
+        gtk_widget_set_sensitive(controller->pause_button, TRUE);
+        gtk_widget_set_sensitive(controller->step_button, FALSE);
     }
 }
 
 // Pause button callback
 static void on_pause_clicked(GtkWidget *button, gpointer user_data) {
     if (controller->automatic_timer_id != 0) {
-        // Stop automatic mode
         g_source_remove(controller->automatic_timer_id);
         controller->automatic_timer_id = 0;
-        gtk_widget_set_sensitive(controller->automatic_button, TRUE);  // Enable automatic button
-        gtk_widget_set_sensitive(controller->pause_button, FALSE);     // Disable pause button
-        gtk_widget_set_sensitive(controller->step_button, TRUE);       // Enable step button
+        gtk_widget_set_sensitive(controller->automatic_button, TRUE);
+        gtk_widget_set_sensitive(controller->pause_button, FALSE);
+        gtk_widget_set_sensitive(controller->step_button, TRUE);
     }
 }
 
 // Automatic step callback
 static gboolean automatic_step(gpointer user_data) {
-    if (getProcessState(1) != TERMINATED || 
-        getProcessState(2) != TERMINATED || 
-        getProcessState(3) != TERMINATED) {
+    int any_running = 0;
+    for (int i = 1; i <= MAX_NUM_PROCESSES; i++) {
+        if (getProcessState(i) != TERMINATED) {
+            any_running = 1;
+            break;
+        }
+    }
+    if (any_running) {
         populateMemory();
         runMLFQ();
-        
-        // Sleep
         g_usleep(100000);
-
         controller_update_all();
         clockCycle++;
-        return G_SOURCE_CONTINUE; // Continue the timer
+        return G_SOURCE_CONTINUE;
     } else {
-        // All processes terminated, stop automatic mode
         controller->automatic_timer_id = 0;
-        gtk_widget_set_sensitive(controller->automatic_button, FALSE); // Disable automatic button
-        gtk_widget_set_sensitive(controller->pause_button, FALSE);     // Disable pause button
-        gtk_widget_set_sensitive(controller->step_button, FALSE);      // Disable step button
-        return G_SOURCE_REMOVE; // Stop the timer
+        gtk_widget_set_sensitive(controller->automatic_button, FALSE);
+        gtk_widget_set_sensitive(controller->pause_button, FALSE);
+        gtk_widget_set_sensitive(controller->step_button, FALSE);
+        return G_SOURCE_REMOVE;
     }
 }
 
 // Application activate callback
 static void on_activate(GtkApplication *app, gpointer user_data) {
     controller_init(app);
-    controller_update_all();
     gtk_window_present(GTK_WINDOW(controller->view_window));
 }
 

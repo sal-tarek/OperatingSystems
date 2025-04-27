@@ -5,9 +5,8 @@
 #include "memory_manager.h"
 #include "Queue.h"
 
-// Maximum processes that can wait for a resource
-#define MAX_BLOCKED_PROCESSES 10
-#define MAX_GLOBAL_BLOCKED 3
+#define MAX_NUM_PROCESSES 10    // Maximum number of processes to support
+#define MAX_NUM_QUEUES 4        // Maximum number of queues
 
 // Mutex structure (opaque pointer)
 typedef struct mutex_t mutex_t;
@@ -19,7 +18,7 @@ extern mutex_t file_mutex;
 
 // Global general blocked queue
 extern Queue *global_blocked_queue;
-extern Queue *readyQueues[4];
+extern Queue *readyQueues[MAX_NUM_QUEUES];
 
 // Function prototypes
 void mutex_init_system(void);

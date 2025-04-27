@@ -305,7 +305,7 @@ void exec_cycle(Process* process)
 
     PCB *pcb = (PCB *)data;
 
-    printf("Debugging: process accessing test: %d  program counter %d\n", process->pid, pcb->programCounter);
+    // printf("Debugging: process accessing test: %d  program counter %d\n", process->pid, pcb->programCounter);
     // Fetch instruction
     char *instruction_str = fetch_instruction(pcb, process->pid);
     // printf("Debugging: memory dump after fetch\n");

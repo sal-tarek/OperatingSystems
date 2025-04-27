@@ -16,7 +16,7 @@ typedef struct Process {
     struct Process *next;   // For queue linked list
 } Process;
 
-Process* createProcess(int pid, const char *file_path, int arrival_time);
+Process* createProcess(int pid, char *file_path, int arrival_time);
 void displayProcess(Process *p);
 void freeProcess(Process *p);
 ProcessState getProcessState(int pid);

@@ -21,7 +21,7 @@ typedef struct {
     GList *animations;    // List of ProcessAnimation for this queue
 } QueueAnimation;
 
-static QueueAnimation queue_animations[4];
+static QueueAnimation queue_animations[5]; // Updated for 5 queues
 
 // Drawing callback for each queue
 static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer data) {
@@ -40,7 +40,7 @@ static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, in
 
     GList *proc_iter;
     for (proc_iter = g_list_last(processes); proc_iter != NULL; proc_iter = proc_iter->prev) {
-        int pid = GPOINTER_TO_INT(proc_iter->data);
+        int pid = GPOINTER_TO_INT(proc_iter->data); // Fixed: Use GPOINTER_TO_INT
         ProcessAnimation *anim = NULL;
 
         // Find the animation for this process
@@ -64,15 +64,17 @@ static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, in
             alpha = anim->alpha;
         }
 
-        // Set color: green if running, purple if ready
+        // Set color: green if running, purple if ready, red if blocked
         if (pid == view->running_pid) {
-            cairo_set_source_rgba(cr, 0.0, 1.0, 0.0, alpha);
+            cairo_set_source_rgba(cr, 0.0, 1.0, 0.0, alpha); // Green for running
+        } else if (queue_index == 4) {
+            cairo_set_source_rgba(cr, 1.0, 0.0, 0.0, alpha); // Red for blocked
         } else {
-            cairo_set_source_rgba(cr, 0.5, 0.0, 0.5, alpha);
+            cairo_set_source_rgba(cr, 0.5, 0.0, 0.5, alpha); // Purple for ready
         }
 
         // Draw rectangle
-        cairo_rectangle(cr, x - 20, y - 15, 40, 30); // Adjust x by base offset
+        cairo_rectangle(cr, x - 20, y - 15, 40, 30);
         cairo_fill(cr);
 
         // Draw PID inside rectangle
@@ -134,7 +136,7 @@ static void draw_legend_callback(GtkDrawingArea *area, cairo_t *cr, int width, i
     cairo_move_to(cr, x + 20, y + 5);
     cairo_show_text(cr, "running");
 
-    x += 80;
+    x += 70;
 
     // Red circle for "blocked"
     cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
@@ -162,7 +164,6 @@ static gboolean animate_process(gpointer user_data) {
                 anim->animating = 0;
                 anim->alpha = 1.0;
             } else {
-                // Update alpha for fade-in
                 anim->alpha = (float)anim->steps / anim->total_steps;
                 any_animating = TRUE;
             }
@@ -184,28 +185,23 @@ GtkWidget* view_init() {
 
     // Create main grid
     GtkWidget *grid = gtk_grid_new();
-    gtk_grid_set_column_homogeneous(GTK_GRID(grid), FALSE);
     gtk_grid_set_row_spacing(GTK_GRID(grid), 10);
     gtk_grid_set_column_spacing(GTK_GRID(grid), 10);
     gtk_window_set_child(GTK_WINDOW(view->window), grid);
 
     // Create header label
     GtkWidget *header = gtk_label_new("Operating System Scheduler Dashboard");
-    gtk_grid_attach(GTK_GRID(grid), header, 0, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), header, 0, 0, 3, 1); // Span 3 columns
 
-    // Drawing areas for each queue
-    for (int i = 0; i < 4; i++) {
+    // Drawing areas for each queue (4 ready + 1 blocked)
+    for (int i = 0; i < 5; i++) {
         view->drawing_areas[i] = gtk_drawing_area_new();
         gtk_widget_set_size_request(view->drawing_areas[i], 600, 50);
         gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(view->drawing_areas[i]),
                                        draw_queue_callback,
                                        GINT_TO_POINTER(i),
                                        NULL);
-        gtk_grid_attach(GTK_GRID(grid), view->drawing_areas[i], 0, i + 1, 1, 1);
-
-        // Initialize process list and animations for this queue
-        view->queue_processes[i] = NULL;
-        queue_animations[i].animations = NULL;
+        gtk_grid_attach(GTK_GRID(grid), view->drawing_areas[i], 0, i + 1, 3, 1); // Span 3 columns
     }
 
     // Legend drawing area (below the queues)
@@ -215,30 +211,31 @@ GtkWidget* view_init() {
                                    draw_legend_callback,
                                    NULL,
                                    NULL);
-    gtk_grid_attach(GTK_GRID(grid), legend_area, 0, 5, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), legend_area, 0, 6, 3, 1); // Moved to row 6
 
     // Create running process display
     view->running_process_label = gtk_label_new("Running Process: None");
     gtk_label_set_xalign(GTK_LABEL(view->running_process_label), 0.0);
-    gtk_grid_attach(GTK_GRID(grid), view->running_process_label, 0, 6, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), view->running_process_label, 0, 7, 3, 1); // Moved to row 7
 
-    GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-    gtk_box_set_homogeneous(GTK_BOX(button_box), TRUE);
-    
+    // Create step button
     view->step_button = gtk_button_new_with_label("Step");
-    gtk_widget_set_size_request(view->step_button, 80, 30);
-    gtk_box_append(GTK_BOX(button_box), view->step_button);
-    
+    gtk_grid_attach(GTK_GRID(grid), view->step_button, 0, 8, 1, 1); // Moved to row 8
+
+    // Create automatic button
     view->automatic_button = gtk_button_new_with_label("Automatic");
-    gtk_widget_set_size_request(view->automatic_button, 80, 30);
-    gtk_box_append(GTK_BOX(button_box), view->automatic_button);
-    
+    gtk_grid_attach(GTK_GRID(grid), view->automatic_button, 1, 8, 1, 1); // Moved to row 8
+
+    // Create pause button
     view->pause_button = gtk_button_new_with_label("Pause");
-    gtk_widget_set_size_request(view->pause_button, 80, 30);
-    gtk_widget_set_sensitive(view->pause_button, FALSE);
-    gtk_box_append(GTK_BOX(button_box), view->pause_button);
-    
-    gtk_grid_attach(GTK_GRID(grid), button_box, 0, 7, 3, 1);
+    gtk_widget_set_sensitive(view->pause_button, FALSE); // Disabled by default
+    gtk_grid_attach(GTK_GRID(grid), view->pause_button, 2, 8, 1, 1); // Moved to row 8
+
+    // Initialize process lists and animations for all queues
+    for (int i = 0; i < 5; i++) {
+        view->queue_processes[i] = NULL;
+        queue_animations[i].animations = NULL;
+    }
 
     // Initialize running PID
     view->running_pid = -1;
@@ -247,7 +244,7 @@ GtkWidget* view_init() {
 }
 
 void view_update_queue(int queue_index, GList *processes, int running_pid) {
-    if (queue_index < 0 || queue_index >= 4) return;
+    if (queue_index < 0 || queue_index >= 5) return;
 
     g_list_free_full(queue_animations[queue_index].animations, g_free);
     queue_animations[queue_index].animations = NULL;
@@ -264,10 +261,9 @@ void view_update_queue(int queue_index, GList *processes, int running_pid) {
     int num_processes = g_list_length(new_processes);
     int base_x = 20 + (num_processes - 1) * 70; 
 
-    
     GList *proc_iter;
     for (proc_iter = g_list_last(new_processes); proc_iter != NULL; proc_iter = proc_iter->prev) {
-        int pid = GPOINTER_TO_INT(proc_iter->data);
+        int pid = GPOINTER_TO_INT(proc_iter->data); // Fixed: Use GPOINTER_TO_INT
         ProcessAnimation *anim = g_new0(ProcessAnimation, 1);
         anim->pid = pid;
         anim->alpha = 0.0;
@@ -278,7 +274,7 @@ void view_update_queue(int queue_index, GList *processes, int running_pid) {
         // Check if this process existed in the old list
         int old_pos = -1;
         int old_queue = -1;
-        for (int q = 0; q < 4; q++) {
+        for (int q = 0; q < 5; q++) {
             int pos = 0;
             for (GList *p = view->queue_processes[q]; p != NULL; p = p->next) {
                 if (GPOINTER_TO_INT(p->data) == pid) {
@@ -345,6 +341,7 @@ GtkWidget* view_get_running_process_label() {
 GtkWidget* view_get_step_button() {
     return view->step_button;
 }
+
 GtkWidget* view_get_automatic_button() {
     return view->automatic_button;
 }

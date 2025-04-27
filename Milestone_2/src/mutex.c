@@ -12,7 +12,7 @@ struct mutex_t
     char name[20];
     bool available;
     Process *holder;
-    Process *blocked_queue[MAX_BLOCKED_PROCESSES];
+    Process *blocked_queue[MAX_NUM_PROCESSES];
     int blocked_count;
 };
 

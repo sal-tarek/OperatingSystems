@@ -7,7 +7,7 @@
 #include "memory.h"
 #include "index.h"
 
-Process* createProcess(int pid, const char *file_path, int arrival_time) {
+Process* createProcess(int pid, char *file_path, int arrival_time) {
     Process* newProcess = (Process*)malloc(sizeof(Process));
     if (!newProcess) {
         fprintf(stderr, "Memory allocation for Process failed\n");
@@ -15,8 +15,7 @@ Process* createProcess(int pid, const char *file_path, int arrival_time) {
     }
     newProcess->pid = pid;
     char full_path[64];
-    snprintf(full_path, sizeof(full_path), "../programs/Program_%d.txt", pid);
-    newProcess->file_path = strdup(full_path);
+    newProcess->file_path = file_path;
     newProcess->state = NEW;
     newProcess->arrival_time = arrival_time;
     newProcess->ready_time = 0;

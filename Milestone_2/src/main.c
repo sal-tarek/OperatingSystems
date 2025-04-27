@@ -13,39 +13,24 @@
 #include "mutex.h"
 #include "controller.h"
 
-#define numProcesses 3
-#define numQueues 4
+#define MAX_NUM_PROCESSES 10    // Maximum number of processes to support
+#define MAX_NUM_QUEUES 4        // Maximum number of queues
 
 // Global variables
-Queue *readyQueues[numQueues]; // Ready Queue holding processes waiting to run
+Queue *readyQueues[MAX_NUM_QUEUES]; // Ready Queue holding processes waiting to run
 Process *runningProcess = NULL; // Currently running process (or NULL if none)
 int clockCycle; // Current clock cycle of the simulation
 Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 Queue *global_blocked_queue = NULL;
-
-// Timeout callback to advance simulation
-static gboolean on_timeout(gpointer user_data) {
-    if (getProcessState(1) != TERMINATED || 
-        getProcessState(2) != TERMINATED || 
-        getProcessState(3) != TERMINATED) {
-        populateMemory();
-        controller_update_all(); // Update UI
-        runMLFQ();
-        clockCycle++;
-        return G_SOURCE_CONTINUE;
-    }
-    printf("Simulation completed.\n");
-    return G_SOURCE_REMOVE;
-}
+int numProcesses = 0; // Number of processes in the simulation
 
 int main(int argc, char *argv[]) {
     clockCycle = 0;
 
     // Initialize memory
     memory = NULL; 
-
     // Create job_pool queue
     job_pool = createQueue();
     if (!job_pool) {
@@ -54,31 +39,23 @@ int main(int argc, char *argv[]) {
     }
 
     // Create ready queues
-    for (int i = 0; i < numQueues; i++) 
+    for (int i = 0; i < MAX_NUM_QUEUES; i++) 
         readyQueues[i] = createQueue();
 
     // Create global blocked queue
     global_blocked_queue = createQueue();
 
-    // Create blocked_queue
-    /*
-    blocked_queue = createQueue();
-    if (!blocked_queue) {
-        fprintf(stderr, "Failed to create blocked_queue\n");
-        freeQueue(job_pool);
-        for (int i = 0; i < numQueues; i++)
-            freeQueue(readyQueues[i]);
-        return 1;
-    }*/
-
     // Create processes
     Process *p1 = createProcess(1, "../programs/Program_1.txt", 0);
+    numProcesses++;
     Process *p2 = createProcess(2, "../programs/Program_2.txt", 3);
+    numProcesses++;
     Process *p3 = createProcess(3, "../programs/Program_3.txt", 0);
+    numProcesses++;
     if (!p1 || !p2 || !p3) {
         fprintf(stderr, "Failed to create processes\n");
         freeQueue(job_pool);
-        for (int i = 0; i < numQueues; i++)
+        for (int i = 0; i < MAX_NUM_QUEUES; i++)
             freeQueue(readyQueues[i]);
         freeQueue(global_blocked_queue);
         return 1;
@@ -99,7 +76,7 @@ int main(int argc, char *argv[]) {
     freeMemoryWord();
     freeIndex(&index_table);
     freeQueue(job_pool);
-    for (int i = 0; i < numQueues; i++)
+    for (int i = 0; i < MAX_NUM_QUEUES; i++)
         freeQueue(readyQueues[i]);
     freeQueue(global_blocked_queue);
 
