@@ -24,10 +24,6 @@ void runFCFS() {
         }
     }
 
-    // Print ready queue
-    printf("Ready ");
-    displayQueueSimplified(readyQueues[0]);
-
     // If a process is running, execute it
     if (runningProcess != NULL) {
         setProcessState(runningProcess->pid, RUNNING); 
@@ -50,4 +46,7 @@ void runFCFS() {
             runningProcess->state = READY; 
         }
     }
+     // Print ready queue
+     printf("Ready ");
+     displayQueueSimplified(readyQueues[0]);
 }

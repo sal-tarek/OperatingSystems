@@ -24,10 +24,6 @@ void runRR(int quantum) {
                 break;
         }
     }
-        
-    // Print ready queue
-    printf("Ready ");
-    displayQueueSimplified(readyQueues[0]); 
 
     if(runningProcess != NULL){
         setProcessState(runningProcess->pid, RUNNING);
@@ -57,5 +53,8 @@ void runRR(int quantum) {
     }
     else{
         printf("CPU is idle\n", clockCycle);
-    }                     
+    } 
+    // Print ready queue
+    printf("Ready ");
+    displayQueueSimplified(readyQueues[0]);                     
 }

@@ -4,6 +4,8 @@
 #include "process.h"
 #include "Queue.h"
 #include "MLFQ.h"
+#include "RoundRobin.h"
+#include "FCFS.h"
 #include "memory.h"
 #include "PCB.h"
 #include "../include/instruction.h"
@@ -156,7 +158,7 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data) {
     }
     if (any_running) {
         populateMemory();
-        runMLFQ();
+        runRR(2);
         g_usleep(50000);
         controller_update_all();
         clockCycle++;
@@ -198,7 +200,7 @@ static gboolean automatic_step(gpointer user_data) {
     }
     if (any_running) {
         populateMemory();
-        runMLFQ();
+        runRR(2);
         g_usleep(100000);
         controller_update_all();
         clockCycle++;
