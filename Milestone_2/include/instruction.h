@@ -6,7 +6,7 @@
 #include "process.h"
 #include "memory_manager.h"
 #include "mutex.h"
-#include "console_view.h"
+#include "gui_globals.h"
 
 extern mutex_t userInput_mutex;
 extern mutex_t userOutput_mutex;

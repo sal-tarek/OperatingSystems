@@ -27,7 +27,7 @@ int main() {
     clockCycle = 0;
 
     // Initialize memory hashmap (empty for now)
-    MemoryWord *memory = NULL; // Will store address-to-data mappings
+    // MemoryWord *memory = NULL; // Remove this line as it shadows the global variable
 
     // Create job_pool queue
     job_pool = createQueue();

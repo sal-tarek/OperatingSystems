@@ -4,7 +4,7 @@
 #include "memory.h"
 #include "process.h"
 #include "PCB.h"
-#include "../include/instruction.h"
+#include "instruction.h"
 
 // Constants
 #define MAX_NAME_LEN 50     // Maximum length for instruction/variable strings

@@ -2,110 +2,37 @@
 #include <stdarg.h>
 #include "console_view.h"
 
-// Global async queue to store input lines
-static GAsyncQueue *input_queue = NULL;
-
 // Forward declaration of idle callback
 static gboolean append_text_idle(gpointer data);
 
-// Function to append text to the console (thread-safe)
+typedef struct {
+    char *text;
+    GtkWidget *console;
+} AppendData;
+
+static gboolean console_view_append_text_idle(gpointer user_data) {
+    AppendData *data = (AppendData *)user_data;
+    GtkTextBuffer *buffer = g_object_get_data(G_OBJECT(data->console), CONSOLE_BUFFER_KEY);
+    if (buffer) {
+        GtkTextIter end;
+        gtk_text_buffer_get_end_iter(buffer, &end);
+        gtk_text_buffer_insert(buffer, &end, data->text, -1);
+        GtkTextMark *end_mark = gtk_text_buffer_get_mark(buffer, "end_mark");
+        if (end_mark) {
+            gtk_text_buffer_move_mark(buffer, end_mark, &end);
+        }
+    }
+    g_free(data->text);
+    g_free(data);
+    return G_SOURCE_REMOVE; // Run once
+}
+
 void console_view_append_text(GtkWidget *console, const char *text) {
-    // Get the text buffer from the console widget
-    GtkTextBuffer *buffer = g_object_get_data(G_OBJECT(console), CONSOLE_BUFFER_KEY);
-    if (!buffer) {
-        g_warning("Console buffer not found!");
-        return;
-    }
-    
-    // Schedule text appending on the main thread
-    g_idle_add(append_text_idle, g_strdup_printf("%p|%s", buffer, text));
-}
-
-// Idle callback to safely append text on the main thread
-static gboolean append_text_idle(gpointer data) {
-    char *combined = (char *)data;
-    char *separator = strchr(combined, '|');
-    if (!separator) {
-        g_free(combined);
-        return G_SOURCE_REMOVE;
-    }
-    
-    *separator = '\0';
-    GtkTextBuffer *buffer = (GtkTextBuffer *)g_ascii_strtoull(combined, NULL, 16);
-    char *text = separator + 1;
-    
-    // Get end iterator
-    GtkTextIter end_iter;
-    gtk_text_buffer_get_end_iter(buffer, &end_iter);
-    
-    // Insert text
-    gtk_text_buffer_insert(buffer, &end_iter, text, -1);
-    
-    // Scroll to end more safely
-    GtkTextMark *end_mark = gtk_text_buffer_get_mark(buffer, "end_mark");
-    if (end_mark) {
-        // Move the mark to the end
-        gtk_text_buffer_get_end_iter(buffer, &end_iter);
-        gtk_text_buffer_move_mark(buffer, end_mark, &end_iter);
-        
-        // Find the text view and scroll to mark
-        GtkWidget *console = g_object_get_data(G_OBJECT(buffer), "console_widget");
-        if (console) {
-            GtkWidget *scrolled_window = gtk_widget_get_first_child(console);
-            if (GTK_IS_SCROLLED_WINDOW(scrolled_window)) {
-                GtkWidget *text_view = gtk_scrolled_window_get_child(GTK_SCROLLED_WINDOW(scrolled_window));
-                if (GTK_IS_TEXT_VIEW(text_view)) {
-                    gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(text_view), end_mark);
-                }
-            }
-        }
-    }
-    
-    g_free(combined);
-    return G_SOURCE_REMOVE;
-}
-
-// --- printf-like function ---
-void console_view_printf(GtkWidget *console, const char *format, ...) {
-    char buffer[512];
-    va_list args;
-    va_start(args, format);
-    vsnprintf(buffer, sizeof(buffer), format, args);
-    va_end(args);
-
-    console_view_append_text(console, buffer);
-}
-
-// --- scanf-like function ---
-void console_view_scanf(GtkWidget *console, char *buffer, size_t size) {
-    if (!input_queue) {
-        g_warning("Input queue not initialized!");
-        return;
-    }
-    
-    // Clear the buffer before filling
-    if (buffer && size > 0) {
-        buffer[0] = '\0';
-    }
-    
-    gchar *line = g_async_queue_pop(input_queue);  // blocks until something is available
-    if (line) {
-        // Validate and sanitize input
-        g_strstrip(line);  // Remove leading/trailing whitespace
-        
-        // Copy safely to output buffer
-        if (buffer && size > 0) {
-            snprintf(buffer, size, "%s", line);
-            buffer[size - 1] = '\0';  // Ensure null termination
-        }
-        
-        // Echo input to console
-        char echo_buffer[1024];
-        snprintf(echo_buffer, sizeof(echo_buffer), "> %s\n", line);
-        console_view_append_text(console, echo_buffer);
-        
-        g_free(line);
-    }
+    if (!console) return;
+    AppendData *data = g_new(AppendData, 1);
+    data->text = g_strdup(text);
+    data->console = console;
+    g_idle_add(console_view_append_text_idle, data);
 }
 
 // --- New signal handler: when Enter pressed ---

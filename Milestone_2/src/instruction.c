@@ -10,9 +10,9 @@ int safe_atoi(const char *str, int *out);
 
 char *input(const char *prompt)
 {
-    console_view_printf(console, "%s", prompt);
+    console_printf("%s", prompt);
     static char buffer[MAX_ARG_LEN];
-    console_view_scanf(console, buffer, MAX_ARG_LEN);
+    console_scanf(buffer, MAX_ARG_LEN);
     buffer[strcspn(buffer, "\n")] = '\0';
     return strdup(buffer);
 }
@@ -31,9 +31,9 @@ void print(int processId, char *printable)
     }
 
     if (storedData != NULL) {
-        console_view_printf(console, "%s/n", storedData);
+        console_printf("%s/n", storedData);
     } else {
-        console_view_printf(console, "Variable not found!\n");
+        console_printf("Variable not found!\n");
     }
 }
 
@@ -54,11 +54,11 @@ void writeToFile(char *filename, char *content)
 
     if (fptr == NULL)
     {
-        console_view_printf(console, "Failed to create the file\n");
+        console_printf("Failed to create the file\n");
         return;
     }
 
-    console_view_printf(console, "File %s created successfully.\n", filename);
+    console_printf("File %s created successfully.\n", filename);
     fprintf(fptr, "%s", content);
     fclose(fptr);
 }
@@ -70,7 +70,7 @@ char *readFromFile(char *fileName)
 
     if (fptr == NULL)
     {
-        console_view_printf(console, "Error opening file\n");
+        console_printf("Error opening file\n");
         return NULL;
     }
 
@@ -81,7 +81,7 @@ char *readFromFile(char *fileName)
     char *buffer = (char *)malloc(file_size + 1);
     if (!buffer)
     {
-        console_view_printf(console, "Failed to allocate memory\n");
+        console_printf("Failed to allocate memory\n");
         fclose(fptr);
         return NULL;
     }
@@ -102,7 +102,7 @@ void printFromTo(int processId, char *arg1, char *arg2)
     char *storedData1 = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING) {
-        console_view_printf(console, "Erroneous fetch\n");
+        console_printf("Erroneous fetch\n");
         return;
     }
 
@@ -110,7 +110,7 @@ void printFromTo(int processId, char *arg1, char *arg2)
     char *storedData2 = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING) {
-        console_view_printf(console, "Erroneous fetch\n");
+        console_printf("Erroneous fetch\n");
         return;
     }
 
@@ -118,20 +118,20 @@ void printFromTo(int processId, char *arg1, char *arg2)
 
     if (errCode1 == 0 && errCode2 == 0) {
         if (x > y) {
-            console_view_printf(console, "second argument is smaller than first argument");
+            console_printf("second argument is smaller than first argument");
             return;
         }
         
         for (int i = x; i <= y; i++)
         {
-            console_view_printf(console, "%d", i);
-            if (i != y) console_view_printf(console, " ");
+            console_printf("%d", i);
+            if (i != y) console_printf(" ");
         }
         printf("\n");
     } else if (errCode1 == 1 || errCode2 == 1) {
-        console_view_printf(console, "either values are invalid inputs (not a number)");
+        console_printf("either values are invalid inputs (not a number)");
     } else {
-        console_view_printf(console, "either values is out of int range");
+        console_printf("either values is out of int range");
     }
 }
 
@@ -142,15 +142,15 @@ void semWait(Process* process, char *x)
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
         result = mutex_lock(&file_mutex, process);
-        console_view_printf(console, "semWait called on file\n");
+        console_printf("semWait called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
         result = mutex_lock(&userInput_mutex, process);  // Lock the input mutex
-        console_view_printf(console, "semWait called on user input\n");
+        console_printf("semWait called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
         result = mutex_lock(&userOutput_mutex, process);  // Lock the output mutex
-        console_view_printf(console, "semWait called on user output\n");
+        console_printf("semWait called on user output\n");
     } else {
-        console_view_printf(console, "invalid resource\n");
+        console_printf("invalid resource\n");
         return;
     }
 
@@ -168,15 +168,15 @@ void semSignal(Process* process, char *x) {
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
         mutex_unlock(&file_mutex, process);
-        console_view_printf(console, "semSignal called on file\n");
+        console_printf("semSignal called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
         mutex_unlock(&userInput_mutex, process);  // Unlock the input mutex
-        console_view_printf(console, "semSignal called on user input\n");
+        console_printf("semSignal called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
         mutex_unlock(&userOutput_mutex, process);  // Unlock the output mutex
-        console_view_printf(console, "semSignal called on user output\n");
+        console_printf("semSignal called on user output\n");
     } else {
-        console_view_printf(console, "invalid resource\n");
+        console_printf("invalid resource\n");
         return;
     }
 }
