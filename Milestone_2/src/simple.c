@@ -58,22 +58,82 @@ static void update_job_pool_display(GtkListBox *job_pool_display) {
     }
 }
 
-// Update memory display (initially empty)
 static void update_memory_display(GtkListBox *memory_list) {
-    // Clear current display
     GtkListBoxRow *row;
     while ((row = gtk_list_box_get_row_at_index(memory_list, 0)) != NULL) {
         gtk_list_box_remove(memory_list, GTK_WIDGET(row));
     }
 
-    // Display memory slots as empty
+    char *memory_status[MEMORY_SIZE];
     for (int i = 0; i < MEMORY_SIZE; i++) {
-        char label[32];
-        snprintf(label, sizeof(label), "Slot %d: Empty", i);
-        GtkWidget *row = gtk_label_new(label);
-        gtk_list_box_append(memory_list, row);
+        memory_status[i] = NULL;
+    }
+
+    for (int i = 0; i < MEMORY_SIZE; i++) {
+        if (i % 5 == 0) {
+            memory_status[i] = g_strdup_printf(
+                "P%d PCB\nState: RUNNING\nPri: %d\nPC: %d\nMem: %d-%d",
+                i, i % 10, i * 5, i, i + 4
+            );
+        } else if (i % 3 == 0) {
+            memory_status[i] = g_strdup_printf("Data: Value_%d", i);
+        }
+    }
+
+    for (int i = 0; i < MEMORY_SIZE; i++) {
+        GtkWidget *slot_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+        gtk_widget_set_margin_start(slot_box, 5);
+        gtk_widget_set_margin_end(slot_box, 5);
+        gtk_widget_set_margin_top(slot_box, 5);
+        gtk_widget_set_margin_bottom(slot_box, 5);
+
+        // --- Tag Label (the number on the left) ---
+        GtkWidget *tag_label = gtk_label_new(NULL);
+        char tag_text[20];
+        snprintf(tag_text, sizeof(tag_text),
+                 "<span background=\"#17a2b8\" foreground=\"white\" weight=\"bold\"> %d </span>", i);
+        gtk_label_set_markup(GTK_LABEL(tag_label), tag_text);
+        gtk_box_append(GTK_BOX(slot_box), tag_label);
+
+        GtkWidget *content_widget;
+
+        if (memory_status[i]) {
+            if (g_str_has_prefix(memory_status[i], "P") && strstr(memory_status[i], "PCB") != NULL) {
+                // --- PCB Special Styling ---
+                GtkWidget *pcb_frame = gtk_frame_new(NULL);
+                gtk_widget_add_css_class(pcb_frame, "pcb-box"); // Special CSS class for PCB
+
+                GtkWidget *pcb_label = gtk_label_new(memory_status[i]);
+                gtk_label_set_xalign(GTK_LABEL(pcb_label), 0);
+                gtk_label_set_wrap(GTK_LABEL(pcb_label), TRUE);
+                gtk_frame_set_child(GTK_FRAME(pcb_frame), pcb_label);
+
+                content_widget = pcb_frame;
+            } else {
+                GtkWidget *data_label = gtk_label_new(memory_status[i]);
+                gtk_label_set_xalign(GTK_LABEL(data_label), 0);
+                content_widget = data_label;
+            }
+            g_free(memory_status[i]);
+        } else {
+            GtkWidget *empty_label = gtk_label_new("Empty");
+            gtk_label_set_xalign(GTK_LABEL(empty_label), 0);
+            content_widget = empty_label;
+        }
+
+        gtk_widget_set_hexpand(content_widget, TRUE);
+        gtk_box_append(GTK_BOX(slot_box), content_widget);
+
+        // Wrap everything inside a frame
+        GtkWidget *outer_frame = gtk_frame_new(NULL);
+        gtk_widget_add_css_class(outer_frame, "boxed");
+        gtk_frame_set_child(GTK_FRAME(outer_frame), slot_box);
+
+        gtk_list_box_append(memory_list, outer_frame);
     }
 }
+
+
 
 // Callback for the "Done" button in the dialog
 static void on_done_clicked(GtkButton *button, gpointer user_data) {
@@ -300,9 +360,11 @@ static void activate(GtkApplication *app, gpointer user_data) {
     gtk_css_provider_load_from_string(provider,
         "window { background-color: #2E2F32; }"
         "frame.custom-frame { background-color: #e8ecef; border: 1px solid #ced4da; }"
-        "label { color: #212529; padding: 5px; font-size: 14px; }"
+        "label { color: #212529; font-size: 14px; }"
         "listbox.custom-listbox { background-color: #71C2BD; }"
-        "listbox.custom-listbox label { padding: 5px; }"
+        "listbox.custom-listbox box { padding: 2px; border-radius: 3px; }"
+        "listbox.custom-listbox box:nth-child(odd) { background-color: rgba(255,255,255,0.1); }"
+        "listbox.custom-listbox box:hover { background-color: rgba(255,255,255,0.2); }"
         "button.custom-button { background-color: #17a2b8; color: white; border-radius: 5px; padding: 5px; }"
         "button.custom-button:hover { background-color: #138496; }"
         "entry.custom-entry { background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 5px; }"
