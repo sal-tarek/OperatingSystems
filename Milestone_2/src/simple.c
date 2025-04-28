@@ -82,29 +82,62 @@ static void on_done_clicked(GtkButton *button, gpointer user_data) {
     // Get input values
     const char *file_path = gtk_editable_get_text(GTK_EDITABLE(data->file_entry));
     const char *arrival_time_str = gtk_editable_get_text(GTK_EDITABLE(data->arrival_entry));
-    int arrival_time = 0; // Default to 0 if empty or invalid
-    if (arrival_time_str && strlen(arrival_time_str) > 0) {
-        arrival_time = atoi(arrival_time_str);
-        if (arrival_time < 0) {
-            arrival_time = 0; // Default to 0 if negative
-        }
-    }
 
     // Clear the text area
     GtkTextBuffer *buffer = gtk_text_view_get_buffer(data->text_view);
     gtk_text_buffer_set_text(buffer, "", -1);
 
-    // Validate file path
+    // Flag to track if there are any errors
+    gboolean has_errors = FALSE;
     char message[512];
+
+    // Validate arrival time
+    int arrival_time = 0;
+    if (arrival_time_str && strlen(arrival_time_str) > 0) {
+        // Check if the input is a valid integer (contains only digits, possibly with a leading minus)
+        gboolean is_valid_integer = TRUE;
+        for (size_t i = 0; i < strlen(arrival_time_str); i++) {
+            if (i == 0 && arrival_time_str[i] == '-') continue; // Allow leading minus
+            if (!g_ascii_isdigit(arrival_time_str[i])) {
+                is_valid_integer = FALSE;
+                break;
+            }
+        }
+
+        if (!is_valid_integer) {
+            snprintf(message, sizeof(message), "Please enter a number\n");
+            gtk_text_buffer_insert_at_cursor(buffer, message, -1);
+            has_errors = TRUE;
+        } else {
+            // Convert to integer and check if negative
+            arrival_time = atoi(arrival_time_str);
+            if (arrival_time < 0) {
+                snprintf(message, sizeof(message), "Cannot have negative arrival time\n");
+                gtk_text_buffer_insert_at_cursor(buffer, message, -1);
+                has_errors = TRUE;
+            }
+        }
+    } else {
+        // If empty, default to 0, no error
+        arrival_time = 0;
+    }
+
+    // Validate file path
     FILE *file = fopen(file_path, "r");
     if (!file) {
         snprintf(message, sizeof(message), "Error: File %s not found\n", file_path);
         gtk_text_buffer_insert_at_cursor(buffer, message, -1);
+        has_errors = TRUE;
+    } else {
+        fclose(file);
+    }
+
+    // If there are any errors, stop here
+    if (has_errors) {
         return;
     }
-    fclose(file);
 
-    // Call createProcess to add to back-end job_pool
+    // If no errors, proceed with creating the process
     int pid = process_id_counter + 1;
     struct Process *process = createProcess(pid, (char *)file_path, arrival_time);
 
@@ -121,6 +154,7 @@ static void on_done_clicked(GtkButton *button, gpointer user_data) {
     enqueue(job_pool, process);
     // Update front-end job pool display
     update_job_pool_display(data->job_pool_display);
+   // displayQueue(job_pool); // Display the job pool in the console for debugging
 
     // Increment process ID counter
     process_id_counter++;
@@ -143,7 +177,7 @@ static void on_create_process_clicked(GtkButton *button, gpointer user_data) {
     gtk_window_set_title(GTK_WINDOW(dialog), "Create Process");
     gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
     gtk_window_set_transient_for(GTK_WINDOW(dialog), main_data->window);
-    gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 300);
+    gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 500);
 
     // Create dialog content
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
@@ -264,10 +298,10 @@ static void activate(GtkApplication *app, gpointer user_data) {
     // Load CSS
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(provider,
-        "window { background-color: #343a40; }"
+        "window { background-color: #2E2F32; }"
         "frame.custom-frame { background-color: #e8ecef; border: 1px solid #ced4da; }"
         "label { color: #212529; padding: 5px; font-size: 14px; }"
-        "listbox.custom-listbox { background-color: #e8ecef; }"
+        "listbox.custom-listbox { background-color: #71C2BD; }"
         "listbox.custom-listbox label { padding: 5px; }"
         "button.custom-button { background-color: #17a2b8; color: white; border-radius: 5px; padding: 5px; }"
         "button.custom-button:hover { background-color: #138496; }"
@@ -315,6 +349,7 @@ int main(int argc, char *argv[]) {
     
     int status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
+   
 
     // Clean up job_pool
     int job_pool_size = getQueueSize(job_pool);

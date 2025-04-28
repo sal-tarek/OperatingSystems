@@ -1,0 +1,19 @@
+.custom-entry {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.custom-button {
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.custom-textview {
+  background-color: #f8f8f8;
+  color: #333;
+  font-size: 12px;
+}

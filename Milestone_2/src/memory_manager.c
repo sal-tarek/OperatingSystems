@@ -336,22 +336,82 @@ void displayMemoryRange(int pid) {
                range.pcb_start, range.pcb_count);
     }
 }
-// Function to free the memory ranges
-void freeMemoryRanges() {
-    for (int i = 0; i < ranges_count; i++) {
-        // Free the PCB data
-        MemoryWord *pcb_word = NULL;
-        HASH_FIND_INT(memory, &ranges[i].pcb_start, pcb_word);
-        if (pcb_word && pcb_word->data) {
-            freePCB((PCB*)pcb_word->data);
-        }
-        // Free the instruction and variable data
-        for (int j = 0; j < ranges[i].inst_count + ranges[i].var_count; j++) {
-            MemoryWord *word = NULL;
-            HASH_FIND_INT(memory, &j, word);
-            if (word && word->data) {
-                free(word->data);
-            }
-        }
+
+// Helper function to free a specific memory range for a process
+void freeMemoryRange(int inst_start, int inst_count, int var_start, int var_count, int pcb_start) {
+    // Free instructions
+    for (int i = inst_start; i < inst_start + inst_count; i++) {
+    MemoryWord *word = NULL;
+    HASH_FIND_INT(memory, &i, word);
+    if (word) {
+    if (word->type == TYPE_STRING) {
+    free(word->data);
     }
-}
+    HASH_DEL(memory, word);
+    free(word);
+    }
+    }
+    
+    // Free variables
+    for (int i = var_start; i < var_start + var_count; i++) {
+    MemoryWord *word = NULL;
+    HASH_FIND_INT(memory, &i, word);
+    if (word) {
+    if (word->type == TYPE_STRING) {
+    free(word->data);
+    }
+    HASH_DEL(memory, word);
+    free(word);
+    }
+    }
+    
+    // Free PCB
+    MemoryWord *pcb_word = NULL;
+    HASH_FIND_INT(memory, &pcb_start, pcb_word);
+    if (pcb_word) {
+    if (pcb_word->type == TYPE_PCB) {
+    freePCB((PCB *)pcb_word->data);
+    }
+    HASH_DEL(memory, pcb_word);
+    free(pcb_word);
+    }
+    }
+    
+    void deleteProcessFromMemory(int pid) {
+    // Step 1: Find the process's memory range
+    int range_idx = pid - 1; // Your code uses pid - 1 as the index
+    if (range_idx < 0 || range_idx >= ranges_count) {
+    fprintf(stderr, "No memory range found for PID: %d\n", pid);
+    return;
+    }
+    
+    MemoryRange range = ranges[range_idx];
+    
+    // Step 2: Free the memory range
+    freeMemoryRange(range.inst_start, range.inst_count, range.var_start, range.var_count, range.pcb_start);
+    
+    // Step 3: Remove index entries for this process
+    IndexEntry *entry, *tmp;
+    char prefix[32];
+    snprintf(prefix, sizeof(prefix), "P%d_", pid);
+    HASH_ITER(hh, index_table, entry, tmp) {
+    if (strncmp(entry->key, prefix, strlen(prefix)) == 0) {
+    HASH_DEL(index_table, entry);
+    free(entry->key);
+    free(entry);
+    }
+    }
+    
+    // Step 4: Update memory usage
+    int total_words_freed = range.inst_count + range.var_count + range.pcb_count;
+    current_memory_usage -= total_words_freed;
+    
+    // Step 5: Remove the range entry by shifting subsequent entries
+    for (int i = range_idx; i < ranges_count - 1; i++) {
+    ranges[i] = ranges[i + 1];
+    }
+    ranges_count--;
+    
+    printf("Freed memory for P%d: %d words\n", pid, total_words_freed);
+    }
+    

@@ -56,8 +56,8 @@ int main2() {
 
     // Create processes
     Process *p1 = createProcess(1, "../programs/Program_1.txt", 0);
-    Process *p2 = createProcess(2, "../programs/Program_2.txt", 3);
-    Process *p3 = createProcess(3, "../programs/Program_3.txt", 0);
+    Process *p2 = createProcess(2, "../programs/Program_2.txt", 1);
+    Process *p3 = createProcess(3, "../programs/Program_3.txt", 2);
     if (!p1 || !p2 || !p3) {
         fprintf(stderr, "Failed to create processes\n");
         freeQueue(job_pool);
@@ -75,12 +75,14 @@ int main2() {
     printf("\n");
 
     //populate memory test
-    while(clockCycle < 5) {
+    while(clockCycle < 3) {
         printf("Time %d\n", clockCycle);
         populateMemory();
         printMemory();
         clockCycle++;
         }
+    deleteProcessFromMemory(1);
+    printMemory();
    
 
     // //MLFQ

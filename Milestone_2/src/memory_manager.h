@@ -30,5 +30,6 @@ int updateDataByIndex(const char *key, void *new_data, DataType type);
 MemoryRange getProcessMemoryRange(int pid);
 void displayMemoryRange(int pid);
 void freeMemoryRanges();
+void deleteProcessFromMemory(int pid);
 
 #endif
