@@ -13,7 +13,7 @@
 
 #define numProcesses 3
 #define numQueues 4
-
+//gcc FCFS.c index.c instruction.c main.c memory_manager.c memory.c MLFQ.c mutex.c parser.c PCB.c process.c Queue.c RoundRobin.c -o main
 // Global variables
 Queue *readyQueues[numQueues];              // Ready Queue holding processes waiting to run by the chosen Scheduler
 Process *runningProcess = NULL;             // currently running process (or NULL if none)

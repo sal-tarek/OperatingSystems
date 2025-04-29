@@ -104,6 +104,7 @@ void setProcessState(int pid, ProcessState newState) {
     }
 }
 
+
 ProcessState getProcessState(int pid) {
     char key[20];
     snprintf(key, sizeof(key), "P%d_PCB", pid);

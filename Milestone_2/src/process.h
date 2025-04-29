@@ -23,6 +23,7 @@ typedef struct Process {
 Process* createProcess(int pid, const char *file_path, int arrival_time);
 void displayProcess(Process *p);
 void freeProcess(Process *p);
+char* getProcessInstructions(int pid);
 ProcessState getProcessState(int pid);
 void setProcessState(int pid, ProcessState newState);
 int getProcessPriority(int pid);

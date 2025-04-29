@@ -8,7 +8,6 @@
 #include "Queue.h"
 #include "memory.h"
 
-
 #define numProcesses 3
 #define numQueues 4
 
@@ -45,23 +44,23 @@ void readInstructionsOnly(Process *process) {
         inst_count++;
 
         // add the line to instructions string in process struct
-    if (process->instructions == NULL) {
-        // First line, allocate memory
-        process->instructions = strdup(line);
-    } else {
-        // Reallocate memory to fit existing content plus new line
-        size_t new_size = strlen(process->instructions) + strlen(line) + 2; // +2 for newline and null terminator
-        char *temp = realloc(process->instructions, new_size);
-        
-        if (temp != NULL) {
-            process->instructions = temp;
-            strcat(process->instructions, "\n");  // Add newline separator
-            strcat(process->instructions, line);  // Append the new line
+        if (process->instructions == NULL) {
+            // First line, allocate memory
+            process->instructions = strdup(line);
         } else {
-            // Handle memory allocation failure
-            // (could add error handling here)
+            // Reallocate memory to fit existing content plus new line
+            size_t new_size = strlen(process->instructions) + strlen(line) + 2; // +2 for newline and null terminator
+            char *temp = realloc(process->instructions, new_size);
+            
+            if (temp != NULL) {
+                process->instructions = temp;
+                strcat(process->instructions, "\n");  // Add newline separator
+                strcat(process->instructions, line);  // Append the new line
+            } else {
+                // Handle memory allocation failure
+                // (could add error handling here)
+            }
         }
-    }
 
         // Check for variables in "assign" instructions
         if (strncmp(line, "assign ", 7) == 0) {
@@ -92,8 +91,7 @@ void readInstructionsOnly(Process *process) {
     }
 }
 
-    void addInstAndVars(Process *process) {
-    //readInstructionsOnly(process); // Read instructions and variables
+void addInstAndVars(Process *process) {
     // Check if the process fits in memory
     int inst_count = process->instruction_count;
     int var_count = process->variable_count;
@@ -113,55 +111,62 @@ void readInstructionsOnly(Process *process) {
         return;
     }
 
-    // Assign starting address for instructions
-    ranges[ranges_count].inst_start = (ranges_count == 0) ? 0 : ranges[ranges_count - 1].pcb_start + 1;
-    ranges[ranges_count].inst_count = inst_count;
-     
-    FILE *file = fopen(process->file_path, "r");
-    if (!file) {
-        fprintf(stderr, "Failed to open %s\n", process->file_path);
-        free(variables);
+    // Step 1: Allocate PCB first
+    ranges[ranges_count].pcb_start = (ranges_count == 0) ? 0 : ranges[ranges_count - 1].var_start + ranges[ranges_count - 1].var_count;
+    ranges[ranges_count].pcb_count = 1;
+
+    // Create and store the PCB
+    struct PCB *pcb = createPCBWithBounds(process->pid, ranges[ranges_count].pcb_start + 1, ranges[ranges_count].pcb_start + inst_count);
+    if (pcb == NULL) {
+        fprintf(stderr, "Failed to create PCB for PID: %d\n", process->pid);
         return;
     }
+    setPCBState(pcb, READY);
+    process->state = READY;
+    addMemoryData(&memory, ranges[ranges_count].pcb_start, pcb, TYPE_PCB);
+    char pcb_key[32];
+    snprintf(pcb_key, sizeof(pcb_key), "P%d_PCB", process->pid);
+    addIndexEntry(&index_table, pcb_key, ranges[ranges_count].pcb_start);
 
-  // Assuming process->instructions already contains all the instructions
-// Parse through the stored instructions and add each line to memory
+    // Step 2: Allocate instructions after the PCB
+    ranges[ranges_count].inst_start = ranges[ranges_count].pcb_start + ranges[ranges_count].pcb_count;
+    ranges[ranges_count].inst_count = inst_count;
 
-char *instruction_ptr = process->instructions;
-char line[256];
-int inst_idx = 0;
+    char *instruction_ptr = process->instructions;
+    char line[256];
+    int inst_idx = 0;
 
-// If we have stored instructions
-if (instruction_ptr) {
-    while (*instruction_ptr) {
-        // Clear the line buffer
-        memset(line, 0, sizeof(line));
-        // Copy characters until we hit a newline or end of string
-        int line_idx = 0;
-        while (*instruction_ptr && *instruction_ptr != '\n' && line_idx < sizeof(line) - 1) {
-            line[line_idx++] = *instruction_ptr++;
+    // If we have stored instructions
+    if (instruction_ptr) {
+        while (*instruction_ptr) {
+            // Clear the line buffer
+            memset(line, 0, sizeof(line));
+            // Copy characters until we hit a newline or end of string
+            int line_idx = 0;
+            while (*instruction_ptr && *instruction_ptr != '\n' && line_idx < sizeof(line) - 1) {
+                line[line_idx++] = *instruction_ptr++;
+            }
+            // Add null terminator
+            line[line_idx] = 0;
+            // Skip the newline character if present
+            if (*instruction_ptr == '\n') {
+                instruction_ptr++;
+            }
+            // Add the line to memory
+            addMemoryData(&memory, ranges[ranges_count].inst_start + inst_idx, line, TYPE_STRING);
+            // Create and add index entry
+            char key[32];
+            snprintf(key, sizeof(key), "P%d_Instruction_%d", process->pid, inst_idx + 1);
+            addIndexEntry(&index_table, key, ranges[ranges_count].inst_start + inst_idx);
+            inst_idx++;
         }
-        // Add null terminator
-        line[line_idx] = 0;
-        // Skip the newline character if present
-        if (*instruction_ptr == '\n') {
-            instruction_ptr++;
-        }
-        // Add the line to memory
-        addMemoryData(&memory, ranges[ranges_count].inst_start + inst_idx, line, TYPE_STRING);
-        // Create and add index entry
-        char key[32];
-        snprintf(key, sizeof(key), "P%d_Instruction_%d", process->pid, inst_idx + 1);
-        addIndexEntry(&index_table, key, ranges[ranges_count].inst_start + inst_idx);
-        inst_idx++;
     }
-}
 
     // Update burstTime with the number of instructions
     process->burstTime = ranges[ranges_count].inst_count;
     process->remainingTime = ranges[ranges_count].inst_count;
 
-    // Assign addresses for variables
+    // Step 3: Allocate variables after instructions
     ranges[ranges_count].var_start = ranges[ranges_count].inst_start + ranges[ranges_count].inst_count;
     ranges[ranges_count].var_count = var_count;
     for (int i = 0; i < var_count; i++) {
@@ -178,27 +183,12 @@ if (instruction_ptr) {
 }
 
 void populatePCB(Process *process) {
-    // Assign address for PCB
-    ranges[ranges_count].pcb_start = ranges[ranges_count].var_start + ranges[ranges_count].var_count;
-    ranges[ranges_count].pcb_count = 1;
-
-    struct PCB *pcb = createPCBWithBounds(process->pid, ranges[ranges_count].inst_start, ranges[ranges_count].pcb_start + ranges[ranges_count].pcb_count - 1);
-    if (pcb == NULL) {
-        fprintf(stderr, "Failed to create PCB for PID: %d\n", process->pid);
-        return;
-    }
-
-    setPCBState(pcb, READY);
-    process->state = READY;
-
-    addMemoryData(&memory, ranges[ranges_count].pcb_start, pcb, TYPE_PCB);
-    char key[32];
-    snprintf(key, sizeof(key), "P%d_PCB", process->pid);
-    addIndexEntry(&index_table, key, ranges[ranges_count].pcb_start);
+    // PCB is already allocated in addInstAndVars, so we can skip allocation here
+    // Just ensure the process state is set (already done in addInstAndVars)
 }
 
 void populateMemory() {
-    if(!isEmpty(job_pool)){
+    if (!isEmpty(job_pool)) {
         Process *curr;
         DataType type;
         int size = getQueueSize(job_pool);
@@ -213,25 +203,23 @@ void populateMemory() {
                     continue;
                 }
 
-                addInstAndVars(curr); // Read instructions and variables
-                populatePCB(curr);
-                ranges_count++; // Increment ranges_count
+                addInstAndVars(curr); // This now handles PCB, instructions, and variables
+                populatePCB(curr);    // Minimal work since PCB is already allocated
+                ranges_count++;       // Increment ranges_count
 
                 // Dequeue from job pool
                 dequeue(job_pool);
                 curr->ready_time = clockCycle; // Set ready_time
                 enqueue(readyQueues[0], curr); // Add to ready_queue
-            }
-            else{
+            } else {
                 enqueue(job_pool, dequeue(job_pool)); // Re-enqueue the process
             }
         }
-    }
-    else{
+    } else {
         printf("Job pool is empty\n");
     }
 }
-   
+
 void* fetchDataByIndex(const char *key, DataType *type_out) {
     int address = getIndexAddress(index_table, key);
     if (address == -1) {
@@ -314,12 +302,12 @@ void displayMemoryRange(int pid) {
             int display_pid = i + 1;
             MemoryRange range = ranges[i];
             printf("P%d Memory Range:\n", display_pid);
+            printf("  PCB: %d (Count: %d)\n", 
+                   range.pcb_start, range.pcb_count);
             printf("  Instructions: %d–%d (Count: %d)\n", 
                    range.inst_start, range.inst_start + range.inst_count - 1, range.inst_count);
             printf("  Variables: %d–%d (Count: %d)\n", 
                    range.var_start, range.var_start + range.var_count - 1, range.var_count);
-            printf("  PCB: %d (Count: %d)\n", 
-                   range.pcb_start, range.pcb_count);
         }
     } else {
         MemoryRange range = getProcessMemoryRange(pid);
@@ -328,12 +316,46 @@ void displayMemoryRange(int pid) {
             return;
         }
         printf("P%d Memory Range:\n", pid);
+        printf("  PCB: %d (Count: %d)\n", 
+               range.pcb_start, range.pcb_count);
         printf("  Instructions: %d–%d (Count: %d)\n", 
                range.inst_start, range.inst_start + range.inst_count - 1, range.inst_count);
         printf("  Variables: %d–%d (Count: %d)\n", 
                range.var_start, range.var_start + range.var_count - 1, range.var_count);
-        printf("  PCB: %d (Count: %d)\n", 
-               range.pcb_start, range.pcb_count);
+    }
+}
+
+// Function to free the memory ranges
+void freeMemoryRanges() {
+    for (int i = 0; i < ranges_count; i++) {
+        // Free the PCB data
+        MemoryWord *pcb_word = NULL;
+        HASH_FIND_INT(memory, &ranges[i].pcb_start, pcb_word);
+        if (pcb_word && pcb_word->data) {
+            freePCB((PCB*)pcb_word->data);
+        }
+
+        // Free the instruction data
+        for (int j = ranges[i].inst_start; j < ranges[i].inst_start + ranges[i].inst_count; j++) {
+            MemoryWord *word = NULL;
+            HASH_FIND_INT(memory, &j, word);
+            if (word && word->data) {
+                free(word->data);
+                HASH_DEL(memory, word);
+                free(word);
+            }
+        }
+
+        // Free the variable data
+        for (int j = ranges[i].var_start; j < ranges[i].var_start + ranges[i].var_count; j++) {
+            MemoryWord *word = NULL;
+            HASH_FIND_INT(memory, &j, word);
+            if (word && word->data) {
+                free(word->data);
+                HASH_DEL(memory, word);
+                free(word);
+            }
+        }
     }
 }
 
@@ -341,77 +363,76 @@ void displayMemoryRange(int pid) {
 void freeMemoryRange(int inst_start, int inst_count, int var_start, int var_count, int pcb_start) {
     // Free instructions
     for (int i = inst_start; i < inst_start + inst_count; i++) {
-    MemoryWord *word = NULL;
-    HASH_FIND_INT(memory, &i, word);
-    if (word) {
-    if (word->type == TYPE_STRING) {
-    free(word->data);
+        MemoryWord *word = NULL;
+        HASH_FIND_INT(memory, &i, word);
+        if (word) {
+            if (word->type == TYPE_STRING) {
+                free(word->data);
+            }
+            HASH_DEL(memory, word);
+            free(word);
+        }
     }
-    HASH_DEL(memory, word);
-    free(word);
-    }
-    }
-    
+
     // Free variables
     for (int i = var_start; i < var_start + var_count; i++) {
-    MemoryWord *word = NULL;
-    HASH_FIND_INT(memory, &i, word);
-    if (word) {
-    if (word->type == TYPE_STRING) {
-    free(word->data);
+        MemoryWord *word = NULL;
+        HASH_FIND_INT(memory, &i, word);
+        if (word) {
+            if (word->type == TYPE_STRING) {
+                free(word->data);
+            }
+            HASH_DEL(memory, word);
+            free(word);
+        }
     }
-    HASH_DEL(memory, word);
-    free(word);
-    }
-    }
-    
+
     // Free PCB
     MemoryWord *pcb_word = NULL;
     HASH_FIND_INT(memory, &pcb_start, pcb_word);
     if (pcb_word) {
-    if (pcb_word->type == TYPE_PCB) {
-    freePCB((PCB *)pcb_word->data);
+        if (pcb_word->type == TYPE_PCB) {
+            freePCB((PCB *)pcb_word->data);
+        }
+        HASH_DEL(memory, pcb_word);
+        free(pcb_word);
     }
-    HASH_DEL(memory, pcb_word);
-    free(pcb_word);
-    }
-    }
-    
-    void deleteProcessFromMemory(int pid) {
+}
+
+void deleteProcessFromMemory(int pid) {
     // Step 1: Find the process's memory range
     int range_idx = pid - 1; // Your code uses pid - 1 as the index
     if (range_idx < 0 || range_idx >= ranges_count) {
-    fprintf(stderr, "No memory range found for PID: %d\n", pid);
-    return;
+        fprintf(stderr, "No memory range found for PID: %d\n", pid);
+        return;
     }
-    
+
     MemoryRange range = ranges[range_idx];
-    
+
     // Step 2: Free the memory range
     freeMemoryRange(range.inst_start, range.inst_count, range.var_start, range.var_count, range.pcb_start);
-    
+
     // Step 3: Remove index entries for this process
     IndexEntry *entry, *tmp;
     char prefix[32];
     snprintf(prefix, sizeof(prefix), "P%d_", pid);
     HASH_ITER(hh, index_table, entry, tmp) {
-    if (strncmp(entry->key, prefix, strlen(prefix)) == 0) {
-    HASH_DEL(index_table, entry);
-    free(entry->key);
-    free(entry);
+        if (strncmp(entry->key, prefix, strlen(prefix)) == 0) {
+            HASH_DEL(index_table, entry);
+            free(entry->key);
+            free(entry);
+        }
     }
-    }
-    
+
     // Step 4: Update memory usage
     int total_words_freed = range.inst_count + range.var_count + range.pcb_count;
     current_memory_usage -= total_words_freed;
-    
+
     // Step 5: Remove the range entry by shifting subsequent entries
     for (int i = range_idx; i < ranges_count - 1; i++) {
-    ranges[i] = ranges[i + 1];
+        ranges[i] = ranges[i + 1];
     }
     ranges_count--;
-    
+
     printf("Freed memory for P%d: %d words\n", pid, total_words_freed);
-    }
-    
+}
