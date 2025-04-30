@@ -9,13 +9,28 @@
 #define CONSOLE_WIDGET_KEY "console-widget"
 #define DIALOG_WIDGET_KEY "dialog-widget"
 
+typedef struct {
+    char *text;
+    GtkWidget *console;
+} AppendData;
+
+typedef struct {
+    char *text;
+    GtkTextBuffer *buffer;
+} PrintData;
+
 // Global async queue to store input lines
+extern GtkWidget *console;
+extern GtkWidget *entry;
 extern GAsyncQueue *input_queue;
+extern GAsyncQueue *action_queue;
+extern gboolean is_prompted_input;
+
 
 GtkWidget* console_view_new(GtkWidget **entry_out);
-void console_view_printf(GtkWidget *console, const char *format, ...);
-void console_view_scanf(GtkWidget *console, char *buffer, size_t size);
-void console_view_append_text(GtkWidget *console, const char *text);
+void console_printf(const char *format, ...);
+void console_scanf(char *buffer, size_t size);
+void on_entry_activate(GtkWidget *widget, gpointer user_data);
 void console_view_cleanup(void);
 
 #endif

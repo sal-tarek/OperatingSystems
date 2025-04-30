@@ -14,6 +14,7 @@ char *input(const char *prompt)
     static char buffer[MAX_ARG_LEN];
     console_scanf(buffer, MAX_ARG_LEN);
     buffer[strcspn(buffer, "\n")] = '\0';
+    console_printf("> %s\n", buffer);
     return strdup(buffer);
 }
 
@@ -31,7 +32,7 @@ void print(int processId, char *printable)
     }
 
     if (storedData != NULL) {
-        console_printf("%s/n", storedData);
+        console_printf("%s\n", storedData);
     } else {
         console_printf("Variable not found!\n");
     }

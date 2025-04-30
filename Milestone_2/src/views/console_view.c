@@ -5,10 +5,7 @@
 // Forward declaration of idle callback
 static gboolean append_text_idle(gpointer data);
 
-typedef struct {
-    char *text;
-    GtkWidget *console;
-} AppendData;
+gboolean is_prompted_input = FALSE;
 
 static gboolean console_view_append_text_idle(gpointer user_data) {
     AppendData *data = (AppendData *)user_data;
@@ -33,20 +30,6 @@ void console_view_append_text(GtkWidget *console, const char *text) {
     data->text = g_strdup(text);
     data->console = console;
     g_idle_add(console_view_append_text_idle, data);
-}
-
-// --- New signal handler: when Enter pressed ---
-static void on_entry_activate(GtkEntry *entry, gpointer user_data) {
-    if (!input_queue) return;
-
-    const char *text = gtk_entry_buffer_get_text(gtk_entry_get_buffer(entry));
-    if (text && *text) {
-        g_async_queue_push(input_queue, g_strdup(text));  // push into queue
-        
-        // In GTK4, use buffer to set text instead of direct entry method
-        GtkEntryBuffer *buffer = gtk_entry_get_buffer(entry);
-        gtk_entry_buffer_set_text(buffer, "", 0);
-    }
 }
 
 // --- Public function to create the console view ---
@@ -103,6 +86,63 @@ GtkWidget* console_view_new(GtkWidget **entry_out) {
     }
     
     return vbox;
+}
+
+static gboolean console_printf_idle(gpointer user_data) {
+    PrintData *data = (PrintData *)user_data;
+    if (data->buffer) {
+        GtkTextIter end;
+        gtk_text_buffer_get_end_iter(data->buffer, &end);
+        gtk_text_buffer_insert(data->buffer, &end, data->text, -1);
+        GtkTextMark *end_mark = gtk_text_buffer_get_mark(data->buffer, "end_mark");
+        if (end_mark) {
+            gtk_text_buffer_move_mark(data->buffer, end_mark, &end);
+        }
+    }
+    g_free(data->text);
+    g_free(data);
+    return G_SOURCE_REMOVE;
+}
+
+void console_printf(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    char buffer[1024];
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+    PrintData *data = g_new(PrintData, 1);
+    data->text = g_strdup(buffer);
+    data->buffer = g_object_get_data(G_OBJECT(console), CONSOLE_BUFFER_KEY);
+    g_idle_add(console_printf_idle, data);
+}
+
+// Callback for Enter key in the entry widget
+void on_entry_activate(GtkWidget *widget, gpointer user_data)
+{
+    // Get the entry buffer
+    GtkEntryBuffer *buffer = gtk_entry_get_buffer(GTK_ENTRY(widget));
+    
+    // Get text from the buffer
+    const char *text = gtk_entry_buffer_get_text(buffer);
+    
+    if (strlen(text) > 0)
+    {
+        char *text_copy = g_strdup(text);
+        g_async_queue_push(input_queue, text_copy);
+        // Clear the buffer
+        gtk_entry_buffer_set_text(buffer, "", -1);
+    }
+}
+
+// Modified console_scanf to set prompted input flag
+void console_scanf(char *buffer, size_t size)
+{
+    is_prompted_input = TRUE; // Mark as prompted input
+    gpointer data = g_async_queue_pop(input_queue); // Blocks until input is available
+    strncpy(buffer, (char *)data, size - 1);
+    buffer[size - 1] = '\0';
+    g_free(data);
+    // Note: is_prompted_input is reset in ui_thread after processing
 }
 
 // Clean up resources

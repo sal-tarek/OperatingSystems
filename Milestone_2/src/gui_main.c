@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-#include "gui_globals.h"
+#include "console_view.h"
 #include "memory_manager.h"
 #include "process.h"
 #include "Queue.h"
@@ -30,12 +30,20 @@ int simulation_running = 1;  // Flag to control simulation loop
 int selected_scheduler = -1; // 0=FCFS, 1=RR, 2=MLFQ
 int quantum = 2;             // Default quantum for RR
 
+FILE *logFile;
+
 // GUI Global variables
 
 GtkWidget *console = NULL;
 GtkWidget *entry = NULL;
 GAsyncQueue *input_queue = NULL;
 GAsyncQueue *action_queue = NULL;
+
+// Write to Log file
+void writeToLogFile(char *content)
+{
+    fprintf(logFile, "%s", content);
+}
 
 // Initialize the OS simulation components
 void initialize_simulation()
@@ -131,24 +139,6 @@ static void *simulation_thread(void *data)
     console_printf("All processes have terminated after %d clock cycles\n", clockCycle);
     cleanup_simulation();
     return NULL;
-}
-
-// Callback for Enter key in the entry widget
-static void on_entry_activate(GtkWidget *widget, gpointer user_data)
-{
-    // Get the entry buffer
-    GtkEntryBuffer *buffer = gtk_entry_get_buffer(GTK_ENTRY(widget));
-    
-    // Get text from the buffer
-    const char *text = gtk_entry_buffer_get_text(buffer);
-    
-    if (strlen(text) > 0)
-    {
-        char *text_copy = g_strdup(text);
-        g_async_queue_push(input_queue, text_copy);
-        // Clear the buffer
-        gtk_entry_buffer_set_text(buffer, "", -1);
-    }
 }
 
 // Callback for key press events on the window
@@ -391,6 +381,9 @@ static void activate(GtkApplication *app, gpointer user_data)
 // Main function
 int main(int argc, char *argv[])
 {
+    logFile = fopen("G:/SEM6/CSEN_602/Project/OperatingSystems/Milestone_2/log/log.txt", "w");
+    writeToLogFile("Simulation began successfully");
+
     GtkApplication *app = gtk_application_new("org.example.ossimulation", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
     int status = g_application_run(G_APPLICATION(app), argc, argv);
