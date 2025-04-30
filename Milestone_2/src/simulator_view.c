@@ -68,30 +68,53 @@ SimulatorView *simulator_view_new(GtkApplication *app) {
     gtk_widget_set_size_request(left_box, 200, -1); // Fixed width for left section
     gtk_box_append(GTK_BOX(main_box), left_box);
 
-    // Job Pool section
-    GtkWidget *job_pool_frame = gtk_frame_new("Job Pool");
+    // Job Pool section with custom title
+    GtkWidget *job_pool_frame = gtk_frame_new(NULL); // No title, we'll add a custom one
     gtk_box_append(GTK_BOX(left_box), job_pool_frame);
 
-    GtkWidget *job_pool_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    // Custom title for job pool frame
+    GtkWidget *job_pool_title = gtk_label_new("Job Pool");
+    gtk_widget_add_css_class(job_pool_title, "frame-title");
+    
+    // Container for the job pool content
+    GtkWidget *job_pool_content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    
+    // Box to hold everything
+    GtkWidget *job_pool_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_box_append(GTK_BOX(job_pool_box), job_pool_title);
+    gtk_box_append(GTK_BOX(job_pool_box), job_pool_content);
+    
     gtk_frame_set_child(GTK_FRAME(job_pool_frame), job_pool_box);
 
     GtkWidget *job_pool_display = gtk_list_box_new();
     gtk_list_box_set_selection_mode(GTK_LIST_BOX(job_pool_display), GTK_SELECTION_NONE);
-    gtk_box_append(GTK_BOX(job_pool_box), job_pool_display);
+    gtk_box_append(GTK_BOX(job_pool_content), job_pool_display);
     view->job_pool_display = GTK_LIST_BOX(job_pool_display);
 
     // "+" button to create a new process
     GtkWidget *create_button = gtk_button_new_with_label("+");
-    gtk_box_append(GTK_BOX(job_pool_box), create_button);
+    gtk_box_append(GTK_BOX(job_pool_content), create_button);
     g_signal_connect(create_button, "clicked", G_CALLBACK(show_process_dialog), view);
 
-    // Memory section
-    GtkWidget *memory_frame = gtk_frame_new("Memory");
+    // Memory section with custom title
+    GtkWidget *memory_frame = gtk_frame_new(NULL); // No title, we'll add a custom one
     gtk_widget_set_vexpand(memory_frame, TRUE); // Allow memory section to expand vertically
     gtk_box_append(GTK_BOX(left_box), memory_frame);
 
+    // Custom title for memory frame
+    GtkWidget *memory_title = gtk_label_new("Memory");
+    gtk_widget_add_css_class(memory_title, "frame-title");
+    
+    // Container for the memory content
     GtkWidget *memory_scrolled = gtk_scrolled_window_new();
-    gtk_frame_set_child(GTK_FRAME(memory_frame), memory_scrolled);
+    
+    // Box to hold everything
+    GtkWidget *memory_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_box_append(GTK_BOX(memory_box), memory_title);
+    gtk_box_append(GTK_BOX(memory_box), memory_scrolled);
+    gtk_widget_set_vexpand(memory_scrolled, TRUE);
+    
+    gtk_frame_set_child(GTK_FRAME(memory_frame), memory_box);
 
     GtkWidget *memory_list = gtk_list_box_new();
     gtk_list_box_set_selection_mode(GTK_LIST_BOX(memory_list), GTK_SELECTION_NONE);
@@ -107,16 +130,23 @@ SimulatorView *simulator_view_new(GtkApplication *app) {
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(provider,
         "window { background-color: #2E2F32; }"
-        "frame { background-color: #e8ecef; border: 1px solid #ced4da; }"
-        "label { color: #212529; font-size: 14px; }"
-        "listbox { background-color: #71C2BD; }"
-        "listbox box { padding: 2px; border-radius: 3px; }"
-        "listbox box:nth-child(odd) { background-color: rgba(255,255,255,0.1); }"
-        "listbox box:hover { background-color: rgba(255,255,255,0.2); }"
-        "button { background-color: #17a2b8; color: white; border-radius: 5px; padding: 5px; }"
-        "button:hover { background-color: #138496; }"
-        "entry { background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 5px; }"
-        "textview { background-color: #f8f9fa; border: 1px solid #ced4da; padding: 5px; font-size: 12px; }"
+        "frame { background-color: #D9D9D9; border: 1px solid #bbb; color: #333; }"
+        "frame > label { color: white; font-weight: bold; font-size: 14px; background-color: #33A19A; padding: 5px; border-radius: 3px 3px 0 0; }"
+        "label { color: #333; font-size: 14px; }"
+        "listbox { background-color: #D9D9D9; }"
+        "listbox row { padding: 5px; margin: 2px; }"
+        "listbox row:nth-child(even) { background-color: rgba(51, 161, 154, 0.1); }"
+        "listbox row:hover { background-color: rgba(51, 161, 154, 0.2); }"
+        "button { background-color: #33A19A; color: #D9D9D9; border-radius: 5px; padding: 5px; }"
+        "button:hover { background-color: #278f89; }"
+        "entry { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
+        "textview { background-color: #e5f4f3; color: #333; border: 1px solid #bbb; padding: 5px; font-size: 12px; }"
+        ".memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); }"
+        ".memory-content { color: #333; padding: 5px; }"
+        ".memory-empty { color: #777; font-style: italic; padding: 5px; }"
+        ".memory-pcb { background-color: rgba(51, 161, 154, 0.15); border-radius: 5px; padding: 5px; border: 1px solid rgba(51, 161, 154, 0.3); }"
+        ".memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; }"
+        ".frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
     );
     gtk_style_context_add_provider_for_display(
         gdk_display_get_default(),
@@ -167,8 +197,9 @@ void simulator_view_update_job_pool(SimulatorView *view) {
             fprintf(stderr, "Error: Failed to dequeue process from job_pool\n");
             continue;
         }
-        snprintf(pid_str, sizeof(pid_str), "p%d", process -> pid); // Simple PID display (p1, p2, etc.)
+        snprintf(pid_str, sizeof(pid_str), "p%d", process->pid); // Simple PID display (p1, p2, etc.)
         GtkWidget *label = gtk_label_new(pid_str);
+        gtk_widget_add_css_class(label, "job-pool-item");
         enqueue(job_pool, process); // Re-enqueue the process to maintain job pool state
         gtk_list_box_append(view->job_pool_display, label);
     }
@@ -191,7 +222,7 @@ void simulator_view_update_memory(SimulatorView *view) {
         MemoryWord *slot;
         HASH_FIND_INT(memory, &i, slot); // Look up slot i in memory hashmap
 
-        char label[256] = {0}; // Buffer to hold the display text
+        char content_text[256] = {0}; // Buffer to hold the display text
         char *content = NULL;
         int pid = -1;
         MemoryRange range = {0, 0, 0, 0, 0, 0}; // Initialize to invalid range
@@ -212,7 +243,7 @@ void simulator_view_update_memory(SimulatorView *view) {
             }
 
             // Format PCB details with each element on a new line
-            snprintf(label, sizeof(label),
+            snprintf(content_text, sizeof(content_text),
                      "Process %d\n"
                      "P%d PCB\n"
                      "State: %s\n"
@@ -243,9 +274,9 @@ void simulator_view_update_memory(SimulatorView *view) {
                     pid = p;
                     if (slot && slot->type == TYPE_STRING) {
                         content = (char*)slot->data;
-                        snprintf(label, sizeof(label), "%s", content ? content : "Empty");
+                        snprintf(content_text, sizeof(content_text), "%s", content ? content : "Empty");
                     } else {
-                        snprintf(label, sizeof(label), "Empty");
+                        snprintf(content_text, sizeof(content_text), "Empty");
                     }
                     slot_mapped = TRUE;
                     break;
@@ -255,9 +286,9 @@ void simulator_view_update_memory(SimulatorView *view) {
                     pid = p;
                     if (slot && slot->type == TYPE_STRING) {
                         content = (char*)slot->data;
-                        snprintf(label, sizeof(label), "%s", content ? content : "Empty");
+                        snprintf(content_text, sizeof(content_text), "%s", content ? content : "Empty");
                     } else {
-                        snprintf(label, sizeof(label), "Empty");
+                        snprintf(content_text, sizeof(content_text), "Empty");
                     }
                     slot_mapped = TRUE;
                     break;
@@ -272,48 +303,62 @@ void simulator_view_update_memory(SimulatorView *view) {
 
         // If the slot wasn't mapped to any process, mark it as Empty
         if (!slot_mapped) {
-            snprintf(label, sizeof(label), "Empty");
+            snprintf(content_text, sizeof(content_text), "Empty");
         }
 
         // Create a box to display the slot
         GtkWidget *slot_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-        gtk_widget_set_margin_start(slot_box, 5);
+        gtk_widget_add_css_class(slot_box, "memory-slot");
+        gtk_widget_set_margin_start(slot_box, 15); // Increased to allow tag to extend to the left
         gtk_widget_set_margin_end(slot_box, 5);
-        gtk_widget_set_margin_top(slot_box, 5);
-        gtk_widget_set_margin_bottom(slot_box, 5);
+        gtk_widget_set_margin_top(slot_box, 2);
+        gtk_widget_set_margin_bottom(slot_box, 2);
 
-        // Slot number label
+        // Create the numbered tag with teal background
         char tag_text[20];
-        snprintf(tag_text, sizeof(tag_text),
-                 "<span background=\"#17a2b8\" foreground=\"white\" weight=\"bold\"> %d </span>", i);
-        GtkWidget *tag_label = gtk_label_new(NULL);
-        gtk_label_set_markup(GTK_LABEL(tag_label), tag_text);
+        snprintf(tag_text, sizeof(tag_text), "%d", i);
+        GtkWidget *tag_label = gtk_label_new(tag_text);
+        gtk_widget_add_css_class(tag_label, "memory-tag");
+        gtk_widget_set_margin_end(tag_label, 5);
+        gtk_widget_set_size_request(tag_label, 30, -1); // Fixed width for number tags
         gtk_box_append(GTK_BOX(slot_box), tag_label);
 
-        // Content label
-        GtkWidget *content_label;
+        // Content area
         if (slot && slot->type == TYPE_PCB) {
             // Create a vertical box for PCB elements
             GtkWidget *pcb_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
+            gtk_widget_add_css_class(pcb_box, "memory-pcb");
             gtk_widget_set_margin_start(pcb_box, 5);
             gtk_widget_set_margin_end(pcb_box, 5);
             gtk_widget_set_margin_top(pcb_box, 5);
             gtk_widget_set_margin_bottom(pcb_box, 5);
+            gtk_widget_set_hexpand(pcb_box, TRUE);
 
-            // Split the label into lines and add each as a separate label
-            char *line = strtok(label, "\n");
+            // Split the content into lines and add each as a separate label
+            char *line = strtok(content_text, "\n");
             while (line != NULL) {
                 GtkWidget *line_label = gtk_label_new(line);
                 gtk_label_set_xalign(GTK_LABEL(line_label), 0);
+                gtk_widget_add_css_class(line_label, "memory-content");
                 gtk_box_append(GTK_BOX(pcb_box), line_label);
                 line = strtok(NULL, "\n");
             }
 
             gtk_box_append(GTK_BOX(slot_box), pcb_box);
         } else {
-            content_label = gtk_label_new(label);
+            GtkWidget *content_label = gtk_label_new(content_text);
             gtk_label_set_xalign(GTK_LABEL(content_label), 0);
             gtk_label_set_wrap(GTK_LABEL(content_label), TRUE);
+            
+            // Apply "memory-empty" class for empty slots, otherwise use "memory-content"
+            if (strcmp(content_text, "Empty") == 0) {
+                gtk_widget_add_css_class(content_label, "memory-empty");
+            } else {
+                gtk_widget_add_css_class(content_label, "memory-content");
+            }
+            
+            gtk_widget_set_hexpand(content_label, TRUE);
+            
             // If the content is too long, use a tooltip to show the full content
             if (content && strlen(content) > 50) {
                 gtk_widget_set_tooltip_text(content_label, content);
@@ -325,14 +370,16 @@ void simulator_view_update_memory(SimulatorView *view) {
                 truncated[50] = '\0';
                 gtk_label_set_text(GTK_LABEL(content_label), truncated);
             }
-            gtk_widget_set_hexpand(content_label, TRUE);
+            
             gtk_box_append(GTK_BOX(slot_box), content_label);
         }
 
         // Add to memory list
         gtk_list_box_append(view->memory_list, slot_box);
-        simulator_view_update_job_pool(view); // Update job pool display
     }
+    
+    // Also update job pool display whenever memory is updated
+    simulator_view_update_job_pool(view);
 }
 
 // Show the process creation dialog (called when "+" button is clicked)

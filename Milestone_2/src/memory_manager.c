@@ -91,7 +91,7 @@ void readInstructionsOnly(Process *process) {
     }
 }
 
-void addInstAndVars(Process *process) {
+void addInstVarsPCB(Process *process) {
     // Check if the process fits in memory
     int inst_count = process->instruction_count;
     int var_count = process->variable_count;
@@ -111,24 +111,11 @@ void addInstAndVars(Process *process) {
         return;
     }
 
-    // Step 1: Allocate PCB first
+    // Step 1: Allocate PCB ranges
     ranges[ranges_count].pcb_start = (ranges_count == 0) ? 0 : ranges[ranges_count - 1].var_start + ranges[ranges_count - 1].var_count;
     ranges[ranges_count].pcb_count = 1;
 
-    // Create and store the PCB
-    struct PCB *pcb = createPCBWithBounds(process->pid, ranges[ranges_count].pcb_start + 1, ranges[ranges_count].pcb_start + inst_count);
-    if (pcb == NULL) {
-        fprintf(stderr, "Failed to create PCB for PID: %d\n", process->pid);
-        return;
-    }
-    setPCBState(pcb, READY);
-    process->state = READY;
-    addMemoryData(&memory, ranges[ranges_count].pcb_start, pcb, TYPE_PCB);
-    char pcb_key[32];
-    snprintf(pcb_key, sizeof(pcb_key), "P%d_PCB", process->pid);
-    addIndexEntry(&index_table, pcb_key, ranges[ranges_count].pcb_start);
-
-    // Step 2: Allocate instructions after the PCB
+    // Step 2: Allocate instructions ranges after PCB
     ranges[ranges_count].inst_start = ranges[ranges_count].pcb_start + ranges[ranges_count].pcb_count;
     ranges[ranges_count].inst_count = inst_count;
 
@@ -136,39 +123,52 @@ void addInstAndVars(Process *process) {
     char line[256];
     int inst_idx = 0;
 
-    // If we have stored instructions
-    if (instruction_ptr) {
-        while (*instruction_ptr) {
-            // Clear the line buffer
-            memset(line, 0, sizeof(line));
-            // Copy characters until we hit a newline or end of string
-            int line_idx = 0;
-            while (*instruction_ptr && *instruction_ptr != '\n' && line_idx < sizeof(line) - 1) {
-                line[line_idx++] = *instruction_ptr++;
-            }
-            // Add null terminator
-            line[line_idx] = 0;
-            // Skip the newline character if present
-            if (*instruction_ptr == '\n') {
-                instruction_ptr++;
-            }
-            // Add the line to memory
-            addMemoryData(&memory, ranges[ranges_count].inst_start + inst_idx, line, TYPE_STRING);
-            // Create and add index entry
-            char key[32];
-            snprintf(key, sizeof(key), "P%d_Instruction_%d", process->pid, inst_idx + 1);
-            addIndexEntry(&index_table, key, ranges[ranges_count].inst_start + inst_idx);
-            inst_idx++;
-        }
-    }
-
     // Update burstTime with the number of instructions
     process->burstTime = ranges[ranges_count].inst_count;
     process->remainingTime = ranges[ranges_count].inst_count;
 
-    // Step 3: Allocate variables after instructions
+    // Step 3: Allocate variables ranges  after instructions
     ranges[ranges_count].var_start = ranges[ranges_count].inst_start + ranges[ranges_count].inst_count;
     ranges[ranges_count].var_count = var_count;
+
+    // Create and store the PCB
+    int lower_bound = ranges[ranges_count].pcb_start; // Start of PCB
+    int upper_bound = ranges[ranges_count].var_start + ranges[ranges_count].var_count - 1; // End of variables
+    struct PCB *pcb = createPCBWithBounds(process->pid, lower_bound, upper_bound);
+    setPCBState(pcb, READY);
+    process->state = READY;
+    addMemoryData(&memory, ranges[ranges_count].pcb_start, pcb, TYPE_PCB);
+    char pcb_key[32];
+    snprintf(pcb_key, sizeof(pcb_key), "P%d_PCB", process->pid);
+    addIndexEntry(&index_table, pcb_key, ranges[ranges_count].pcb_start);
+
+
+  // If we have stored instructions
+  if (instruction_ptr) {
+    while (*instruction_ptr) {
+        // Clear the line buffer
+        memset(line, 0, sizeof(line));
+        // Copy characters until we hit a newline or end of string
+        int line_idx = 0;
+        while (*instruction_ptr && *instruction_ptr != '\n' && line_idx < sizeof(line) - 1) {
+            line[line_idx++] = *instruction_ptr++;
+        }
+        // Add null terminator
+        line[line_idx] = 0;
+        // Skip the newline character if present
+        if (*instruction_ptr == '\n') {
+            instruction_ptr++;
+        }
+        // Add the line to memory
+        addMemoryData(&memory, ranges[ranges_count].inst_start + inst_idx, line, TYPE_STRING);
+        // Create and add index entry
+        char key[32];
+        snprintf(key, sizeof(key), "P%d_Instruction_%d", process->pid, inst_idx + 1);
+        addIndexEntry(&index_table, key, ranges[ranges_count].inst_start + inst_idx);
+        inst_idx++;
+    }
+}
+    //Store variables in memory
     for (int i = 0; i < var_count; i++) {
         addMemoryData(&memory, ranges[ranges_count].var_start + i, variables[i], TYPE_STRING);
         char key[32];
@@ -180,11 +180,6 @@ void addInstAndVars(Process *process) {
 
     // Update memory usage
     current_memory_usage += total_words_needed;
-}
-
-void populatePCB(Process *process) {
-    // PCB is already allocated in addInstAndVars, so we can skip allocation here
-    // Just ensure the process state is set (already done in addInstAndVars)
 }
 
 void populateMemory() {
@@ -203,8 +198,7 @@ void populateMemory() {
                     continue;
                 }
 
-                addInstAndVars(curr); // This now handles PCB, instructions, and variables
-                populatePCB(curr);    // Minimal work since PCB is already allocated
+                addInstVarsPCB(curr); // This now handles PCB, instructions, and variables
                 ranges_count++;       // Increment ranges_count
 
                 // Dequeue from job pool

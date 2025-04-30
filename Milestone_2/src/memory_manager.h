@@ -22,8 +22,7 @@ extern int ranges_count; // Number of processes with assigned ranges
 extern int current_memory_usage; // Track total memory words used
 
 void readInstructionsOnly(Process *process);
-void addInstAndVars(Process *process);
-void populatePCB(Process *process);
+void addInstVarsPCB(Process *process);
 void populateMemory(void);
 void* fetchDataByIndex(const char *key, DataType *type_out);
 int updateDataByIndex(const char *key, void *new_data, DataType type);
