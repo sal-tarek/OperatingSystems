@@ -92,7 +92,6 @@ void runMLFQ() {
     }
     else{
         printf("CPU is idle\n");
-        //printf("CPU is idle\n", clockCycle); where is the placeholder??
     }
 
     return;
