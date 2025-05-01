@@ -22,7 +22,6 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app) {
     // Create the big container (horizontal box) with grey background
     GtkWidget *big_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
     gtk_widget_set_hexpand(big_container, TRUE);
-    // Remove vertical expansion so the height matches the content (Overview Section)
     gtk_widget_set_vexpand(big_container, FALSE);
     gtk_box_append(GTK_BOX(main_container), big_container);
 
@@ -74,12 +73,32 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app) {
     gtk_widget_set_halign(view->algorithm_label, GTK_ALIGN_START);
     gtk_grid_attach(GTK_GRID(overview_grid), view->algorithm_label, 1, 2, 1, 1);
 
-    // Placeholder for future sections on the right side of big_container
-    // Example: Right Section (e.g., for Job Pool or other content)
-    // GtkWidget *right_section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    // gtk_widget_set_halign(right_section, GTK_ALIGN_END);
-    // gtk_widget_set_hexpand(right_section, TRUE);
-    // gtk_box_append(GTK_BOX(big_container), right_section);
+    // Process List Section (vertical box, on the right)
+    GtkWidget *process_list_section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_widget_set_halign(process_list_section, GTK_ALIGN_END);
+    gtk_widget_set_hexpand(process_list_section, TRUE);
+    gtk_box_append(GTK_BOX(big_container), process_list_section);
+
+    // Create the title label for Process List
+    GtkWidget *process_list_title = gtk_label_new("Process List");
+    gtk_label_set_xalign(GTK_LABEL(process_list_title), 0.0);
+    gtk_widget_set_margin_bottom(process_list_title, 5);
+    gtk_box_append(GTK_BOX(process_list_section), process_list_title);
+
+    // Create a horizontal box to hold process entries
+    GtkWidget *process_list_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_widget_set_hexpand(process_list_box, TRUE);
+
+    // Create a scrolled window to contain the horizontal list
+    GtkWidget *scrolled_window = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolled_window), process_list_box);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    gtk_widget_set_size_request(scrolled_window, -1, 200);
+    gtk_box_append(GTK_BOX(process_list_section), scrolled_window);
+
+    // Store the process list box in the ProcessListWidgets structure
+    view->process_list_widgets = g_new(ProcessListWidgets, 1);
+    view->process_list_widgets->process_list_box = process_list_box;
 
     // Apply CSS for styling
     GtkCssProvider *provider = gtk_css_provider_new();
@@ -90,22 +109,28 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app) {
         "   border-radius: 5px;"
         "}"
         "label {"
-        "   color:rgb(18, 76, 71);"
+        "   color: rgb(18, 76, 71);"
         "}"
-        "frame > label {"
+        "frame > label, box > label {"
         "   font-weight: bold;"
         "   font-size: 16px;"
-        "   color:rgb(35, 124, 116);"
+        "   color: rgb(35, 124, 116);"
         "}"
         "box.big-container {"
-        "   background-color: #D3D3D3;" // Light grey background for the big container
+        "   background-color: #D3D3D3;"
         "   padding: 10px;"
+        "   border-radius: 5px;"
+        "}"
+        "box.process-entry {"
+        "   background-color: #33A19A;"
+        "   padding: 5px;"
         "   border-radius: 5px;"
         "}"
     );
 
-    // Add a CSS class to big_container using the modern API
+    // Add a CSS class to big_container and process_list_section
     gtk_widget_add_css_class(big_container, "big-container");
+    gtk_widget_add_css_class(process_list_box, "process-list");
 
     gtk_style_context_add_provider_for_display(
         gtk_widget_get_display(view->window),
@@ -134,8 +159,53 @@ void dashboard_view_set_algorithm(DashboardView *view, const char *algorithm) {
     gtk_label_set_text(GTK_LABEL(view->algorithm_label), algorithm);
 }
 
+void dashboard_view_add_process(DashboardView *view, int pid, const char *state, int priority, 
+                               int mem_lower, int mem_upper, int program_counter) {
+    // Create a horizontal box for this process entry
+    GtkWidget *process_entry = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+    gtk_widget_set_margin_start(process_entry, 5);
+    gtk_widget_set_margin_end(process_entry, 5);
+    gtk_widget_add_css_class(process_entry, "process-entry");
+
+    // Create labels for each piece of process information
+    char pid_str[32], priority_str[32], mem_lower_str[32], mem_upper_str[32], pc_str[32];
+    snprintf(pid_str, sizeof(pid_str), "PID: %d", pid);
+    snprintf(priority_str, sizeof(priority_str), "Priority: %d", priority);
+    snprintf(mem_lower_str, sizeof(mem_lower_str), "Mem Lower: %d", mem_lower);
+    snprintf(mem_upper_str, sizeof(mem_upper_str), "Mem Upper: %d", mem_upper);
+    snprintf(pc_str, sizeof(pc_str), "PC: %d", program_counter);
+
+    GtkWidget *pid_label = gtk_label_new(pid_str);
+    gtk_widget_set_halign(pid_label, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(process_entry), pid_label);
+
+    GtkWidget *state_label = gtk_label_new(state);
+    gtk_widget_set_halign(state_label, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(process_entry), state_label);
+
+    GtkWidget *priority_label = gtk_label_new(priority_str);
+    gtk_widget_set_halign(priority_label, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(process_entry), priority_label);
+
+    GtkWidget *mem_lower_label = gtk_label_new(mem_lower_str);
+    gtk_widget_set_halign(mem_lower_label, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(process_entry), mem_lower_label);
+
+    GtkWidget *mem_upper_label = gtk_label_new(mem_upper_str);
+    gtk_widget_set_halign(mem_upper_label, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(process_entry), mem_upper_label);
+
+    GtkWidget *pc_label = gtk_label_new(pc_str);
+    gtk_widget_set_halign(pc_label, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(process_entry), pc_label);
+
+    // Append the process entry to the process list box
+    gtk_box_append(GTK_BOX(view->process_list_widgets->process_list_box), process_entry);
+}
+
 void dashboard_view_free(DashboardView *view) {
     if (view) {
+        g_free(view->process_list_widgets);
         g_free(view);
     }
 }

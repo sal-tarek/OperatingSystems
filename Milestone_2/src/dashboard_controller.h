@@ -18,6 +18,9 @@ void dashboard_controller_show(DashboardController *controller);
 // Function to update the view with backend data
 void dashboard_controller_update(DashboardController *controller);
 
+// Function to update the Process List
+void dashboard_controller_update_process_list(DashboardController *controller);
+
 // Function to free the controller
 void dashboard_controller_free(DashboardController *controller);
 
