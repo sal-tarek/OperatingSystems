@@ -107,12 +107,12 @@ SimulatorView *simulator_view_new(GtkApplication *app) {
     
     // Container for the memory content
     GtkWidget *memory_scrolled = gtk_scrolled_window_new();
+    gtk_widget_set_vexpand(memory_scrolled, TRUE);
     
     // Box to hold everything
     GtkWidget *memory_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_append(GTK_BOX(memory_box), memory_title);
     gtk_box_append(GTK_BOX(memory_box), memory_scrolled);
-    gtk_widget_set_vexpand(memory_scrolled, TRUE);
     
     gtk_frame_set_child(GTK_FRAME(memory_frame), memory_box);
 
@@ -130,23 +130,29 @@ SimulatorView *simulator_view_new(GtkApplication *app) {
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(provider,
         "window { background-color: #2E2F32; }"
-        "frame { background-color: #D9D9D9; border: 1px solid #bbb; color: #333; }"
+        "frame { background-color:rgb(236, 236, 234); border: 1px solid #bbb; color: #333; }"
         "frame > label { color: white; font-weight: bold; font-size: 14px; background-color: #33A19A; padding: 5px; border-radius: 3px 3px 0 0; }"
-        "label { color: #333; font-size: 14px; }"
+        "label { color: #333; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
         "listbox { background-color: #D9D9D9; }"
         "listbox row { padding: 5px; margin: 2px; }"
         "listbox row:nth-child(even) { background-color: rgba(51, 161, 154, 0.1); }"
-        "listbox row:hover { background-color: rgba(51, 161, 154, 0.2); }"
+        "listbox row:hover { background-color: rgba(51, 161, 154, 0.3); }"
         "button { background-color: #33A19A; color: #D9D9D9; border-radius: 5px; padding: 5px; }"
         "button:hover { background-color: #278f89; }"
         "entry { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
-        "textview { background-color: #e5f4f3; color: #333; border: 1px solid #bbb; padding: 5px; font-size: 12px; }"
-        ".memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); }"
+        "textview { background-color: white; color: #000; border: 1px solid #bbb; padding: 8px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; font-size: 13px; }"
+        ".memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); width: 30px; text-align: center; }"
         ".memory-content { color: #333; padding: 5px; }"
+        ".memory-content:hover { color: #196761; }"
         ".memory-empty { color: #777; font-style: italic; padding: 5px; }"
-        ".memory-pcb { background-color: rgba(51, 161, 154, 0.15); border-radius: 5px; padding: 5px; border: 1px solid rgba(51, 161, 154, 0.3); }"
-        ".memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; }"
+        ".memory-pcb { background-color: #f5f5f5; border-radius: 0 0 5px 5px; padding: 0; border: 1px solid #33A19A; margin-bottom: 7px; margin-right:2px;}"
+        ".memory-pcb-row { padding: 5px 10px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); }"
+        ".memory-pcb-row:last-child { border-bottom: none; }"
+        ".memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; max-width: 400px; }"
+        ".memory-slot:hover .memory-content { color: #196761; }"
         ".frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
+        ".pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; margin-top:5px; margin-right:2px;}"
+        ".process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; max-width:200px; }"
     );
     gtk_style_context_add_provider_for_display(
         gdk_display_get_default(),
@@ -242,22 +248,97 @@ void simulator_view_update_memory(SimulatorView *view) {
                 default: state_str = "UNKNOWN";
             }
 
-            // Format PCB details with each element on a new line
-            snprintf(content_text, sizeof(content_text),
-                     "Process %d\n"
-                     "P%d PCB\n"
-                     "State: %s\n"
-                     "Priority: %d\n"
-                     "PC: %d\n"
-                     "Mem Bounds: %d-%d",
-                     pid,
-                     pid,
-                     state_str,
-                     getPCBPriority(pcb),
-                     getPCBProgramCounter(pcb),
-                     getPCBMemLowerBound(pcb),
-                     getPCBMemUpperBound(pcb));
+            // PCB details stored for display in new format
+            char process_title[32];
+            snprintf(process_title, sizeof(process_title), "Process %d", pid);
+            
+            char pcb_label[32];
+            snprintf(pcb_label, sizeof(pcb_label), "PCB");
+            
+            char state_info[32];
+            snprintf(state_info, sizeof(state_info), "State: %s", state_str);
+            
+            char priority_info[32];
+            snprintf(priority_info, sizeof(priority_info), "Priority: %d", getPCBPriority(pcb));
+            
+            char pc_info[32];
+            snprintf(pc_info, sizeof(pc_info), "PC: %d", getPCBProgramCounter(pcb));
+            
+            char mem_bounds[32];
+            snprintf(mem_bounds, sizeof(mem_bounds), "Mem Bounds: %d-%d", 
+                     getPCBMemLowerBound(pcb), getPCBMemUpperBound(pcb));
+            
             slot_mapped = TRUE;
+            
+            // This is a modified section from simulator_view_update_memory() function
+// The key change is moving the process title above the entire memory slot
+
+            // First, create the main slot container with process title at the top
+            GtkWidget *full_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+            gtk_widget_set_margin_start(full_container, 15);
+            gtk_widget_set_margin_end(full_container, 5);
+            gtk_widget_set_margin_top(full_container, 2);
+            gtk_widget_set_margin_bottom(full_container, 2);
+
+            // Add Process title above everything
+            GtkWidget *process_title_label = gtk_label_new(process_title);
+            gtk_widget_add_css_class(process_title_label, "process-title");
+            gtk_box_append(GTK_BOX(full_container), process_title_label);
+
+            // Create the slot box (with tag and PCB content) below the title
+            GtkWidget *slot_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+            gtk_widget_add_css_class(slot_box, "memory-slot");
+            gtk_box_append(GTK_BOX(full_container), slot_box);
+
+            // Create the numbered tag with teal background
+            char tag_text[20];
+            snprintf(tag_text, sizeof(tag_text), "%d", i);
+            GtkWidget *tag_label = gtk_label_new(tag_text);
+            gtk_widget_add_css_class(tag_label, "memory-tag");
+            gtk_widget_set_margin_end(tag_label, 5);
+            gtk_box_append(GTK_BOX(slot_box), tag_label);
+
+            // Vertical container for PCB
+            GtkWidget *pcb_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+            gtk_widget_set_hexpand(pcb_container, TRUE);
+
+            // Add PCB tab
+            GtkWidget *pcb_tab = gtk_label_new(pcb_label);
+            gtk_widget_add_css_class(pcb_tab, "pcb-tab");
+            gtk_box_append(GTK_BOX(pcb_container), pcb_tab);
+
+            // PCB content box
+            GtkWidget *pcb_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+            gtk_widget_add_css_class(pcb_box, "memory-pcb");
+            gtk_widget_set_hexpand(pcb_box, TRUE);
+
+            // Add each PCB info as a row
+            GtkWidget *state_row = gtk_label_new(state_info);
+            gtk_label_set_xalign(GTK_LABEL(state_row), 0);
+            gtk_widget_add_css_class(state_row, "memory-pcb-row");
+            gtk_box_append(GTK_BOX(pcb_box), state_row);
+
+            GtkWidget *priority_row = gtk_label_new(priority_info);
+            gtk_label_set_xalign(GTK_LABEL(priority_row), 0);
+            gtk_widget_add_css_class(priority_row, "memory-pcb-row");
+            gtk_box_append(GTK_BOX(pcb_box), priority_row);
+
+            GtkWidget *pc_row = gtk_label_new(pc_info);
+            gtk_label_set_xalign(GTK_LABEL(pc_row), 0);
+            gtk_widget_add_css_class(pc_row, "memory-pcb-row");
+            gtk_box_append(GTK_BOX(pcb_box), pc_row);
+
+            GtkWidget *mem_row = gtk_label_new(mem_bounds);
+            gtk_label_set_xalign(GTK_LABEL(mem_row), 0);
+            gtk_widget_add_css_class(mem_row, "memory-pcb-row");
+            gtk_box_append(GTK_BOX(pcb_box), mem_row);
+
+            gtk_box_append(GTK_BOX(pcb_container), pcb_box);
+            gtk_box_append(GTK_BOX(slot_box), pcb_container);
+
+            // Add the whole container to memory list
+            gtk_list_box_append(view->memory_list, full_container);
+            continue; // Skip the rest of the loop for PCB entries
         }
         // If the slot isn't a PCB, check if it falls within a process's memory range
         else {
@@ -306,7 +387,7 @@ void simulator_view_update_memory(SimulatorView *view) {
             snprintf(content_text, sizeof(content_text), "Empty");
         }
 
-        // Create a box to display the slot
+        // Create a box to display non-PCB memory slots
         GtkWidget *slot_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
         gtk_widget_add_css_class(slot_box, "memory-slot");
         gtk_widget_set_margin_start(slot_box, 15); // Increased to allow tag to extend to the left
@@ -320,60 +401,36 @@ void simulator_view_update_memory(SimulatorView *view) {
         GtkWidget *tag_label = gtk_label_new(tag_text);
         gtk_widget_add_css_class(tag_label, "memory-tag");
         gtk_widget_set_margin_end(tag_label, 5);
-        gtk_widget_set_size_request(tag_label, 30, -1); // Fixed width for number tags
         gtk_box_append(GTK_BOX(slot_box), tag_label);
 
-        // Content area
-        if (slot && slot->type == TYPE_PCB) {
-            // Create a vertical box for PCB elements
-            GtkWidget *pcb_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
-            gtk_widget_add_css_class(pcb_box, "memory-pcb");
-            gtk_widget_set_margin_start(pcb_box, 5);
-            gtk_widget_set_margin_end(pcb_box, 5);
-            gtk_widget_set_margin_top(pcb_box, 5);
-            gtk_widget_set_margin_bottom(pcb_box, 5);
-            gtk_widget_set_hexpand(pcb_box, TRUE);
-
-            // Split the content into lines and add each as a separate label
-            char *line = strtok(content_text, "\n");
-            while (line != NULL) {
-                GtkWidget *line_label = gtk_label_new(line);
-                gtk_label_set_xalign(GTK_LABEL(line_label), 0);
-                gtk_widget_add_css_class(line_label, "memory-content");
-                gtk_box_append(GTK_BOX(pcb_box), line_label);
-                line = strtok(NULL, "\n");
-            }
-
-            gtk_box_append(GTK_BOX(slot_box), pcb_box);
+        // Content area for non-PCB slots
+        GtkWidget *content_label = gtk_label_new(content_text);
+        gtk_label_set_xalign(GTK_LABEL(content_label), 0);
+        gtk_label_set_wrap(GTK_LABEL(content_label), TRUE);
+        
+        // Apply "memory-empty" class for empty slots, otherwise use "memory-content"
+        if (strcmp(content_text, "Empty") == 0) {
+            gtk_widget_add_css_class(content_label, "memory-empty");
         } else {
-            GtkWidget *content_label = gtk_label_new(content_text);
-            gtk_label_set_xalign(GTK_LABEL(content_label), 0);
-            gtk_label_set_wrap(GTK_LABEL(content_label), TRUE);
-            
-            // Apply "memory-empty" class for empty slots, otherwise use "memory-content"
-            if (strcmp(content_text, "Empty") == 0) {
-                gtk_widget_add_css_class(content_label, "memory-empty");
-            } else {
-                gtk_widget_add_css_class(content_label, "memory-content");
-            }
-            
-            gtk_widget_set_hexpand(content_label, TRUE);
-            
-            // If the content is too long, use a tooltip to show the full content
-            if (content && strlen(content) > 50) {
-                gtk_widget_set_tooltip_text(content_label, content);
-                char truncated[51];
-                strncpy(truncated, content, 47);
-                truncated[47] = '.';
-                truncated[48] = '.';
-                truncated[49] = '.';
-                truncated[50] = '\0';
-                gtk_label_set_text(GTK_LABEL(content_label), truncated);
-            }
-            
-            gtk_box_append(GTK_BOX(slot_box), content_label);
+            gtk_widget_add_css_class(content_label, "memory-content");
         }
-
+        
+        gtk_widget_set_hexpand(content_label, TRUE);
+        
+        // If the content is too long, use a tooltip to show the full content
+        if (content && strlen(content) > 50) {
+            gtk_widget_set_tooltip_text(content_label, content);
+            char truncated[51];
+            strncpy(truncated, content, 47);
+            truncated[47] = '.';
+            truncated[48] = '.';
+            truncated[49] = '.';
+            truncated[50] = '\0';
+            gtk_label_set_text(GTK_LABEL(content_label), truncated);
+        }
+        
+        gtk_box_append(GTK_BOX(slot_box), content_label);
+        
         // Add to memory list
         gtk_list_box_append(view->memory_list, slot_box);
     }
@@ -446,6 +503,9 @@ static void show_process_dialog(GtkButton *button, gpointer user_data) {
     gtk_widget_set_vexpand(scrolled_window, TRUE);
     gtk_box_append(GTK_BOX(box), scrolled_window);
     view->dialog_text_view = GTK_TEXT_VIEW(text_view);
+
+    // Connect signals to update memory view and ensure scrolling works in dialog context
+    g_signal_connect_swapped(dialog, "map", G_CALLBACK(simulator_view_update_memory), view);
 
     // Connect the "destroy" signal to clean up
     g_signal_connect(dialog, "destroy", G_CALLBACK(gtk_window_destroy), NULL);
