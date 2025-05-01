@@ -1,28 +1,10 @@
 #include <gtk/gtk.h>
 #include "view.h"
 
-static View *view = NULL;
+View *view = NULL; // Global, non-static
 static GtkCssProvider *css_provider = NULL;
 
-typedef struct
-{
-    int pid;
-    float alpha;
-    float start_x;
-    float end_x;
-    float start_y;
-    float end_y;
-    int animating;
-    int steps;
-    int total_steps;
-} ProcessAnimation;
-
-typedef struct
-{
-    GList *animations;
-} QueueAnimation;
-
-static QueueAnimation queue_animations[5];
+QueueAnimation queue_animations[5];
 
 static const char *css_data =
     "window { background-color: #2E2F32; }"
@@ -61,18 +43,16 @@ static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, in
     GList *processes = view->queue_processes[queue_index];
     GList *anim_iter = queue_animations[queue_index].animations;
 
-    // Background set by CSS (.queue-area)
     cairo_set_source_rgba(cr, 0, 0, 0, 0);
     cairo_paint(cr);
 
-    // Draw queue header
     if (queue_index == 4)
     {
-        cairo_set_source_rgb(cr, 1.0, 0.0, 0.0); // #FF0000 for blocked queue header
+        cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
     }
     else
     {
-        cairo_set_source_rgb(cr, 0.2, 0.631, 0.604); // #33A19A for ready queues
+        cairo_set_source_rgb(cr, 0.2, 0.631, 0.604);
     }
     cairo_rectangle(cr, 0, 0, width, 25);
     cairo_fill(cr);
@@ -138,17 +118,17 @@ static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, in
 
         if (pid == view->running_pid)
         {
-            cairo_pattern_add_color_stop_rgba(box_gradient, 0, 0.098, 0.529, 0.380, alpha); // #196761 (running)
-            cairo_pattern_add_color_stop_rgba(box_gradient, 1, 0.059, 0.388, 0.278, alpha); // Darker shade
+            cairo_pattern_add_color_stop_rgba(box_gradient, 0, 0.098, 0.529, 0.380, alpha);
+            cairo_pattern_add_color_stop_rgba(box_gradient, 1, 0.059, 0.388, 0.278, alpha);
         }
         else if (queue_index == 4)
         {
-            cairo_pattern_add_color_stop_rgba(box_gradient, 0, 1.0, 0.0, 0.0, alpha); // #FF0000 (blocked)
-            cairo_pattern_add_color_stop_rgba(box_gradient, 1, 0.8, 0.0, 0.0, alpha); // #CC0000 (darker red)
+            cairo_pattern_add_color_stop_rgba(box_gradient, 0, 1.0, 0.0, 0.0, alpha);
+            cairo_pattern_add_color_stop_rgba(box_gradient, 1, 0.8, 0.0, 0.0, alpha);
         }
         else
         {
-            cairo_pattern_add_color_stop_rgba(box_gradient, 0, 0.6, 0.3, 0.7, alpha); // Ready
+            cairo_pattern_add_color_stop_rgba(box_gradient, 0, 0.6, 0.3, 0.7, alpha);
             cairo_pattern_add_color_stop_rgba(box_gradient, 1, 0.4, 0.1, 0.5, alpha);
         }
 
@@ -229,7 +209,6 @@ static void draw_legend_callback(GtkDrawingArea *area, cairo_t *cr, int width, i
     double circle_radius = 12;
     double degrees = M_PI / 180.0;
 
-    // Background set by CSS (.queue-area), clear to transparent
     cairo_set_source_rgba(cr, 0, 0, 0, 0);
     cairo_paint(cr);
 
@@ -250,7 +229,7 @@ static void draw_legend_callback(GtkDrawingArea *area, cairo_t *cr, int width, i
     x += 100;
 
     cairo_pattern_t *running_gradient = cairo_pattern_create_radial(x, y, 0, x, y, circle_radius);
-    cairo_pattern_add_color_stop_rgba(running_gradient, 0, 0.098, 0.529, 0.380, 1.0); // #196761
+    cairo_pattern_add_color_stop_rgba(running_gradient, 0, 0.098, 0.529, 0.380, 1.0);
     cairo_pattern_add_color_stop_rgba(running_gradient, 1, 0.059, 0.388, 0.278, 1.0);
     cairo_set_source(cr, running_gradient);
     cairo_arc(cr, x, y, circle_radius, 0, 2 * M_PI);
@@ -264,8 +243,8 @@ static void draw_legend_callback(GtkDrawingArea *area, cairo_t *cr, int width, i
     x += 100;
 
     cairo_pattern_t *blocked_gradient = cairo_pattern_create_radial(x, y, 0, x, y, circle_radius);
-    cairo_pattern_add_color_stop_rgba(blocked_gradient, 0, 1.0, 0.0, 0.0, 1.0); // #FF0000
-    cairo_pattern_add_color_stop_rgba(blocked_gradient, 1, 0.8, 0.0, 0.0, 1.0); // #CC0000
+    cairo_pattern_add_color_stop_rgba(blocked_gradient, 0, 1.0, 0.0, 0.0, 1.0);
+    cairo_pattern_add_color_stop_rgba(blocked_gradient, 1, 0.8, 0.0, 0.0, 1.0);
     cairo_set_source(cr, blocked_gradient);
     cairo_arc(cr, x, y, circle_radius, 0, 2 * M_PI);
     cairo_fill(cr);
@@ -407,11 +386,14 @@ GtkWidget *view_init()
     gtk_widget_add_css_class(view->automatic_button, "button");
     view->pause_button = gtk_button_new_with_label("Pause");
     gtk_widget_add_css_class(view->pause_button, "button");
+    view->reset_button = gtk_button_new_with_label("Reset");
+    gtk_widget_add_css_class(view->reset_button, "button");
     gtk_widget_set_sensitive(view->pause_button, FALSE);
 
     gtk_box_append(GTK_BOX(button_box), view->step_button);
     gtk_box_append(GTK_BOX(button_box), view->automatic_button);
     gtk_box_append(GTK_BOX(button_box), view->pause_button);
+    gtk_box_append(GTK_BOX(button_box), view->reset_button);
 
     gtk_box_append(GTK_BOX(main_box), button_box);
 
@@ -534,6 +516,11 @@ GtkWidget *view_get_automatic_button()
 GtkWidget *view_get_pause_button()
 {
     return view->pause_button;
+}
+
+GtkWidget *view_get_reset_button()
+{
+    return view->reset_button;
 }
 
 GtkWidget *view_get_scheduler_combo()
