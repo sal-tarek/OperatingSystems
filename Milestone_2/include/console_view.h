@@ -26,10 +26,11 @@ extern GAsyncQueue *input_queue;
 extern GAsyncQueue *action_queue;
 extern gboolean is_prompted_input;
 
+extern FILE *logFile;
 
 GtkWidget* console_view_new(GtkWidget **entry_out);
 void console_printf(const char *format, ...);
-void console_scanf(char *buffer, size_t size);
+char* console_scanf(char *buffer, size_t size);
 void on_entry_activate(GtkWidget *widget, gpointer user_data);
 void console_view_cleanup(void);
 

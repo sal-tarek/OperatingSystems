@@ -134,15 +134,14 @@ void on_entry_activate(GtkWidget *widget, gpointer user_data)
     }
 }
 
-// Modified console_scanf to set prompted input flag
-void console_scanf(char *buffer, size_t size)
+char* console_scanf(char *buffer, size_t size)
 {
-    is_prompted_input = TRUE; // Mark as prompted input
-    gpointer data = g_async_queue_pop(input_queue); // Blocks until input is available
+    is_prompted_input = TRUE;
+    gpointer data = g_async_queue_pop(input_queue);
     strncpy(buffer, (char *)data, size - 1);
     buffer[size - 1] = '\0';
     g_free(data);
-    // Note: is_prompted_input is reset in ui_thread after processing
+    return buffer;
 }
 
 // Clean up resources
