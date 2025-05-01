@@ -11,11 +11,6 @@
 // Mutex structure (opaque pointer)
 typedef struct mutex_t mutex_t;
 
-// Global mutex instances
-extern mutex_t userInput_mutex;
-extern mutex_t userOutput_mutex;
-extern mutex_t file_mutex;
-
 // Global general blocked queue
 extern Queue *global_blocked_queue;
 extern Queue *readyQueues[MAX_NUM_QUEUES];

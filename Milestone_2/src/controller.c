@@ -11,6 +11,8 @@
 #include "../include/instruction.h"
 #include "memory_manager.h"
 
+extern int numProcesses; // Number of processes in the simulation
+
 typedef struct {
     GtkWidget *view_window;
     GtkWidget *running_process_label;
@@ -169,7 +171,7 @@ static void on_scheduler_changed(GtkWidget *combo, GParamSpec *pspec, gpointer u
 
 static void on_step_clicked(GtkWidget *button, gpointer user_data) {
     int any_running = 0;
-    for (int i = 1; i <= MAX_NUM_PROCESSES; i++) {
+    for (int i = 1; i <= numProcesses; i++) {
         if (getProcessState(i) != TERMINATED) {
             any_running = 1;
             break;
@@ -235,7 +237,7 @@ static void on_pause_clicked(GtkWidget *button, gpointer user_data) {
 
 static gboolean automatic_step(gpointer user_data) {
     int any_running = 0;
-    for (int i = 1; i <= MAX_NUM_PROCESSES; i++) {
+    for (int i = 1; i <= numProcesses; i++) {
         if (getProcessState(i) != TERMINATED) {
             any_running = 1;
             break;
