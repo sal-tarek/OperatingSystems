@@ -1,20 +1,23 @@
 #include "dashboard_controller.h"
 #include <string.h>
 
+extern int numberOfProcesses;
+extern int clockCycle;
+extern char* schedulingAlgorithm;
 // Backend functions (replace with your actual backend functions)
 int get_number_of_processes(void) {
     // Placeholder: replace with actual backend call
-    return 15;
+    return numberOfProcesses;
 }
 
 int get_current_clock_cycle(void) {
     // Placeholder: replace with actual backend call
-    return 42;
+    return clockCycle;
 }
 
 const char* get_active_scheduling_algorithm(void) {
     // Placeholder: replace with actual backend call
-    return "Round Robin";
+    return schedulingAlgorithm ? schedulingAlgorithm : "None";
 }
 
 DashboardController* dashboard_controller_new(GtkApplication *app) {

@@ -14,14 +14,18 @@
 #define numProcesses 3
 #define numQueues 4
 
+
 // Global variables
 Queue *readyQueues[numQueues];              // Ready Queue holding processes waiting to run by the chosen Scheduler
 Process *runningProcess = NULL;             // currently running process (or NULL if none)
-int clockCycle;                             // current clock cycle of the simulation
+int clockCycle = 0;                             // current clock cycle of the simulation
 Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 Queue *global_blocked_queue = NULL;
+int numberOfProcesses = 0;
+char* schedulingAlgorithm = NULL;
+Queue *processes = NULL; // Blocked queue for processes waiting for I/O
 
 int main2() {
     clockCycle = 0;

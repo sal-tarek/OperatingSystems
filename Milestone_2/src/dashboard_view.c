@@ -12,23 +12,30 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app) {
     gtk_window_set_title(GTK_WINDOW(view->window), "Process Scheduler Dashboard");
     gtk_window_set_default_size(GTK_WINDOW(view->window), 800, 600);
 
-    // Create a main vertical box
-    GtkWidget *main_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_margin_start(main_vbox, 10);
-    gtk_widget_set_margin_end(main_vbox, 10);
-    gtk_widget_set_margin_top(main_vbox, 10);
-    gtk_widget_set_margin_bottom(main_vbox, 10);
-    gtk_window_set_child(GTK_WINDOW(view->window), main_vbox);
+    // Create the main container (vertical box)
+    GtkWidget *main_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_widget_set_margin_start(main_container, 10);
+    gtk_widget_set_margin_end(main_container, 10);
+    gtk_widget_set_margin_bottom(main_container, 10);
+    gtk_window_set_child(GTK_WINDOW(view->window), main_container);
 
-    // Create a horizontal box for the top section
-    GtkWidget *top_section = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-    gtk_box_append(GTK_BOX(main_vbox), top_section);
+    // Create the big container (horizontal box) with grey background
+    GtkWidget *big_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_widget_set_hexpand(big_container, TRUE);
+    // Remove vertical expansion so the height matches the content (Overview Section)
+    gtk_widget_set_vexpand(big_container, FALSE);
+    gtk_box_append(GTK_BOX(main_container), big_container);
+
+    // Overview Section (vertical box, on the left)
+    GtkWidget *overview_section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_widget_set_halign(overview_section, GTK_ALIGN_START);
+    gtk_widget_set_valign(overview_section, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(big_container), overview_section);
 
     // Create the overview frame
     view->overview_frame = gtk_frame_new("Overview");
-    gtk_widget_set_halign(view->overview_frame, GTK_ALIGN_START);
-    gtk_widget_set_hexpand(view->overview_frame, TRUE);
-    gtk_box_append(GTK_BOX(top_section), view->overview_frame);
+    gtk_widget_set_hexpand(view->overview_frame, FALSE);
+    gtk_box_append(GTK_BOX(overview_section), view->overview_frame);
 
     // Create a grid for overview contents
     GtkWidget *overview_grid = gtk_grid_new();
@@ -67,6 +74,13 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app) {
     gtk_widget_set_halign(view->algorithm_label, GTK_ALIGN_START);
     gtk_grid_attach(GTK_GRID(overview_grid), view->algorithm_label, 1, 2, 1, 1);
 
+    // Placeholder for future sections on the right side of big_container
+    // Example: Right Section (e.g., for Job Pool or other content)
+    // GtkWidget *right_section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    // gtk_widget_set_halign(right_section, GTK_ALIGN_END);
+    // gtk_widget_set_hexpand(right_section, TRUE);
+    // gtk_box_append(GTK_BOX(big_container), right_section);
+
     // Apply CSS for styling
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(provider,
@@ -76,14 +90,22 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app) {
         "   border-radius: 5px;"
         "}"
         "label {"
-        "   color: #196761;"
+        "   color:rgb(18, 76, 71);"
         "}"
         "frame > label {"
         "   font-weight: bold;"
         "   font-size: 16px;"
-        "   color: #196761;"
+        "   color:rgb(35, 124, 116);"
+        "}"
+        "box.big-container {"
+        "   background-color: #D3D3D3;" // Light grey background for the big container
+        "   padding: 10px;"
+        "   border-radius: 5px;"
         "}"
     );
+
+    // Add a CSS class to big_container using the modern API
+    gtk_widget_add_css_class(big_container, "big-container");
 
     gtk_style_context_add_provider_for_display(
         gtk_widget_get_display(view->window),

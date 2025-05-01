@@ -1,6 +1,6 @@
 #include <gtk/gtk.h>
 #include "dashboard_controller.h"
-
+//gcc -o dashboard test.c dashboard_view.c dashboard_controller.c main.c Queue.c process.c PCB.c memory.c memory_manager.c index.c RoundRobin.c FCFS.c MLFQ.c parser.c mutex.c instruction.c $(pkg-config --cflags --libs gtk4)
 static void activate(GtkApplication *app, gpointer user_data) {
     DashboardController *controller = dashboard_controller_new(app);
     
