@@ -4,7 +4,8 @@
 static View *view = NULL;
 static GtkCssProvider *css_provider = NULL;
 
-typedef struct {
+typedef struct
+{
     int pid;
     float alpha;
     float start_x;
@@ -16,69 +17,77 @@ typedef struct {
     int total_steps;
 } ProcessAnimation;
 
-typedef struct {
+typedef struct
+{
     GList *animations;
 } QueueAnimation;
 
 static QueueAnimation queue_animations[5];
 
 static const char *css_data =
-"window { background-color: #2E2F32; }"
-"frame { background-color: #D9D9D9; border: 1px solid #bbb; color: #333; }"
-"frame > label { color: white; font-weight: bold; font-size: 14px; background-color: #33A19A; padding: 5px; border-radius: 3px 3px 0 0; }"
-"label { color: #333; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
-"listbox { background-color: #D9D9D9; }"
-"listbox row { padding: 5px; margin: 2px; }"
-"listbox row:nth-child(even) { background-color: rgba(51, 161, 154, 0.1); }"
-"listbox row:hover { background-color: rgba(51, 161, 154, 0.3); }"
-"button { background-color: #33A19A; color: #D9D9D9; border-radius: 5px; padding: 5px; }"
-"button:hover { background-color: #278f89; }"
-"entry { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
-"drop-down { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
-"textview { background-color: white; color: #000; border: 1px solid #bbb; padding: 8px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; font-size: 13px; }"
-".memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); width: 30px; text-align: center; }"
-".memory-content { color: #333; padding: 5px; }"
-".memory-content:hover { color: #196761; }"
-".memory-empty { color: #777; font-style: italic; padding: 5px; }"
-".memory-pcb { background-color: #f5f5f5; border-radius: 0 0 5px 5px; padding: 0; border: 1px solid #33A19A; }"
-".memory-pcb-row { padding: 5px 10px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); }"
-".memory-pcb-row:last-child { border-bottom: none; }"
-".memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; max-width: 400px; }"
-".memory-slot:hover .memory-content { color: #196761; }"
-".frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
-".pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; }"
-".process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; }"
-".queue-area { background-color: #D9D9D9; border: 1px solid #bbb; border-radius: 5px; }"
-".running-process { color: #D9D9D9; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
-".blocked-queue-header { background-color: #FF0000; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
-".blocked-process { background-color: #FF0000; color: white; border-radius: 5px; }";
+    "window { background-color: #2E2F32; }"
+    "frame { background-color: #D9D9D9; border: 1px solid #bbb; color: #333; }"
+    "frame > label { color: white; font-weight: bold; font-size: 14px; background-color: #33A19A; padding: 5px; border-radius: 3px 3px 0 0; }"
+    "label { color: #333; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
+    "listbox { background-color: #D9D9D9; }"
+    "listbox row { padding: 5px; margin: 2px; }"
+    "listbox row:nth-child(even) { background-color: rgba(51, 161, 154, 0.1); }"
+    "listbox row:hover { background-color: rgba(51, 161, 154, 0.3); }"
+    "button { background-color: #33A19A; color: #D9D9D9; border-radius: 5px; padding: 5px; }"
+    "button:hover { background-color: #278f89; }"
+    "entry { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
+    "drop-down { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
+    "textview { background-color: white; color: #000; border: 1px solid #bbb; padding: 8px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; font-size: 13px; }"
+    ".memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); width: 30px; text-align: center; }"
+    ".memory-content { color: #333; padding: 5px; }"
+    ".memory-content:hover { color: #196761; }"
+    ".memory-empty { color: #777; font-style: italic; padding: 5px; }"
+    ".memory-pcb { background-color: #f5f5f5; border-radius: 0 0 5px 5px; padding: 0; border: 1px solid #33A19A; }"
+    ".memory-pcb-row { padding: 5px 10px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); }"
+    ".memory-pcb-row:last-child { border-bottom: none; }"
+    ".memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; max-width: 400px; }"
+    ".memory-slot:hover .memory-content { color: #196761; }"
+    ".frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
+    ".pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; }"
+    ".process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; }"
+    ".queue-area { background-color: #D9D9D9; border: 1px solid #bbb; border-radius: 5px; }"
+    ".running-process { color: #D9D9D9; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
+    ".blocked-queue-header { background-color: #FF0000; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
+    ".blocked-process { background-color: #FF0000; color: white; border-radius: 5px; }";
 
-static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer data) {
+static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer data)
+{
     int queue_index = GPOINTER_TO_INT(data);
     GList *processes = view->queue_processes[queue_index];
     GList *anim_iter = queue_animations[queue_index].animations;
 
-    // Background set by CSS (.queue-area), clear to transparent
+    // Background set by CSS (.queue-area)
     cairo_set_source_rgba(cr, 0, 0, 0, 0);
     cairo_paint(cr);
 
     // Draw queue header
-    if (queue_index == 4) {
+    if (queue_index == 4)
+    {
         cairo_set_source_rgb(cr, 1.0, 0.0, 0.0); // #FF0000 for blocked queue header
-    } else {
+    }
+    else
+    {
         cairo_set_source_rgb(cr, 0.2, 0.631, 0.604); // #33A19A for ready queues
     }
     cairo_rectangle(cr, 0, 0, width, 25);
     cairo_fill(cr);
 
-    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0); // White text
+    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
     cairo_select_font_face(cr, "Roboto", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
     cairo_set_font_size(cr, 14);
 
-    if (queue_index == 4) {
+    if (queue_index == 4)
+    {
         cairo_move_to(cr, 10, 18);
         cairo_show_text(cr, "Blocked Queue");
-    } else {
+    }
+    else
+    {
         cairo_move_to(cr, 10, 18);
         char label[20];
         snprintf(label, sizeof(label), "Ready Queue %d", queue_index);
@@ -88,13 +97,16 @@ static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, in
     GList *proc_iter;
     int process_count = 0;
 
-    for (proc_iter = processes; proc_iter != NULL; proc_iter = proc_iter->next) {
+    for (proc_iter = processes; proc_iter != NULL; proc_iter = proc_iter->next)
+    {
         int pid = GPOINTER_TO_INT(proc_iter->data);
         ProcessAnimation *anim = NULL;
 
-        for (GList *a = anim_iter; a != NULL; a = a->next) {
+        for (GList *a = anim_iter; a != NULL; a = a->next)
+        {
             ProcessAnimation *pa = (ProcessAnimation *)a->data;
-            if (pa->pid == pid) {
+            if (pa->pid == pid)
+            {
                 anim = pa;
                 break;
             }
@@ -103,15 +115,19 @@ static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, in
         float x, y;
         float alpha = 1.0;
 
-        if (queue_index == 4) {
+        if (queue_index == 4)
+        {
             x = width / 2;
             y = 70 + process_count * 60;
-        } else {
+        }
+        else
+        {
             x = 120 + process_count * 80;
             y = height / 2 + 5;
         }
 
-        if (anim && anim->animating) {
+        if (anim && anim->animating)
+        {
             float t = (float)anim->steps / anim->total_steps;
             x = anim->start_x + t * (anim->end_x - anim->start_x);
             y = anim->start_y + t * (anim->end_y - anim->start_y);
@@ -120,14 +136,19 @@ static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, in
 
         cairo_pattern_t *box_gradient = cairo_pattern_create_linear(x - 25, y - 20, x + 25, y + 20);
 
-        if (pid == view->running_pid) {
+        if (pid == view->running_pid)
+        {
             cairo_pattern_add_color_stop_rgba(box_gradient, 0, 0.098, 0.529, 0.380, alpha); // #196761 (running)
             cairo_pattern_add_color_stop_rgba(box_gradient, 1, 0.059, 0.388, 0.278, alpha); // Darker shade
-        } else if (queue_index == 4) {
+        }
+        else if (queue_index == 4)
+        {
             cairo_pattern_add_color_stop_rgba(box_gradient, 0, 1.0, 0.0, 0.0, alpha); // #FF0000 (blocked)
             cairo_pattern_add_color_stop_rgba(box_gradient, 1, 0.8, 0.0, 0.0, alpha); // #CC0000 (darker red)
-        } else {
-            cairo_pattern_add_color_stop_rgba(box_gradient, 0, 0.6, 0.3, 0.7, alpha); // Ready (original purple)
+        }
+        else
+        {
+            cairo_pattern_add_color_stop_rgba(box_gradient, 0, 0.6, 0.3, 0.7, alpha); // Ready
             cairo_pattern_add_color_stop_rgba(box_gradient, 1, 0.4, 0.1, 0.5, alpha);
         }
 
@@ -164,11 +185,13 @@ static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, in
 
         cairo_text_extents_t extents;
         cairo_text_extents(cr, pid_str, &extents);
-        cairo_move_to(cr, x - extents.width/2, y + extents.height/2);
+        cairo_move_to(cr, x - extents.width / 2, y + extents.height / 2);
         cairo_show_text(cr, pid_str);
 
-        if (proc_iter->next != NULL) {
-            if (queue_index == 4) {
+        if (proc_iter->next != NULL)
+        {
+            if (queue_index == 4)
+            {
                 float next_y = 50 + (process_count + 1) * 50;
                 cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
                 cairo_move_to(cr, x, y + 15);
@@ -179,16 +202,18 @@ static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, in
                 cairo_move_to(cr, x, y + 30);
                 cairo_line_to(cr, x + 5, y + 25);
                 cairo_stroke(cr);
-            } else {
+            }
+            else
+            {
                 x += 70;
                 cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
-                cairo_move_to(cr, x - 20, y);
-                cairo_line_to(cr, x - 40, y);
+                cairo_move_to(cr, x - 40, y);
+                cairo_line_to(cr, x - 20, y);
                 cairo_stroke(cr);
-                cairo_move_to(cr, x - 40, y);
-                cairo_line_to(cr, x - 35, y - 5);
-                cairo_move_to(cr, x - 40, y);
-                cairo_line_to(cr, x - 35, y + 5);
+                cairo_move_to(cr, x - 20, y);
+                cairo_line_to(cr, x - 25, y - 5);
+                cairo_move_to(cr, x - 20, y);
+                cairo_line_to(cr, x - 25, y + 5);
                 cairo_stroke(cr);
             }
         }
@@ -197,7 +222,8 @@ static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, in
     }
 }
 
-static void draw_legend_callback(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer data) {
+static void draw_legend_callback(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer data)
+{
     int x = 30;
     int y = height / 2;
     double circle_radius = 12;
@@ -250,19 +276,25 @@ static void draw_legend_callback(GtkDrawingArea *area, cairo_t *cr, int width, i
     cairo_show_text(cr, "Blocked");
 }
 
-static gboolean animate_process(gpointer user_data) {
+static gboolean animate_process(gpointer user_data)
+{
     int queue_index = GPOINTER_TO_INT(user_data);
     GList *anim_iter = queue_animations[queue_index].animations;
     gboolean any_animating = FALSE;
 
-    for (GList *a = anim_iter; a != NULL; a = a->next) {
+    for (GList *a = anim_iter; a != NULL; a = a->next)
+    {
         ProcessAnimation *anim = (ProcessAnimation *)a->data;
-        if (anim->animating) {
+        if (anim->animating)
+        {
             anim->steps++;
-            if (anim->steps >= anim->total_steps) {
+            if (anim->steps >= anim->total_steps)
+            {
                 anim->animating = 0;
                 anim->alpha = 1.0;
-            } else {
+            }
+            else
+            {
                 float progress = (float)anim->steps / anim->total_steps;
                 anim->alpha = progress < 0.5 ? 4 * progress * progress * progress : 1 - pow(-2 * progress + 2, 3) / 2;
                 any_animating = TRUE;
@@ -274,7 +306,8 @@ static gboolean animate_process(gpointer user_data) {
     return any_animating ? G_SOURCE_CONTINUE : G_SOURCE_REMOVE;
 }
 
-GtkWidget* view_init() {
+GtkWidget *view_init()
+{
     view = g_new0(View, 1);
 
     css_provider = gtk_css_provider_new();
@@ -282,8 +315,7 @@ GtkWidget* view_init() {
     gtk_style_context_add_provider_for_display(
         gdk_display_get_default(),
         GTK_STYLE_PROVIDER(css_provider),
-        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
-    );
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
     view->window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(view->window), "OS Scheduler Simulation");
@@ -338,7 +370,8 @@ GtkWidget* view_init() {
     gtk_widget_add_css_class(view->drawing_areas[4], "queue-area");
     gtk_grid_attach(GTK_GRID(grid), view->drawing_areas[4], 0, 0, 1, 4);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
+    {
         view->drawing_areas[i] = gtk_drawing_area_new();
         gtk_widget_set_size_request(view->drawing_areas[i], 720, 90);
         gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(view->drawing_areas[i]),
@@ -382,7 +415,8 @@ GtkWidget* view_init() {
 
     gtk_box_append(GTK_BOX(main_box), button_box);
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++)
+    {
         view->queue_processes[i] = NULL;
         queue_animations[i].animations = NULL;
     }
@@ -392,10 +426,13 @@ GtkWidget* view_init() {
     return view->window;
 }
 
-static int get_position_in_queue(GList *queue, int pid) {
+static int get_position_in_queue(GList *queue, int pid)
+{
     int pos = 0;
-    for (GList *p = queue; p != NULL; p = p->next) {
-        if (GPOINTER_TO_INT(p->data) == pid) {
+    for (GList *p = queue; p != NULL; p = p->next)
+    {
+        if (GPOINTER_TO_INT(p->data) == pid)
+        {
             return pos;
         }
         pos++;
@@ -403,18 +440,24 @@ static int get_position_in_queue(GList *queue, int pid) {
     return -1;
 }
 
-static void get_process_coords(int queue_index, int position, float *x, float *y) {
-    if (queue_index == 4) {
+static void get_process_coords(int queue_index, int position, float *x, float *y)
+{
+    if (queue_index == 4)
+    {
         *x = 65;
         *y = 70 + position * 60;
-    } else {
+    }
+    else
+    {
         *x = 120 + position * 80;
         *y = 40 + queue_index * 75;
     }
 }
 
-void view_update_queue(int queue_index, GList *processes, int running_pid) {
-    if (queue_index < 0 || queue_index >= 5) return;
+void view_update_queue(int queue_index, GList *processes, int running_pid)
+{
+    if (queue_index < 0 || queue_index >= 5)
+        return;
 
     g_list_free_full(queue_animations[queue_index].animations, g_free);
     queue_animations[queue_index].animations = NULL;
@@ -423,7 +466,8 @@ void view_update_queue(int queue_index, GList *processes, int running_pid) {
     GList *new_processes = processes;
 
     int new_position = 0;
-    for (GList *proc_iter = processes; proc_iter != NULL; proc_iter = proc_iter->next) {
+    for (GList *proc_iter = processes; proc_iter != NULL; proc_iter = proc_iter->next)
+    {
         int pid = GPOINTER_TO_INT(proc_iter->data);
         ProcessAnimation *anim = g_new0(ProcessAnimation, 1);
 
@@ -435,9 +479,11 @@ void view_update_queue(int queue_index, GList *processes, int running_pid) {
         int old_queue = -1;
         int old_position = -1;
 
-        for (int q = 0; q < 5; q++) {
+        for (int q = 0; q < 5; q++)
+        {
             int pos = get_position_in_queue(view->queue_processes[q], pid);
-            if (pos != -1) {
+            if (pos != -1)
+            {
                 old_queue = q;
                 old_position = pos;
                 break;
@@ -446,11 +492,14 @@ void view_update_queue(int queue_index, GList *processes, int running_pid) {
 
         get_process_coords(queue_index, new_position, &anim->end_x, &anim->end_y);
 
-        if (old_queue == -1) {
+        if (old_queue == -1)
+        {
             anim->start_x = anim->end_x;
             anim->start_y = anim->end_y;
             anim->alpha = 0.0;
-        } else {
+        }
+        else
+        {
             get_process_coords(old_queue, old_position, &anim->start_x, &anim->start_y);
             anim->alpha = 1.0;
         }
@@ -467,30 +516,37 @@ void view_update_queue(int queue_index, GList *processes, int running_pid) {
     g_timeout_add(16, animate_process, GINT_TO_POINTER(queue_index));
 }
 
-GtkWidget* view_get_running_process_label() {
+GtkWidget *view_get_running_process_label()
+{
     return view->running_process_label;
 }
 
-GtkWidget* view_get_step_button() {
+GtkWidget *view_get_step_button()
+{
     return view->step_button;
 }
 
-GtkWidget* view_get_automatic_button() {
+GtkWidget *view_get_automatic_button()
+{
     return view->automatic_button;
 }
 
-GtkWidget* view_get_pause_button() {
+GtkWidget *view_get_pause_button()
+{
     return view->pause_button;
 }
 
-GtkWidget* view_get_scheduler_combo() {
+GtkWidget *view_get_scheduler_combo()
+{
     return view->scheduler_combo;
 }
 
-GtkWidget* view_get_quantum_entry() {
+GtkWidget *view_get_quantum_entry()
+{
     return view->quantum_entry;
 }
 
-GtkWidget* view_get_quantum_label() {
+GtkWidget *view_get_quantum_label()
+{
     return view->quantum_label;
 }
