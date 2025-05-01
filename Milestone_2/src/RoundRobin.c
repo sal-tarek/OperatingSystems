@@ -14,16 +14,24 @@ void runRR(int quantum) {
             dequeue(readyQueues[0]); 
         else{
             runningProcess = peek(readyQueues[0]);
-            exec_cycle(runningProcess); // Execution of the next instruction of the process
+            exec_cycle(runningProcess); 
 
+            // check if this process is blocked because it accessed a locked resource
             if(runningProcess->state == BLOCKED) {
-                dequeue(readyQueues[0]); // Remove the process from the queue
-                runningProcess = NULL; // Clear runningProcess
+                dequeue(readyQueues[0]); 
+                runningProcess = NULL; // Reset running process
             }
             else
                 break;
         }
     }
+
+    // Update the timeInQueue for all processes in the ready queue
+    Process *temp = readyQueues[0]->front;
+    while (temp != NULL) {
+        temp->timeInQueue++;
+        temp = temp->next;
+    }  
 
     if(runningProcess != NULL){
         setProcessState(runningProcess->pid, RUNNING);
@@ -32,7 +40,7 @@ void runRR(int quantum) {
         runningProcess->quantumUsed++;
         runningProcess->remainingTime--;
 
-        printf("Executing %d\n", runningProcess->pid);
+        printf("Executed Process %d remaining time: %d time in queue: %d\n", runningProcess->pid, runningProcess->remainingTime, runningProcess->timeInQueue);
 
         if(runningProcess->remainingTime == 0) {
             dequeue(readyQueues[0]);  // Now we safely remove it from the queue

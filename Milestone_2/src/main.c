@@ -46,11 +46,11 @@ int main(int argc, char *argv[]) {
     global_blocked_queue = createQueue();
 
     // Create processes
-    Process *p1 = createProcess(1, "../programs/Program_1.txt", 0);
+    Process *p1 = createProcess(1, "Milestone_2/programs/Program_1.txt", 0);
     numProcesses++;
-    Process *p2 = createProcess(2, "../programs/Program_2.txt", 3);
+    Process *p2 = createProcess(2, "Milestone_2/programs/Program_2.txt", 3);
     numProcesses++;
-    Process *p3 = createProcess(3, "../programs/Program_3.txt", 0);
+    Process *p3 = createProcess(3, "Milestone_2/programs/Program_3.txt", 0);
     numProcesses++;
     if (!p1 || !p2 || !p3) {
         fprintf(stderr, "Failed to create processes\n");

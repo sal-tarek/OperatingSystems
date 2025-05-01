@@ -4,6 +4,7 @@
 #include "FCFS.h"
 #include "parser.h"
 
+// runs one cycle of the FCFS scheduler
 void runFCFS() {
     printf("\nTime %d: \n \n", clockCycle);
 
@@ -13,10 +14,10 @@ void runFCFS() {
             dequeue(readyQueues[0]); 
         else{
             runningProcess = peek(readyQueues[0]);
-            exec_cycle(runningProcess); // Execution of the next instruction of the process
+            exec_cycle(runningProcess); 
 
             if(runningProcess->state == BLOCKED) {
-                dequeue(readyQueues[0]); // Remove the process from the queue
+                dequeue(readyQueues[0]); 
                 runningProcess = NULL; // Clear runningProcess
             }
             else
@@ -24,15 +25,20 @@ void runFCFS() {
         }
     }
 
+    // Update the timeInQueue for all processes in the ready queue
+    Process *temp = readyQueues[0]->front;
+    while (temp != NULL) {
+        temp->timeInQueue++;
+        temp = temp->next;
+    }
+
     // If a process is running, execute it
     if (runningProcess != NULL) {
         setProcessState(runningProcess->pid, RUNNING); 
-        runningProcess->state = RUNNING;
-        
-        printf("Executing %d\n", runningProcess->pid);
 
+        runningProcess->state = RUNNING;
         runningProcess->remainingTime--;
-        printf("Process %d remaining time: %d\n", runningProcess->pid, runningProcess->remainingTime);
+        printf("Executed Process %d remaining time: %d time in queue: %d\n", runningProcess->pid, runningProcess->remainingTime, runningProcess->timeInQueue);
 
         // Check if the process has finished
         if (runningProcess->remainingTime == 0) {
@@ -46,7 +52,11 @@ void runFCFS() {
             runningProcess->state = READY; 
         }
     }
-     // Print ready queue
-     printf("Ready ");
-     displayQueueSimplified(readyQueues[0]);
+    else{
+        printf("CPU is idle\n", clockCycle);
+    }
+
+    // Print ready queue
+    printf("Ready ");
+    displayQueueSimplified(readyQueues[0]);
 }

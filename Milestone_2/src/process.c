@@ -23,7 +23,8 @@ Process* createProcess(int pid, char *file_path, int arrival_time) {
     newProcess->remainingTime = 0;
     newProcess->next = NULL;
     newProcess->quantumUsed = 0;
-
+    newProcess->timeInQueue = 0;    
+    
     if (!newProcess->file_path) {
         fprintf(stderr, "Failed to allocate memory for file_path\n");
         free(newProcess);

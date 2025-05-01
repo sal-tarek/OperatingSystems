@@ -9,23 +9,26 @@ int lastUsedLevel = -1;  // -1 means no pending process
 void runMLFQ() {
     printf("\nTime %d: \n \n", clockCycle);
 
-    // Find the highest priority process in the queues if no pending process & handling Blocked processes
+    // there is a pending process in the last used queue (didn't finish its quantum), so check if it is blocked or not
     if(lastUsedLevel != -1){
-        // check if this process is still/ will be not blocked
+        // check if this process is still not blocked
         if(runningProcess->state == BLOCKED) {
             dequeue(readyQueues[lastUsedLevel]);
             runningProcess = NULL; // Reset running process
             lastUsedLevel = -1;
         }
 
-        exec_cycle(runningProcess); // Execution of the next instruction of the process
+        exec_cycle(runningProcess); 
 
+        // check if this process is blocked because it accessed a locked resource
         if(runningProcess->state == BLOCKED) {
             dequeue(readyQueues[lastUsedLevel]);
             runningProcess = NULL; // Reset running process
             lastUsedLevel = -1;
         }
     }
+
+    // there is no pending process, we need to find the next process to execute
     if(lastUsedLevel == -1){
         for (int i = 0; i < MAX_NUM_QUEUES; i++) {
             while (!isEmpty(readyQueues[i])) {
@@ -35,8 +38,9 @@ void runMLFQ() {
                     runningProcess = peek(readyQueues[i]);
                     lastUsedLevel = i;
 
-                    exec_cycle(runningProcess); // Execution of the next instruction of the process
+                    exec_cycle(runningProcess); 
 
+                    // check if this process is blocked because it accessed a locked resource
                     if(runningProcess->state == BLOCKED) {
                         dequeue(readyQueues[i]);
                         runningProcess = NULL; // Reset running process
@@ -45,6 +49,15 @@ void runMLFQ() {
                 if(runningProcess != NULL) break; // Exit if we found a process
             }
             if(runningProcess != NULL) break; // Exit if we found a process
+        }
+    }
+
+    // Update the timeInQueue for all processes in the ready queue
+    for(int i = 0; i < MAX_NUM_QUEUES; i++){
+        Process *temp = readyQueues[i]->front;
+        while (temp != NULL) {
+            temp->timeInQueue++;
+            temp = temp->next;
         }
     }
 
@@ -57,7 +70,7 @@ void runMLFQ() {
         runningProcess->quantumUsed++;
         runningProcess->remainingTime--;
 
-        printf("Executed %d\n", runningProcess->pid);
+        printf("Executed Process %d remaining time: %d time in queue: %d\n", runningProcess->pid, runningProcess->remainingTime, runningProcess->timeInQueue);
 
         if(runningProcess->remainingTime == 0) {
             dequeue(readyQueues[lastUsedLevel]);  // Now we safely remove it from the queue
@@ -91,8 +104,8 @@ void runMLFQ() {
         printf("CPU is idle\n", clockCycle);
     }
 
-        // Display the ready queues
+    // Display the ready queues
+    printf("Ready ");
     for(int i = 0; i < 4; i++)
         displayQueueSimplified(readyQueues[i]);
-    return;
 }
