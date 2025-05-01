@@ -1,6 +1,6 @@
 #include <gtk/gtk.h>
-#include "view.h"
 #include <glib.h>
+#include "view.h"
 #include "process.h"
 #include "Queue.h"
 #include "MLFQ.h"
@@ -11,14 +11,19 @@
 #include "../include/instruction.h"
 #include "memory_manager.h"
 
-// Controller structure to hold references to View and Model data
 typedef struct {
     GtkWidget *view_window;
     GtkWidget *running_process_label;
     GtkWidget *step_button;
-    GtkWidget *automatic_button; // Button for automatic mode
-    GtkWidget *pause_button;    // Button to pause automatic mode
-    guint automatic_timer_id;   // Timer ID for automatic loop
+    GtkWidget *automatic_button;
+    GtkWidget *pause_button;
+    GtkWidget *scheduler_combo;
+    GtkWidget *quantum_entry;
+    GtkWidget *quantum_label;
+    guint automatic_timer_id;
+    gboolean is_running;
+    int selected_scheduler; // 0: MLFQ, 1: FCFS, 2: RR
+    int quantum;
 } Controller;
 
 static Controller *controller = NULL;
@@ -26,13 +31,12 @@ static Controller *controller = NULL;
 static void on_step_clicked(GtkWidget *button, gpointer user_data);
 static void on_automatic_clicked(GtkWidget *button, gpointer user_data);
 static void on_pause_clicked(GtkWidget *button, gpointer user_data);
+static void on_scheduler_changed(GtkWidget *combo, GParamSpec *pspec, gpointer user_data);
 static gboolean automatic_step(gpointer user_data);
 
-// Update queue display for a specific ready queue
 void controller_update_queue_display(int queue_index) {
     if (queue_index < 0 || queue_index >= MAX_NUM_QUEUES) return;
 
-    // Collect PIDs into a GList
     GList *pid_list = NULL;
     Process *curr = readyQueues[queue_index]->front;
     while (curr != NULL) {
@@ -40,19 +44,12 @@ void controller_update_queue_display(int queue_index) {
         curr = curr->next;
     }
 
-    // Determine running PID
     int running_pid = (runningProcess != NULL) ? runningProcess->pid : -1;
-
-    // Update the view
     view_update_queue(queue_index, pid_list, running_pid);
-
-    // Free the list (view_update_queue makes a copy)
     g_list_free(pid_list);
 }
 
-// Update blocked queue display
 void controller_update_blocked_queue_display(void) {
-    // Collect PIDs from global_blocked_queue
     GList *pid_list = NULL;
     Process *curr = global_blocked_queue->front;
     while (curr != NULL) {
@@ -60,29 +57,21 @@ void controller_update_blocked_queue_display(void) {
         curr = curr->next;
     }
 
-    // Determine running PID
     int running_pid = (runningProcess != NULL) ? runningProcess->pid : -1;
-
-    // Update the view for blocked queue (index 4)
     view_update_queue(4, pid_list, running_pid);
-
-    // Free the list (view_update_queue makes a copy)
     g_list_free(pid_list);
 }
 
-// Update running process display
 void controller_update_running_process() {
     GString *process_str = g_string_new("");
 
     if (runningProcess != NULL) {
-        // Fetch PCB for the running process
         char pcb_key[32];
         snprintf(pcb_key, sizeof(pcb_key), "P%d_PCB", runningProcess->pid);
         DataType type;
         void *data = fetchDataByIndex(pcb_key, &type);
         PCB *pcb = (type == TYPE_PCB && data) ? (PCB *)data : NULL;
 
-        // Fetch current instruction for the running process
         char key[32];
         snprintf(key, sizeof(key), "P%d_Instruction_%d", runningProcess->pid, pcb ? pcb->programCounter + 1 : 1);
         char *instruction = fetchDataByIndex(key, &type);
@@ -101,16 +90,26 @@ void controller_update_running_process() {
     g_string_free(process_str, TRUE);
 }
 
-// Update all displays (called per clock cycle)
 void controller_update_all() {
-    // Update ready queues
     for (int i = 0; i < MAX_NUM_QUEUES; i++) {
         controller_update_queue_display(i);
     }
-    // Update blocked queue
     controller_update_blocked_queue_display();
-    // Update running process
     controller_update_running_process();
+}
+
+static void run_selected_scheduler() {
+    switch (controller->selected_scheduler) {
+        case 0: // MLFQ
+            runMLFQ();
+            break;
+        case 1: // FCFS
+            runFCFS();
+            break;
+        case 2: // RR
+            runRR(controller->quantum);
+            break;
+    }
 }
 
 void controller_init(GtkApplication *app) {
@@ -121,21 +120,25 @@ void controller_init(GtkApplication *app) {
     controller->step_button = view_get_step_button();
     controller->automatic_button = view_get_automatic_button();
     controller->pause_button = view_get_pause_button();
+    controller->scheduler_combo = view_get_scheduler_combo();
+    controller->quantum_entry = view_get_quantum_entry();
+    controller->quantum_label = view_get_quantum_label();
     controller->automatic_timer_id = 0;
+    controller->is_running = FALSE;
+    controller->selected_scheduler = 0;
+    controller->quantum = 2;
 
     gtk_window_set_application(GTK_WINDOW(controller->view_window), app);
 
-    // Connect button signals
+    g_signal_connect(controller->scheduler_combo, "notify::selected", G_CALLBACK(on_scheduler_changed), NULL);
     g_signal_connect(controller->step_button, "clicked", G_CALLBACK(on_step_clicked), NULL);
     g_signal_connect(controller->automatic_button, "clicked", G_CALLBACK(on_automatic_clicked), NULL);
     g_signal_connect(controller->pause_button, "clicked", G_CALLBACK(on_pause_clicked), NULL);
 
-    // Initialize simulation state
     populateMemory();
     controller_update_all();
 }
 
-// Cleanup controller
 void controller_cleanup() {
     if (controller) {
         if (controller->automatic_timer_id != 0) {
@@ -147,7 +150,23 @@ void controller_cleanup() {
     }
 }
 
-// Step button callback
+static void on_scheduler_changed(GtkWidget *combo, GParamSpec *pspec, gpointer user_data) {
+    if (controller->is_running) {
+        // Prevent scheduler changes during execution
+        gtk_drop_down_set_selected(GTK_DROP_DOWN(combo), controller->selected_scheduler);
+        return;
+    }
+
+    controller->selected_scheduler = gtk_drop_down_get_selected(GTK_DROP_DOWN(combo));
+    if (controller->selected_scheduler == 2) {
+        gtk_widget_set_visible(controller->quantum_label, TRUE);
+        gtk_widget_set_visible(controller->quantum_entry, TRUE);
+    } else {
+        gtk_widget_set_visible(controller->quantum_label, FALSE);
+        gtk_widget_set_visible(controller->quantum_entry, FALSE);
+    }
+}
+
 static void on_step_clicked(GtkWidget *button, gpointer user_data) {
     int any_running = 0;
     for (int i = 1; i <= MAX_NUM_PROCESSES; i++) {
@@ -157,20 +176,43 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data) {
         }
     }
     if (any_running) {
+        controller->is_running = TRUE;
+        gtk_widget_set_sensitive(controller->scheduler_combo, FALSE);
+        gtk_widget_set_sensitive(controller->quantum_entry, FALSE);
+
+        if (controller->selected_scheduler == 2) {
+            const char *quantum_text = gtk_editable_get_text(GTK_EDITABLE(controller->quantum_entry));
+            controller->quantum = atoi(quantum_text);
+            if (controller->quantum <= 0) controller->quantum = 2;
+        }
+
         populateMemory();
-        runRR(2);
+        controller_update_all();
+        run_selected_scheduler();
         g_usleep(50000);
         controller_update_all();
         clockCycle++;
     } else {
+        controller->is_running = FALSE;
+        gtk_widget_set_sensitive(controller->scheduler_combo, TRUE);
+        gtk_widget_set_sensitive(controller->quantum_entry, TRUE);
         gtk_widget_set_sensitive(button, FALSE);
         gtk_widget_set_sensitive(controller->automatic_button, FALSE);
     }
 }
 
-// Automatic button callback
 static void on_automatic_clicked(GtkWidget *button, gpointer user_data) {
     if (controller->automatic_timer_id == 0) {
+        controller->is_running = TRUE;
+        gtk_widget_set_sensitive(controller->scheduler_combo, FALSE);
+        gtk_widget_set_sensitive(controller->quantum_entry, FALSE);
+
+        if (controller->selected_scheduler == 2) {
+            const char *quantum_text = gtk_editable_get_text(GTK_EDITABLE(controller->quantum_entry));
+            controller->quantum = atoi(quantum_text);
+            if (controller->quantum <= 0) controller->quantum = 2;
+        }
+
         controller->automatic_timer_id = g_timeout_add(1500, automatic_step, NULL);
         gtk_widget_set_sensitive(controller->automatic_button, FALSE);
         gtk_widget_set_sensitive(controller->pause_button, TRUE);
@@ -178,18 +220,19 @@ static void on_automatic_clicked(GtkWidget *button, gpointer user_data) {
     }
 }
 
-// Pause button callback
 static void on_pause_clicked(GtkWidget *button, gpointer user_data) {
     if (controller->automatic_timer_id != 0) {
         g_source_remove(controller->automatic_timer_id);
         controller->automatic_timer_id = 0;
+        controller->is_running = FALSE;
+        gtk_widget_set_sensitive(controller->scheduler_combo, TRUE);
+        gtk_widget_set_sensitive(controller->quantum_entry, TRUE);
         gtk_widget_set_sensitive(controller->automatic_button, TRUE);
         gtk_widget_set_sensitive(controller->pause_button, FALSE);
         gtk_widget_set_sensitive(controller->step_button, TRUE);
     }
 }
 
-// Automatic step callback
 static gboolean automatic_step(gpointer user_data) {
     int any_running = 0;
     for (int i = 1; i <= MAX_NUM_PROCESSES; i++) {
@@ -200,13 +243,16 @@ static gboolean automatic_step(gpointer user_data) {
     }
     if (any_running) {
         populateMemory();
-        runRR(2);
+        run_selected_scheduler();
         g_usleep(100000);
         controller_update_all();
         clockCycle++;
         return G_SOURCE_CONTINUE;
     } else {
         controller->automatic_timer_id = 0;
+        controller->is_running = FALSE;
+        gtk_widget_set_sensitive(controller->scheduler_combo, TRUE);
+        gtk_widget_set_sensitive(controller->quantum_entry, TRUE);
         gtk_widget_set_sensitive(controller->automatic_button, FALSE);
         gtk_widget_set_sensitive(controller->pause_button, FALSE);
         gtk_widget_set_sensitive(controller->step_button, FALSE);
@@ -214,13 +260,11 @@ static gboolean automatic_step(gpointer user_data) {
     }
 }
 
-// Application activate callback
 static void on_activate(GtkApplication *app, gpointer user_data) {
     controller_init(app);
     gtk_window_present(GTK_WINDOW(controller->view_window));
 }
 
-// Main entry point to start the UI
 int controller_start(int argc, char *argv[]) {
     GtkApplication *app = gtk_application_new("org.os.scheduler", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(on_activate), NULL);
