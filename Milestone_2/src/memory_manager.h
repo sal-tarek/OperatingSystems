@@ -4,6 +4,8 @@
 #include "memory.h"
 #include "Queue.h"
 #include "PCB.h"
+#include "process.h"
+#include "index.h"
 
 // Constants
 #define MAX_MEMORY_WORDS 60
