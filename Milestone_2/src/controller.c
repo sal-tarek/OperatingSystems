@@ -85,12 +85,12 @@ void controller_update_running_process()
         char pcb_key[32];
         snprintf(pcb_key, sizeof(pcb_key), "P%d_PCB", runningProcess->pid);
         DataType type;
-        void *data = getMemoryData(NULL, atoi(pcb_key));
+        void *data = fetchDataByIndex(pcb_key, &type);
         PCB *pcb = (type == TYPE_PCB && data) ? (PCB *)data : NULL;
 
         char key[32];
         snprintf(key, sizeof(key), "P%d_Instruction_%d", runningProcess->pid, pcb ? pcb->programCounter + 1 : 1);
-        char *instruction = getMemoryData(NULL, atoi(key));
+        char *instruction = fetchDataByIndex(key, &type);
 
         if (!instruction)
         {
