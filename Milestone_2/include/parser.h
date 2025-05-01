@@ -44,7 +44,7 @@ typedef struct
 char* fetch_instruction(PCB* pcb, int pid);
 
 // Decoding
-Instruction decode_instruction(char* instruction_string);
+Instruction decode_instruction(Process *process, char* instruction_string);
 
 // Execution - Main function
 void execute_instruction(PCB* pcb, Process *process, Instruction* instruction);

@@ -10,20 +10,20 @@ int safe_atoi(const char *str, int *out);
 
 char *input(const char *prompt)
 {
-    console_printf("%s", prompt);
+    console_log_printf("%s", prompt);
     static char buffer[MAX_ARG_LEN];
     console_scanf(buffer, MAX_ARG_LEN);
     buffer[strcspn(buffer, "\n")] = '\0';
-    console_printf("> %s\n", buffer);
+    console_log_printf("> %s\n", buffer);
     return strdup(buffer);
 }
 
 // Print "printStatement" to terminal
-void print(int processId, char *printable)
+void print(Process *process, char *printable)
 {
     DataType type;
     char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, printable);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, printable);
     char *storedData = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING) {
@@ -32,46 +32,66 @@ void print(int processId, char *printable)
     }
 
     if (storedData != NULL) {
-        console_printf("%s\n", storedData);
+        console_program_output("Output of program with process ID: %d At time %d\n%s\n", process->pid, process->quantumUsed, storedData);
     } else {
-        console_printf("Variable not found!\n");
+        console_program_output("Output of program with process ID: %d At time %d\nVariable not found!\n", process->pid, process->quantumUsed);
     }
 }
 
 #define MAX_TOKENS 4
 
 // Assigns value to a variable
-void assign(int processId, char *arg1, char *arg2) {
+void assign(Process *process, char *arg1, char *arg2) {
     char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, arg1);
 
     updateDataByIndex(varKey, arg2, TYPE_STRING);
 }
 
 // Write string to file
-void writeToFile(char *filename, char *content)
+void writeToFile(Process *process, char *varfileName, char *varContent)
 {
-    FILE *fptr = fopen(filename, "w");
+    DataType type;
+    char varKey[MAX_VAR_KEY_LEN];
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, varfileName);
+    char *fileName = (char *)fetchDataByIndex(varKey, &type);
 
-    if (fptr == NULL)
-    {
-        console_printf("Failed to create the file\n");
+    if (type != TYPE_STRING) {
+        console_log_printf("Erroneous fetch\n");
         return;
     }
 
-    console_printf("File %s created successfully.\n", filename);
-    fprintf(fptr, "%s", content);
+    FILE *fptr = fopen(fileName, "w");
+
+    if (fptr == NULL)
+    {
+        console_log_printf("Failed to create the file\n");
+        return;
+    }
+
+    console_program_output("Output of program with process ID: %d At time %d\nFile %s created successfully.\n", process->pid, process->quantumUsed, fileName);
+    fprintf(fptr, "%s", varContent);
     fclose(fptr);
 }
 
 // Read file content and return as string
-char *readFromFile(char *fileName)
+char *readFromFile(Process *process, char *varfileName)
 {
+    DataType type;
+    char varKey[MAX_VAR_KEY_LEN];
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, varfileName);
+    char *fileName = (char *)fetchDataByIndex(varKey, &type);
+
+    if (type != TYPE_STRING) {
+        console_log_printf("Erroneous fetch\n");
+        return NULL;
+    }
+
     FILE *fptr = fopen(fileName, "r");
 
     if (fptr == NULL)
     {
-        console_printf("Error opening file\n");
+        console_log_printf("Error opening file\n");
         return NULL;
     }
 
@@ -82,7 +102,7 @@ char *readFromFile(char *fileName)
     char *buffer = (char *)malloc(file_size + 1);
     if (!buffer)
     {
-        console_printf("Failed to allocate memory\n");
+        console_log_printf("Failed to allocate memory\n");
         fclose(fptr);
         return NULL;
     }
@@ -95,23 +115,23 @@ char *readFromFile(char *fileName)
 }
 
 // parses the input to get 2 integers and print the numbers between them (inclusive)
-void printFromTo(int processId, char *arg1, char *arg2)
+void printFromTo(Process *process, char *arg1, char *arg2)
 {
     DataType type;
     char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, arg1);
     char *storedData1 = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING) {
-        console_printf("Erroneous fetch\n");
+        console_log_printf("Erroneous fetch\n");
         return;
     }
 
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg2);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, arg2);
     char *storedData2 = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING) {
-        console_printf("Erroneous fetch\n");
+        console_log_printf("Erroneous fetch\n");
         return;
     }
 
@@ -119,20 +139,20 @@ void printFromTo(int processId, char *arg1, char *arg2)
 
     if (errCode1 == 0 && errCode2 == 0) {
         if (x > y) {
-            console_printf("second argument is smaller than first argument");
+            console_log_printf("second argument is smaller than first argument");
             return;
         }
-        
+        console_program_output("Output of program with process ID: %d At time %d\n", process->pid, process->quantumUsed);
         for (int i = x; i <= y; i++)
         {
-            console_printf("%d", i);
-            if (i != y) console_printf(" ");
+            console_program_output("%d", i);
+            if (i != y) console_program_output(" ");
         }
         printf("\n");
     } else if (errCode1 == 1 || errCode2 == 1) {
-        console_printf("either values are invalid inputs (not a number)");
+        console_log_printf("either values are invalid inputs (not a number)");
     } else {
-        console_printf("either values is out of int range");
+        console_log_printf("either values is out of int range");
     }
 }
 
@@ -143,15 +163,12 @@ void semWait(Process* process, char *x)
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
         result = mutex_lock(&file_mutex, process);
-        console_printf("semWait called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
         result = mutex_lock(&userInput_mutex, process);  // Lock the input mutex
-        console_printf("semWait called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
         result = mutex_lock(&userOutput_mutex, process);  // Lock the output mutex
-        console_printf("semWait called on user output\n");
     } else {
-        console_printf("invalid resource\n");
+        console_log_printf("invalid resource\n");
         return;
     }
 
@@ -169,15 +186,12 @@ void semSignal(Process* process, char *x) {
     if (strcmp(x, "file") == 0) {
         // Lock the file mutex
         mutex_unlock(&file_mutex, process);
-        console_printf("semSignal called on file\n");
     } else if (strcmp(x, "userInput") == 0) {
         mutex_unlock(&userInput_mutex, process);  // Unlock the input mutex
-        console_printf("semSignal called on user input\n");
     } else if (strcmp(x, "userOutput") == 0) {
         mutex_unlock(&userOutput_mutex, process);  // Unlock the output mutex
-        console_printf("semSignal called on user output\n");
     } else {
-        console_printf("invalid resource\n");
+        console_log_printf("invalid resource\n");
         return;
     }
 }
@@ -228,7 +242,7 @@ int safe_atoi(const char *str, int *out) {
         if (isReadFile(token)) {
             char *next = strtok(NULL, " ");
             if (!next) {
-                fprintf(stderr, "Error: readFile command missing filename.\n");
+                fprintf(stderr, "Error: readFile command missing fileName.\n");
                 return;
             }
             tokens[tokenCount++] = mergeReadFileToken(token, next);

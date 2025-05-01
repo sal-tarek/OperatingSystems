@@ -6,7 +6,7 @@
 #include "process.h"
 #include "memory_manager.h"
 #include "mutex.h"
-#include "gui_globals.h"
+#include "console_view.h"
 
 extern mutex_t userInput_mutex;
 extern mutex_t userOutput_mutex;
@@ -23,19 +23,19 @@ extern GtkWidget *console;
 char *input(const char *prompt);
 
 // Print
-void print(int processId, char *printable);
+void print(Process *process, char *printable);
 
 // Assign with given value
-void assign(int processId, char *arg1, char *arg2);
+void assign(Process *process, char *arg1, char *arg2);
 
 // Write string to file
-void writeToFile(char *fileName, char *content);
+void writeToFile(Process *process, char *varFileName, char *varContent);
 
 // Read string from file
-char *readFromFile(char *fileName);
+char *readFromFile(Process *process, char *varFileName);
 
 // Print range of numbers
-void printFromTo(int processId, char *arg1, char *arg2);
+void printFromTo(Process *process, char *arg1, char *arg2);
 
 // Semaphore functions
 void semWait(Process *process, char *resource);

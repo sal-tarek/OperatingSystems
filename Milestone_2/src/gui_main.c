@@ -39,12 +39,6 @@ GtkWidget *entry = NULL;
 GAsyncQueue *input_queue = NULL;
 GAsyncQueue *action_queue = NULL;
 
-// Write to Log file
-void writeToLogFile(char *content)
-{
-    fprintf(logFile, "%s", content);
-}
-
 // Initialize the OS simulation components
 void initialize_simulation()
 {
@@ -53,7 +47,7 @@ void initialize_simulation()
     job_pool = createQueue();
     if (!job_pool)
     {
-        console_printf("Failed to create job_pool\n");
+        console_log_printf("Failed to create job_pool\n");
         return;
     }
     for (int i = 0; i < numQueues; i++)
@@ -64,15 +58,15 @@ void initialize_simulation()
     Process *p3 = createProcess(3, "../programs/Program_3.txt", 0);
     if (!p1 || !p2 || !p3)
     {
-        console_printf("Failed to create processes\n");
+        console_log_printf("Failed to create processes\n");
         return;
     }
     enqueue(job_pool, p1);
     enqueue(job_pool, p2);
     enqueue(job_pool, p3);
-    console_printf("Job Pool: ");
+    console_log_printf("Job Pool: ");
     displayQueue(job_pool);
-    console_printf("\n");
+    console_log_printf("\n");
 }
 
 void cleanup_simulation()
@@ -90,17 +84,17 @@ void cleanup_simulation()
 static void *simulation_thread(void *data)
 {
     initialize_simulation();
-    console_printf("Starting OS simulation with ");
+    console_log_printf("Starting OS simulation with ");
     switch (selected_scheduler)
     {
     case 0:
-        console_printf("First-Come First-Served scheduler\n");
+        console_log_printf("First-Come First-Served scheduler\n");
         break;
     case 1:
-        console_printf("Round Robin scheduler (quantum=%d)\n", quantum);
+        console_log_printf("Round Robin scheduler (quantum=%d)\n", quantum);
         break;
     case 2:
-        console_printf("Multi-Level Feedback Queue scheduler\n");
+        console_log_printf("Multi-Level Feedback Queue scheduler\n");
         break;
     }
     while (simulation_running &&
@@ -109,15 +103,15 @@ static void *simulation_thread(void *data)
             getProcessState(3) != TERMINATED))
     {
         populateMemory();
-        console_printf("\n--- Clock Cycle: %d ---\n", clockCycle);
+        console_log_printf("\n--- Clock Cycle: %d ---\n", clockCycle);
         if (runningProcess)
         {
-            console_printf("Running Process: ");
+            console_log_printf("Running Process: ");
             displayProcess(runningProcess);
         }
         else
         {
-            console_printf("No process currently running\n");
+            console_log_printf("No process currently running\n");
         }
         switch (selected_scheduler)
         {
@@ -135,8 +129,8 @@ static void *simulation_thread(void *data)
         g_usleep(500000);                      // 500ms delay
         g_main_context_iteration(NULL, FALSE); // Process GTK events
     }
-    console_printf("\n--- Simulation Complete ---\n");
-    console_printf("All processes have terminated after %d clock cycles\n", clockCycle);
+    console_log_printf("\n--- Simulation Complete ---\n");
+    console_log_printf("All processes have terminated after %d clock cycles\n", clockCycle);
     cleanup_simulation();
     return NULL;
 }
@@ -163,15 +157,15 @@ static gboolean on_key_pressed(GtkEventControllerKey *controller, guint keyval,
 static void *ui_thread(void *data)
 {
     char buffer[256];
-    console_printf("=== OS Simulation Console ===\n");
-    console_printf("Available commands:\n");
-    console_printf("  start fcfs    - Start simulation with First-Come First-Served scheduler\n");
-    console_printf("  start rr <q>  - Start with Round Robin (quantum q)\n");
-    console_printf("  start mlfq    - Start with Multi-Level Feedback Queue\n");
-    console_printf("  stop          - Stop the current simulation\n");
-    console_printf("  memory        - Print memory contents\n");
-    console_printf("  exit          - Exit the program\n");
-    console_printf("Press Enter to start with default scheduler (FCFS)\n\n");
+    console_log_printf("=== OS Simulation Console ===\n");
+    console_log_printf("Available commands:\n");
+    console_log_printf("  start fcfs    - Start simulation with First-Come First-Served scheduler\n");
+    console_log_printf("  start rr <q>  - Start with Round Robin (quantum q)\n");
+    console_log_printf("  start mlfq    - Start with Multi-Level Feedback Queue\n");
+    console_log_printf("  stop          - Stop the current simulation\n");
+    console_log_printf("  memory        - Print memory contents\n");
+    console_log_printf("  exit          - Exit the program\n");
+    console_log_printf("Press Enter to start with default scheduler (FCFS)\n\n");
     pthread_t sim_thread;
     int sim_thread_active = 0;
 
@@ -193,11 +187,11 @@ static void *ui_thread(void *data)
                         selected_scheduler = 0;
                         pthread_create(&sim_thread, NULL, simulation_thread, NULL);
                         sim_thread_active = 1;
-                        console_printf("Started FCFS simulation (default).\n");
+                        console_log_printf("Started FCFS simulation (default).\n");
                     }
                     else if (sim_thread_active)
                     {
-                        console_printf("--- Memory Contents ---\n");
+                        console_log_printf("--- Memory Contents ---\n");
                         printMemory();
                     }
                 }
@@ -232,7 +226,7 @@ static void *ui_thread(void *data)
             {
                 if (sim_thread_active)
                 {
-                    console_printf("A simulation is already running. Stop it first.\n");
+                    console_log_printf("A simulation is already running. Stop it first.\n");
                 }
                 else
                 {
@@ -245,7 +239,7 @@ static void *ui_thread(void *data)
             {
                 if (sim_thread_active)
                 {
-                    console_printf("A simulation is already running. Stop it first.\n");
+                    console_log_printf("A simulation is already running. Stop it first.\n");
                 }
                 else
                 {
@@ -253,7 +247,7 @@ static void *ui_thread(void *data)
                     sscanf(buffer + 8, "%d", &q);
                     if (q <= 0)
                     {
-                        console_printf("Invalid quantum. Using default value of 2.\n");
+                        console_log_printf("Invalid quantum. Using default value of 2.\n");
                         q = 2;
                     }
                     quantum = q;
@@ -266,7 +260,7 @@ static void *ui_thread(void *data)
             {
                 if (sim_thread_active)
                 {
-                    console_printf("A simulation is already running. Stop it first.\n");
+                    console_log_printf("A simulation is already running. Stop it first.\n");
                 }
                 else
                 {
@@ -277,22 +271,22 @@ static void *ui_thread(void *data)
             }
             else if (strcmp(buffer, "stop") == 0)
             {
-                console_printf("No simulation is running.\n");
+                console_log_printf("No simulation is running.\n");
             }
             else if (strcmp(buffer, "memory") == 0)
             {
-                console_printf("--- Memory Contents ---\n");
+                console_log_printf("--- Memory Contents ---\n");
                 printMemory();
             }
             else if (strcmp(buffer, "exit") == 0)
             {
-                console_printf("Exiting program.\n");
+                console_log_printf("Exiting program.\n");
                 gtk_window_close(GTK_WINDOW(gtk_widget_get_ancestor(console, GTK_TYPE_WINDOW)));
                 break;
             }
             else
             {
-                console_printf("Unknown command: %s\n", buffer);
+                console_log_printf("Unknown command: %s\n", buffer);
             }
         }
         else
@@ -305,16 +299,16 @@ static void *ui_thread(void *data)
                     simulation_running = 0;
                     pthread_join(sim_thread, NULL);
                     sim_thread_active = 0;
-                    console_printf("Simulation stopped.\n");
+                    console_log_printf("Simulation stopped.\n");
                 }
                 else
                 {
-                    console_printf("No simulation is currently running.\n");
+                    console_log_printf("No simulation is currently running.\n");
                 }
             }
             else if (strcmp(buffer, "memory") == 0)
             {
-                console_printf("--- Memory Contents ---\n");
+                console_log_printf("--- Memory Contents ---\n");
                 printMemory();
             }
             else if (strcmp(buffer, "exit") == 0)
@@ -324,17 +318,17 @@ static void *ui_thread(void *data)
                     simulation_running = 0;
                     pthread_join(sim_thread, NULL);
                 }
-                console_printf("Exiting program.\n");
+                console_log_printf("Exiting program.\n");
                 gtk_window_close(GTK_WINDOW(gtk_widget_get_ancestor(console, GTK_TYPE_WINDOW)));
                 break;
             }
             else if (strncmp(buffer, "start ", 6) == 0)
             {
-                console_printf("Scheduler cannot be changed after initial selection.\n");
+                console_log_printf("Scheduler cannot be changed after initial selection.\n");
             }
             else
             {
-                console_printf("Unknown command: %s\n", buffer);
+                console_log_printf("Unknown command: %s\n", buffer);
             }
         }
     }
@@ -382,7 +376,6 @@ static void activate(GtkApplication *app, gpointer user_data)
 int main(int argc, char *argv[])
 {
     logFile = fopen("G:/SEM6/CSEN_602/Project/OperatingSystems/Milestone_2/log/log.txt", "w");
-    writeToLogFile("Simulation began successfully");
 
     GtkApplication *app = gtk_application_new("org.example.ossimulation", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
@@ -393,5 +386,7 @@ int main(int argc, char *argv[])
     if (action_queue)
         g_async_queue_unref(action_queue);
     g_object_unref(app);
+
+    console_view_cleanup();
     return status;
 }

@@ -37,8 +37,7 @@ set(SRC_FILES
     src/mutex.c
     src/parser.c
     src/process.c
-    src/views/console_view.c
-    src/views/gui_globals.c
+    src/console_view.c
 )
 
 set(GUI_MAIN src/gui_main.c)
