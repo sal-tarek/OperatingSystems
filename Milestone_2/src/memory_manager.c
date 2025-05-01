@@ -18,6 +18,7 @@ extern MemoryWord *memory;
 extern IndexEntry *index_table;
 extern Queue *readyQueues[numQueues]; 
 extern int clockCycle;
+extern Queue *processes;
 
 // Global array to store memory ranges for each process
 MemoryRange ranges[MAX_PROCESSES];
@@ -165,8 +166,11 @@ void populateMemory() {
 
                 // Dequeue from job pool
                 dequeue(job_pool);
+                // Set the process state to READY
+                curr->state = READY;
                 curr->ready_time = clockCycle; // Set ready_time
-                enqueue(readyQueues[0], curr); // Add to ready_queue
+                //enqueue(readyQueues[0], curr); // Add to ready_queue
+                enqueue(processes, curr); // Add to processes queue
             }
             else{
                 enqueue(job_pool, dequeue(job_pool)); // Re-enqueue the process

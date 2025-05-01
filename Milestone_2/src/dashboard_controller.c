@@ -1,38 +1,28 @@
 #include "dashboard_controller.h"
+#include "memory_manager.h"
+#include "Queue.h"
+#include "PCB.h"
+#include "process.h"
+#include "memory.h"
 #include <string.h>
 #include <stdio.h>
 
 extern int numberOfProcesses;
 extern int clockCycle;
 extern char* schedulingAlgorithm;
-extern GQueue *processes;
 
-// Dummy fetchPCB function (returns linearly increasing numbers)
-typedef struct {
-    int pid;
-    char state[32];
-    int priority;
-    int mem_lower;
-    int mem_upper;
-    int program_counter;
-} PCB;
+extern Queue *processes;
 
-PCB fetchPCB(int pid) {
-    static int counter = 0;
-    PCB pcb;
-    pcb.pid = pid;
-    snprintf(pcb.state, sizeof(pcb.state), "%s", counter % 3 == 0 ? "Ready" : counter % 3 == 1 ? "Running" : "Blocked");
-    pcb.priority = counter + 10;
-    pcb.mem_lower = counter * 100;
-    pcb.mem_upper = (counter + 1) * 100;
-    pcb.program_counter = counter + 50;
-    counter++;
-    
-    // Print the PCB data
-    printf("PID: %d, State: %s, Priority: %d, Mem Lower: %d, Mem Upper: %d, PC: %d\n",
-           pcb.pid, pcb.state, pcb.priority, pcb.mem_lower, pcb.mem_upper, pcb.program_counter);
-    
-    return pcb;
+// Helper function to convert ProcessState to string
+const char* process_state_to_string(ProcessState state) {
+    switch (state) {
+        case NEW: return "NEW";
+        case READY: return "READY";
+        case RUNNING: return "RUNNING";
+        case BLOCKED: return "WAITING";
+        case TERMINATED: return "TERMINATED";
+        default: return "UNKNOWN";
+    }
 }
 
 // Backend functions (replace with your actual backend functions)
@@ -85,19 +75,40 @@ void dashboard_controller_update(DashboardController *controller) {
 }
 
 void dashboard_controller_update_process_list(DashboardController *controller) {
-    // Loop through the processes queue
-    GList *iter;
-    for (iter = g_queue_peek_head_link(processes); iter; iter = iter->next) {
-        int pid = GPOINTER_TO_INT(iter->data);
-        PCB pcb = fetchPCB(pid);
-        dashboard_view_add_process(controller->view, pcb.pid, pcb.state, pcb.priority, 
-                                  pcb.mem_lower, pcb.mem_upper, pcb.program_counter);
+    // Clear the existing process list in the view
+    GtkWidget *process_list_box = controller->view->process_list_widgets->process_list_box;
+    
+    // GTK 4 approach to remove all children from the process_list_box
+    GtkWidget *child = gtk_widget_get_first_child(process_list_box);
+    while (child != NULL) {
+        GtkWidget *next = gtk_widget_get_next_sibling(child);
+        gtk_box_remove(GTK_BOX(process_list_box), child);
+        child = next;
+    }
+
+    // Loop through the processes queue (PCB logic unchanged)
+    int process_count = getQueueSize(processes);
+    for (int i = 0; i < process_count; i++) {
+        Process *curr = dequeue(processes);
+        int pid = curr->pid;
+        DataType type; // Define type as DataType, not a pointer
+        char varKey[15];
+        snprintf(varKey, 15, "P%d_PCB", pid);
+        PCB *pcb = (PCB *)fetchDataByIndex(varKey, &type); // Pass &type
+        if (type != TYPE_PCB) {
+            perror("Erroneous fetch\n");
+            enqueue(processes, curr);
+            continue;
+        }
+        const char *state_str = process_state_to_string(pcb->state);
+        dashboard_view_add_process(controller->view, pcb->id, state_str, pcb->priority, 
+                                   pcb->memLowerBound, pcb->memUpperBound, pcb->programCounter);
+        enqueue(processes, curr);
     }
 }
 
 void dashboard_controller_free(DashboardController *controller) {
     if (controller) {
         dashboard_view_free(controller->view);
-        g_free(controller);
     }
 }

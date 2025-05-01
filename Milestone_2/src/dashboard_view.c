@@ -28,7 +28,9 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app) {
     // Overview Section (vertical box, on the left)
     GtkWidget *overview_section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     gtk_widget_set_halign(overview_section, GTK_ALIGN_START);
-    gtk_widget_set_valign(overview_section, GTK_ALIGN_START);
+    gtk_widget_set_valign(overview_section, GTK_ALIGN_CENTER);
+    gtk_widget_set_hexpand(overview_section, FALSE);
+    gtk_widget_set_margin_top(overview_section, 20); // From your previous change
     gtk_box_append(GTK_BOX(big_container), overview_section);
 
     // Create the overview frame
@@ -75,15 +77,18 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app) {
 
     // Process List Section (vertical box, on the right)
     GtkWidget *process_list_section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_halign(process_list_section, GTK_ALIGN_END);
+    gtk_widget_set_halign(process_list_section, GTK_ALIGN_FILL);
     gtk_widget_set_hexpand(process_list_section, TRUE);
     gtk_box_append(GTK_BOX(big_container), process_list_section);
 
-    // Create the title label for Process List
-    GtkWidget *process_list_title = gtk_label_new("Process List");
-    gtk_label_set_xalign(GTK_LABEL(process_list_title), 0.0);
-    gtk_widget_set_margin_bottom(process_list_title, 5);
-    gtk_box_append(GTK_BOX(process_list_section), process_list_title);
+    // Create a frame for the Process List to match the Overview styling
+    GtkWidget *process_list_frame = gtk_frame_new("Process List");
+    gtk_widget_add_css_class(process_list_frame, "process-list-frame"); // Add CSS class
+    gtk_box_append(GTK_BOX(process_list_section), process_list_frame);
+
+    // Create a vertical box inside the frame to hold the content
+    GtkWidget *process_list_content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_frame_set_child(GTK_FRAME(process_list_frame), process_list_content);
 
     // Create a horizontal box to hold process entries
     GtkWidget *process_list_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
@@ -93,44 +98,60 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app) {
     GtkWidget *scrolled_window = gtk_scrolled_window_new();
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolled_window), process_list_box);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-    gtk_widget_set_size_request(scrolled_window, -1, 200);
-    gtk_box_append(GTK_BOX(process_list_section), scrolled_window);
+    gtk_widget_set_hexpand(scrolled_window, TRUE);
+    gtk_widget_set_size_request(scrolled_window, -1, 150);
+    gtk_box_append(GTK_BOX(process_list_content), scrolled_window);
 
     // Store the process list box in the ProcessListWidgets structure
     view->process_list_widgets = g_new(ProcessListWidgets, 1);
     view->process_list_widgets->process_list_box = process_list_box;
 
-    // Apply CSS for styling
-    GtkCssProvider *provider = gtk_css_provider_new();
-    gtk_css_provider_load_from_string(provider,
-        "frame {"
-        "   background-color: #33A19A;"
-        "   padding: 10px;"
-        "   border-radius: 5px;"
-        "}"
-        "label {"
-        "   color: rgb(18, 76, 71);"
-        "}"
-        "frame > label, box > label {"
-        "   font-weight: bold;"
-        "   font-size: 16px;"
-        "   color: rgb(35, 124, 116);"
-        "}"
-        "box.big-container {"
-        "   background-color: #D3D3D3;"
-        "   padding: 10px;"
-        "   border-radius: 5px;"
-        "}"
-        "box.process-entry {"
-        "   background-color: #33A19A;"
-        "   padding: 5px;"
-        "   border-radius: 5px;"
-        "}"
-    );
+   // Apply CSS for styling
+GtkCssProvider *provider = gtk_css_provider_new();
+gtk_css_provider_load_from_string(provider,
+    "frame {"
+    "   background-color: #33A19A;" // Keep this for the Overview frame
+    "   padding: 10px;"
+    "   border-radius: 5px;"
+    "}"
+    "frame.process-list-frame {" // Add this rule for the Process List frame
+    "   background-color: #A9A9A9;" // Darker grey than #D3D3D3
+    "}"
+    "label {"
+    "   color: rgb(18, 76, 71);"
+    "}"
+    "frame > label, box > label {"
+    "   font-weight: bold;"
+    "   font-size: 16px;"
+    "   color: rgb(35, 124, 116);"
+    "}"
+    "box.big-container {"
+    "   background-color: #D3D3D3;"
+    "   padding: 10px;"
+    "   border-radius: 5px;"
+    "}"
+    "label.pcb-tab {"
+    "   background-color: #33A19A;"
+    "   color: rgb(35, 124, 116);"
+    "   font-weight: bold;"
+    "   padding: 5px;"
+    "   border-top-left-radius: 5px;"
+    "   border-top-right-radius: 5px;"
+    "}"
+    "box.memory-pcb {"
+    "   background-color: white;"
+    "   border: 1px solid #33A19A;"
+    "   border-radius: 5px;"
+    "   padding: 5px;"
+    "}"
+    "label.memory-pcb-row {"
+    "   color: rgb(18, 76, 71);"
+    "   padding: 2px;"
+    "}"
+);
 
-    // Add a CSS class to big_container and process_list_section
+    // Add a CSS class to big_container
     gtk_widget_add_css_class(big_container, "big-container");
-    gtk_widget_add_css_class(process_list_box, "process-list");
 
     gtk_style_context_add_provider_for_display(
         gtk_widget_get_display(view->window),
@@ -161,46 +182,53 @@ void dashboard_view_set_algorithm(DashboardView *view, const char *algorithm) {
 
 void dashboard_view_add_process(DashboardView *view, int pid, const char *state, int priority, 
                                int mem_lower, int mem_upper, int program_counter) {
-    // Create a horizontal box for this process entry
-    GtkWidget *process_entry = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-    gtk_widget_set_margin_start(process_entry, 5);
-    gtk_widget_set_margin_end(process_entry, 5);
-    gtk_widget_add_css_class(process_entry, "process-entry");
+    // Vertical container for PCB
+    GtkWidget *pcb_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_hexpand(pcb_container, FALSE);
 
-    // Create labels for each piece of process information
-    char pid_str[32], priority_str[32], mem_lower_str[32], mem_upper_str[32], pc_str[32];
-    snprintf(pid_str, sizeof(pid_str), "PID: %d", pid);
-    snprintf(priority_str, sizeof(priority_str), "Priority: %d", priority);
-    snprintf(mem_lower_str, sizeof(mem_lower_str), "Mem Lower: %d", mem_lower);
-    snprintf(mem_upper_str, sizeof(mem_upper_str), "Mem Upper: %d", mem_upper);
-    snprintf(pc_str, sizeof(pc_str), "PC: %d", program_counter);
+    // Add PCB tab
+    char pcb_label[32];
+    snprintf(pcb_label, sizeof(pcb_label), "Process %d", pid);
+    GtkWidget *pcb_tab = gtk_label_new(pcb_label);
+    gtk_widget_add_css_class(pcb_tab, "pcb-tab");
+    gtk_box_append(GTK_BOX(pcb_container), pcb_tab);
 
-    GtkWidget *pid_label = gtk_label_new(pid_str);
-    gtk_widget_set_halign(pid_label, GTK_ALIGN_START);
-    gtk_box_append(GTK_BOX(process_entry), pid_label);
+    // PCB content box
+    GtkWidget *pcb_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_add_css_class(pcb_box, "memory-pcb");
+    gtk_widget_set_hexpand(pcb_box, FALSE);
 
-    GtkWidget *state_label = gtk_label_new(state);
-    gtk_widget_set_halign(state_label, GTK_ALIGN_START);
-    gtk_box_append(GTK_BOX(process_entry), state_label);
+    // Add each PCB info as a row
+    char state_info[64], priority_info[64], pc_info[64], mem_bounds[64];
+    snprintf(state_info, sizeof(state_info), "State: %s", state ? state : "UNKNOWN");
+    snprintf(priority_info, sizeof(priority_info), "Priority: %d", priority);
+    snprintf(pc_info, sizeof(pc_info), "PC: %d", program_counter);
+    snprintf(mem_bounds, sizeof(mem_bounds), "Mem Bounds: %d-%d", mem_lower, mem_upper);
 
-    GtkWidget *priority_label = gtk_label_new(priority_str);
-    gtk_widget_set_halign(priority_label, GTK_ALIGN_START);
-    gtk_box_append(GTK_BOX(process_entry), priority_label);
+    GtkWidget *state_row = gtk_label_new(state_info);
+    gtk_label_set_xalign(GTK_LABEL(state_row), 0);
+    gtk_widget_add_css_class(state_row, "memory-pcb-row");
+    gtk_box_append(GTK_BOX(pcb_box), state_row);
 
-    GtkWidget *mem_lower_label = gtk_label_new(mem_lower_str);
-    gtk_widget_set_halign(mem_lower_label, GTK_ALIGN_START);
-    gtk_box_append(GTK_BOX(process_entry), mem_lower_label);
+    GtkWidget *priority_row = gtk_label_new(priority_info);
+    gtk_label_set_xalign(GTK_LABEL(priority_row), 0);
+    gtk_widget_add_css_class(priority_row, "memory-pcb-row");
+    gtk_box_append(GTK_BOX(pcb_box), priority_row);
 
-    GtkWidget *mem_upper_label = gtk_label_new(mem_upper_str);
-    gtk_widget_set_halign(mem_upper_label, GTK_ALIGN_START);
-    gtk_box_append(GTK_BOX(process_entry), mem_upper_label);
+    GtkWidget *pc_row = gtk_label_new(pc_info);
+    gtk_label_set_xalign(GTK_LABEL(pc_row), 0);
+    gtk_widget_add_css_class(pc_row, "memory-pcb-row");
+    gtk_box_append(GTK_BOX(pcb_box), pc_row);
 
-    GtkWidget *pc_label = gtk_label_new(pc_str);
-    gtk_widget_set_halign(pc_label, GTK_ALIGN_START);
-    gtk_box_append(GTK_BOX(process_entry), pc_label);
+    GtkWidget *mem_row = gtk_label_new(mem_bounds);
+    gtk_label_set_xalign(GTK_LABEL(mem_row), 0);
+    gtk_widget_add_css_class(mem_row, "memory-pcb-row");
+    gtk_box_append(GTK_BOX(pcb_box), mem_row);
 
-    // Append the process entry to the process list box
-    gtk_box_append(GTK_BOX(view->process_list_widgets->process_list_box), process_entry);
+    gtk_box_append(GTK_BOX(pcb_container), pcb_box);
+
+    // Append the PCB container to the process list box
+    gtk_box_append(GTK_BOX(view->process_list_widgets->process_list_box), pcb_container);
 }
 
 void dashboard_view_free(DashboardView *view) {
