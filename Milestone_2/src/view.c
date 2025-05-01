@@ -33,7 +33,7 @@ static const char *css_data =
     ".pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; }"
     ".process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; }"
     ".queue-area { background-color: #D9D9D9; border: 1px solid #bbb; border-radius: 5px; }"
-    ".running-process { color: #D9D9D9; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
+    ".running-process { background-color: #196761; color: white; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; padding: 8px; border-radius: 5px; margin-top: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }"
     ".blocked-queue-header { background-color: #FF0000; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
     ".blocked-process { background-color: #FF0000; color: white; border-radius: 5px; }";
 

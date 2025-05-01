@@ -94,12 +94,12 @@ void controller_update_running_process()
 
         if (!instruction)
         {
-            g_string_append_printf(process_str, "Running Process: PID=%d, Instruction=N/A", (int)runningProcess->pid);
+            g_string_append_printf(process_str, "Running Process: PID=%d, Instruction=N/A, Time in Queue=%d", (int)runningProcess->pid, runningProcess->timeInQueue);
             fprintf(stderr, "Failed to fetch instruction for key: %s\n", key);
         }
         else
         {
-            g_string_append_printf(process_str, "Running Process: PID=%d, Instruction=%s", (int)runningProcess->pid, instruction);
+            g_string_append_printf(process_str, "Running Process: PID=%d, Instruction=%s, Time in Queue=%d", (int)runningProcess->pid, instruction, runningProcess->timeInQueue);
         }
     }
     else
