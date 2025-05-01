@@ -13,8 +13,12 @@
 
 #define numProcesses 3
 #define numQueues 4
+<<<<<<< HEAD
 
 
+=======
+//gcc FCFS.c index.c instruction.c main.c memory_manager.c memory.c MLFQ.c mutex.c parser.c PCB.c process.c Queue.c RoundRobin.c -o main
+>>>>>>> Memory
 // Global variables
 Queue *readyQueues[numQueues];              // Ready Queue holding processes waiting to run by the chosen Scheduler
 Process *runningProcess = NULL;             // currently running process (or NULL if none)
@@ -33,11 +37,76 @@ int main2() {
     // Initialize memory hashmap (empty for now)
     MemoryWord *memory = NULL; // Will store address-to-data mappings
 
+<<<<<<< HEAD
     // // Create job_pool queue
     // job_pool = createQueue();
     // if (!job_pool) {
     //     fprintf(stderr, "Failed to create job_pool\n");
     //     return 1;
+=======
+    // Create job_pool queue
+    job_pool = createQueue();
+    if (!job_pool) {
+        fprintf(stderr, "Failed to create job_pool\n");
+        return 1;
+    }
+
+    // Create ready queues
+    for (int i = 0; i < numQueues; i++) 
+        readyQueues[i] = createQueue();
+
+    // Create global blocked queue
+    global_blocked_queue = createQueue();
+
+    // Create blocked_queue
+    /*
+    blocked_queue = createQueue();
+    if (!blocked_queue) {
+        fprintf(stderr, "Failed to create blocked_queue\n");
+        freeQueue(job_pool);
+        for(int i = 0; i < 4; i++)
+            freeQueue(readyQueues[i]);
+        return 1;
+    }*/
+
+    // Create processes
+    Process *p1 = createProcess(1, "../programs/Program_1.txt", 0);
+    Process *p2 = createProcess(2, "../programs/Program_2.txt", 1);
+    Process *p3 = createProcess(3, "../programs/Program_3.txt", 2);
+    if (!p1 || !p2 || !p3) {
+        fprintf(stderr, "Failed to create processes\n");
+        freeQueue(job_pool);
+        for(int i = 0; i < 4; i++)
+            freeQueue(readyQueues[i]);
+        return 1;
+    }
+
+    // Enqueue processes
+    enqueue(job_pool, p1);
+    enqueue(job_pool, p2);
+    enqueue(job_pool, p3);
+    printf("Job Pool ");
+    displayQueue(job_pool);
+    printf("\n");
+
+    //populate memory test
+    while(clockCycle < 3) {
+        printf("Time %d\n", clockCycle);
+        populateMemory();
+        printMemory();
+        clockCycle++;
+        }
+    deleteProcessFromMemory(1);
+    printMemory();
+   
+
+    // //MLFQ
+    // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
+    //     populateMemory();
+    //     //printMemory();
+    //     runMLFQ(); 
+    //     if (clockCycle++ == 30) break;
+>>>>>>> Memory
     // }
 
     // // Create ready queues
@@ -117,6 +186,7 @@ int main2() {
     //     clockCycle++; 
     // }
 
+<<<<<<< HEAD
     // // // FCFS
     // // while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
     // //     populateMemory();
@@ -132,6 +202,25 @@ int main2() {
     // // populateMemory();
     // printMemory();
     // // displayMemoryRange(0); // Show all memory ranges
+=======
+    //FCFS
+    // while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
+    //     populateMemory();
+    //     displayProcess(runningProcess);
+    //     runFCFS(); 
+    //     clockCycle++; 
+    // }
+
+
+    // Test 1: Populate memory at time 0
+    
+    // printf("Populating memory at time 0...\n");
+    // printf("size: %d\n", getQueueSize(job_pool));
+    // populateMemory();
+    // printMemory();
+
+    // displayMemoryRange(0); // Show all memory ranges
+>>>>>>> Memory
 
 
     // // Test 2: Fetch instruction (P1_Instruction_1)

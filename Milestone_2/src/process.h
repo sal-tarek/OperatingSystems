@@ -14,11 +14,16 @@ typedef struct Process {
     int remainingTime;      // Time left to execute
     int quantumUsed;        // number of cycles used in the current quantum assigned to this process
     struct Process *next;   // For queue linked list
+    int instruction_count; // Number of instructions in the program
+    char *instructions;     // string of instructions
+    int variable_count;    // Number of variables in the program
+    char **variables;     // Array of variable names
 } Process;
 
 Process* createProcess(int pid, const char *file_path, int arrival_time);
 void displayProcess(Process *p);
 void freeProcess(Process *p);
+char* getProcessInstructions(int pid);
 ProcessState getProcessState(int pid);
 void setProcessState(int pid, ProcessState newState);
 int getProcessPriority(int pid);

@@ -92,6 +92,10 @@ void runMLFQ() {
     }
     else{
         printf("CPU is idle\n");
+<<<<<<< HEAD
+=======
+        //printf("CPU is idle\n", clockCycle); where is the placeholder??
+>>>>>>> Memory
     }
 
     return;

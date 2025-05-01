@@ -39,7 +39,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "simulator::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-simulator-Debug-33c35a9581ebf33b9c18.json",
+					"jsonFile" : "target-simulator-Debug-46e88df8c645e7cdf302.json",
 					"name" : "simulator",
 					"projectIndex" : 0
 				}
@@ -49,12 +49,12 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Users/laila/source/repos/OperatingSystems/Milestone_2/out/build/x64-Debug",
-		"source" : "C:/Users/laila/source/repos/OperatingSystems/Milestone_2"
+		"build" : "D:/Workspaces/GitHub/OperatingSystems/build",
+		"source" : "D:/Workspaces/GitHub/OperatingSystems/Milestone_2"
 	},
 	"version" : 
 	{
 		"major" : 2,
-		"minor" : 7
+		"minor" : 5
 	}
 }
