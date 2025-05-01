@@ -14,12 +14,12 @@
 
 // Global variables
 Queue *readyQueues[numQueues];              // Ready Queue holding processes waiting to run
-Process *runningProcess = NULL;             // Currently running process (or NULL if none)
-int clockCycle = 0;                         // Current clock cycle of the simulation
-Queue *job_pool = NULL;                     // Job pool queue
-MemoryWord *memory = NULL;                  // Memory hashmap
-IndexEntry *index_table = NULL;             // Index table for memory management
-Queue *global_blocked_queue = NULL;         // Global blocked queue
+extern Process *runningProcess;             // Currently running process (or NULL if none)
+extern int clockCycle ;                         // Current clock cycle of the simulation
+extern Queue *job_pool ;                     // Job pool queue
+extern MemoryWord *memory ;                  // Memory hashmap
+extern IndexEntry *index_table;             // Index table for memory management
+extern Queue *global_blocked_queue;         // Global blocked queue
 
 static void activate(GtkApplication *app, gpointer user_data) {
     // Initialize the View
