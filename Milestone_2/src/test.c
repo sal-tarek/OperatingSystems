@@ -3,6 +3,7 @@
 #include "Queue.h"
 #include "process.h"
 #include "memory_manager.h"
+//gcc -o dashboard test.c dashboard_view.c dashboard_controller.c Queue.c process.c PCB.c memory.c memory_manager.c index.c RoundRobin.c FCFS.c MLFQ.c parser.c mutex.c instruction.c main.c $(pkg-config --cflags --libs gtk4)
 
 // Global variables (placeholders for backend data)
 extern int numberOfProcesses ;
