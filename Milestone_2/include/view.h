@@ -40,7 +40,7 @@ typedef struct
 extern View *view; // Declare view as extern
 extern QueueAnimation queue_animations[5];
 
-GtkWidget *view_init();
+void view_init(GtkWidget *window);
 void view_update_queue(int queue_index, GList *processes, int running_pid);
 GtkWidget *view_get_running_process_label();
 GtkWidget *view_get_step_button();

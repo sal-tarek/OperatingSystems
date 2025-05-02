@@ -137,11 +137,13 @@ static void run_selected_scheduler()
     }
 }
 
-void controller_init(GtkApplication *app)
+void controller_init(GtkApplication *app, GtkWidget *window)
 {
     controller = g_new0(Controller, 1);
 
-    controller->view_window = view_init();
+    // Initialize view with the provided window
+    controller->view_window = window;
+    view_init(window);
     controller->running_process_label = view_get_running_process_label();
     controller->step_button = view_get_step_button();
     controller->automatic_button = view_get_automatic_button();
@@ -372,22 +374,4 @@ static gboolean automatic_step(gpointer user_data)
         gtk_widget_set_sensitive(controller->step_button, FALSE);
         return G_SOURCE_REMOVE;
     }
-}
-
-static void on_activate(GtkApplication *app, gpointer user_data)
-{
-    controller_init(app);
-    gtk_window_present(GTK_WINDOW(controller->view_window));
-}
-
-int controller_start(int argc, char *argv[])
-{
-    GtkApplication *app = gtk_application_new("org.os.scheduler", G_APPLICATION_DEFAULT_FLAGS);
-    g_signal_connect(app, "activate", G_CALLBACK(on_activate), NULL);
-
-    int status = g_application_run(G_APPLICATION(app), argc, argv);
-    g_object_unref(app);
-
-    controller_cleanup();
-    return status;
 }

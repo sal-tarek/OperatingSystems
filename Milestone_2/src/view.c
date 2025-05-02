@@ -7,35 +7,35 @@ static GtkCssProvider *css_provider = NULL;
 QueueAnimation queue_animations[5];
 
 static const char *css_data =
-    "window { background-color: #2E2F32; }"
-    "frame { background-color: #D9D9D9; border: 1px solid #bbb; color: #333; }"
-    "frame > label { color: white; font-weight: bold; font-size: 14px; background-color: #33A19A; padding: 5px; border-radius: 3px 3px 0 0; }"
-    "label { color: #333; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
-    "listbox { background-color: #D9D9D9; }"
-    "listbox row { padding: 5px; margin: 2px; }"
-    "listbox row:nth-child(even) { background-color: rgba(51, 161, 154, 0.1); }"
-    "listbox row:hover { background-color: rgba(51, 161, 154, 0.3); }"
-    "button { background-color: #33A19A; color: #D9D9D9; border-radius: 5px; padding: 5px; }"
-    "button:hover { background-color: #278f89; }"
-    "entry { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
-    "drop-down { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
-    "textview { background-color: white; color: #000; border: 1px solid #bbb; padding: 8px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; font-size: 13px; }"
-    ".memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); width: 30px; text-align: center; }"
-    ".memory-content { color: #333; padding: 5px; }"
-    ".memory-content:hover { color: #196761; }"
-    ".memory-empty { color: #777; font-style: italic; padding: 5px; }"
-    ".memory-pcb { background-color: #f5f5f5; border-radius: 0 0 5px 5px; padding: 0; border: 1px solid #33A19A; }"
-    ".memory-pcb-row { padding: 5px 10px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); }"
-    ".memory-pcb-row:last-child { border-bottom: none; }"
-    ".memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; max-width: 400px; }"
-    ".memory-slot:hover .memory-content { color: #196761; }"
-    ".frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
-    ".pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; }"
-    ".process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; }"
-    ".queue-area { background-color: #D9D9D9; border: 1px solid #bbb; border-radius: 5px; }"
-    ".running-process { background-color: #196761; color: white; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; padding: 8px; border-radius: 5px; margin-top: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }"
-    ".blocked-queue-header { background-color: #FF0000; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
-    ".blocked-process { background-color: #FF0000; color: white; border-radius: 5px; }";
+    ".scheduler-view window { background-color: #2E2F32; }"
+    ".scheduler-view frame { background-color: #D9D9D9; border: 1px solid #bbb; color: #333; }"
+    ".scheduler-view frame > label { color: white; font-weight: bold; font-size: 14px; background-color: #33A19A; padding: 5px; border-radius: 3px 3px 0 0; }"
+    ".scheduler-view label { color: #333; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
+    ".scheduler-view listbox { background-color: #D9D9D9; }"
+    ".scheduler-view listbox row { padding: 5px; margin: 2px; }"
+    ".scheduler-view listbox row:nth-child(even) { background-color: rgba(51, 161, 154, 0.1); }"
+    ".scheduler-view listbox row:hover { background-color: rgba(51, 161, 154, 0.3); }"
+    ".scheduler-view button { background-color: #33A19A; color: #D9D9D9; border-radius: 5px; padding: 5px; }"
+    ".scheduler-view button:hover { background-color: #278f89; }"
+    ".scheduler-view entry { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
+    ".scheduler-view drop-down { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
+    ".scheduler-view textview { background-color: white; color: #000; border: 1px solid #bbb; padding: 8px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; font-size: 13px; }"
+    ".scheduler-view .memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); }"
+    ".scheduler-view .memory-content { color: #333; padding: 5px; }"
+    ".scheduler-view .memory-content:hover { color: #196761; }"
+    ".scheduler-view .memory-empty { color: #777; font-style: italic; padding: 5px; }"
+    ".scheduler-view .memory-pcb { background-color: #f5f5f5; border-radius: 0 0 5px 5px; padding: 0; border: 1px solid #33A19A; }"
+    ".scheduler-view .memory-pcb-row { padding: 5px 10px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); }"
+    ".scheduler-view .memory-pcb-row:last-child { border-bottom: none; }"
+    ".scheduler-view .memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; }"
+    ".scheduler-view .memory-slot:hover .memory-content { color: #196761; }"
+    ".scheduler-view .frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
+    ".scheduler-view .pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; }"
+    ".scheduler-view .process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; }"
+    ".scheduler-view .queue-area { background-color: #D9D9D9; border: 1px solid #bbb; border-radius: 5px; }"
+    ".scheduler-view .running-process { background-color: #196761; color: white; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; padding: 8px; border-radius: 5px; margin-top: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }"
+    ".scheduler-view .blocked-queue-header { background-color: #FF0000; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
+    ".scheduler-view .blocked-process { background-color: #FF0000; color: white; border-radius: 5px; }";
 
 static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer data)
 {
@@ -285,7 +285,7 @@ static gboolean animate_process(gpointer user_data)
     return any_animating ? G_SOURCE_CONTINUE : G_SOURCE_REMOVE;
 }
 
-GtkWidget *view_init()
+void view_init(GtkWidget *window)
 {
     view = g_new0(View, 1);
 
@@ -296,16 +296,15 @@ GtkWidget *view_init()
         GTK_STYLE_PROVIDER(css_provider),
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-    view->window = gtk_window_new();
-    gtk_window_set_title(GTK_WINDOW(view->window), "OS Scheduler Simulation");
-    gtk_window_set_default_size(GTK_WINDOW(view->window), 950, 650);
+    view->window = window;
+    gtk_widget_add_css_class(window, "scheduler-view");
 
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
     gtk_widget_set_margin_start(main_box, 15);
     gtk_widget_set_margin_end(main_box, 15);
     gtk_widget_set_margin_top(main_box, 15);
     gtk_widget_set_margin_bottom(main_box, 15);
-    gtk_window_set_child(GTK_WINDOW(view->window), main_box);
+    gtk_window_set_child(GTK_WINDOW(window), main_box);
 
     GtkWidget *scheduler_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
     gtk_widget_set_halign(scheduler_box, GTK_ALIGN_CENTER);
@@ -404,8 +403,6 @@ GtkWidget *view_init()
     }
 
     view->running_pid = -1;
-
-    return view->window;
 }
 
 static int get_position_in_queue(GList *queue, int pid)
