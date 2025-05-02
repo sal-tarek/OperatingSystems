@@ -92,6 +92,6 @@ int console_test_driver_run(int argc, char **argv) {
 }
 
 // Entry point
-int main(int argc, char **argv) {
-    return console_test_driver_run(argc, argv);
-}
+// int main(int argc, char **argv) {
+//     return console_test_driver_run(argc, argv);
+// }

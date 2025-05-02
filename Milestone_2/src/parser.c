@@ -42,14 +42,14 @@ char *fetch_instruction(PCB *pcb, int pid)
     char *instruction = fetchDataByIndex(key, &type);
     if (instruction == NULL)
     {
-        console_log_printf("Failed to fetch instruction for key: %s\n", key);
+        console_model_log_output("Failed to fetch instruction for key: %s\n", key);
         return NULL;
     }
 
     // Verify the data type is a string
     if (type != TYPE_STRING)
     {
-        console_log_printf("Invalid data type for instruction key %s: expected TYPE_STRING, got %d\n", key, type);
+        console_model_log_output("Invalid data type for instruction key %s: expected TYPE_STRING, got %d\n", key, type);
         return NULL;
     }
 
@@ -67,7 +67,7 @@ Instruction decode_instruction(Process *process, char *instruction_string)
     char *copy = strdup(instruction_string);
     if (!copy)
     {
-        console_log_printf("Error: Memory allocation failed for instruction copy\n");
+        console_model_log_output("Error: Memory allocation failed for instruction copy\n");
         return result;
     }
 
@@ -98,7 +98,7 @@ Instruction decode_instruction(Process *process, char *instruction_string)
         // Expect exactly 1 argument
         if (tokenCount != 2)
         {
-            console_log_printf("Error: %s expects exactly 1 argument, got %d\n", tokens[0], tokenCount - 1);
+            console_model_log_output("Error: %s expects exactly 1 argument, got %d\n", tokens[0], tokenCount - 1);
             free(copy);
             return result;
         }
@@ -128,7 +128,7 @@ Instruction decode_instruction(Process *process, char *instruction_string)
         // Expect exactly 2 arguments
         if (tokenCount != 3)
         {
-            console_log_printf("Error: %s expects exactly 2 arguments, got %d\n", tokens[0], tokenCount - 1);
+            console_model_log_output("Error: %s expects exactly 2 arguments, got %d\n", tokens[0], tokenCount - 1);
             free(copy);
             return result;
         }
@@ -197,7 +197,7 @@ Instruction decode_instruction(Process *process, char *instruction_string)
     }
     else
     {
-        console_log_printf("Error: Unknown instruction type: %s\n", tokens[0]);
+        console_model_log_output("Error: Unknown instruction type: %s\n", tokens[0]);
     }
 
     free(copy);
@@ -216,17 +216,17 @@ void execute_instruction(PCB *pcb, Process* process, Instruction *instruction)
 {
     if (!instruction)
     {
-        console_log_printf("Error: Invalid instruction\n");
+        console_model_log_output("Error: Invalid instruction\n");
         return;
     }
     if (!pcb)
     {
-        console_log_printf("Error: PCB is NULL for process %d\n", process->pid);
+        console_model_log_output("Error: PCB is NULL for process %d\n", process->pid);
         return;
     }
     if (!process)
     {
-        console_log_printf("Error: process is NULL\n");
+        console_model_log_output("Error: process is NULL\n");
         return;
     }
 
@@ -247,7 +247,7 @@ void execute_instruction(PCB *pcb, Process* process, Instruction *instruction)
         break;
     case READFILE:
         // Already handled in decode_instruction, but we can log the result
-        console_log_printf("readFile result for process %d: %s\n", process->pid, instruction->arg1);
+        console_model_log_output("readFile result for process %d: %s\n", process->pid, instruction->arg1);
         readFromFile(process, instruction->arg1);
         break;
     case PRINTFROMTO:
@@ -263,7 +263,7 @@ void execute_instruction(PCB *pcb, Process* process, Instruction *instruction)
         semSignal(process, instruction->arg1);
         break;
     default:
-        console_log_printf("Error: Unknown instruction type: %d\n", instruction->type);
+        console_model_log_output("Error: Unknown instruction type: %d\n", instruction->type);
         return;
     }
     // Increment the program counter using the passed PCB
@@ -282,20 +282,20 @@ void exec_cycle(Process* process)
     void *data = fetchDataByIndex(pcb_key, &type);
     if (!data || type != TYPE_PCB)
     {
-        console_log_printf("Error: Failed to fetch PCB for process %d (key: %s)\n", process->pid, pcb_key);
+        console_model_log_output("Error: Failed to fetch PCB for process %d (key: %s)\n", process->pid, pcb_key);
         return;
     }
 
     PCB *pcb = (PCB *)data;
 
-    console_log_printf("Debugging: process accessing test: %d  program counter %d\n", process->pid, pcb->programCounter);
+    console_model_log_output("Debugging: process accessing test: %d  program counter %d\n", process->pid, pcb->programCounter);
     // Fetch instruction
     char *instruction_str = fetch_instruction(pcb, process->pid);
     // printf("Debugging: memory dump after fetch\n");
     // printMemory();
     if (!instruction_str)
     {
-        console_log_printf("Error: Failed to fetch instruction for process %d\n", process->pid);
+        console_model_log_output("Error: Failed to fetch instruction for process %d\n", process->pid);
         return;
     }
 
@@ -305,7 +305,7 @@ void exec_cycle(Process* process)
     // printMemory();
     if (instruction.arg1[0] == '\0' && instruction.arg2[0] == '\0')
     {
-        console_log_printf("Error: Failed to decode instruction for process %d: %s\n", process->pid, instruction_str);
+        console_model_log_output("Error: Failed to decode instruction for process %d: %s\n", process->pid, instruction_str);
         // free(instruction_str);
         return;
     }

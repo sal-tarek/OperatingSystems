@@ -5,12 +5,13 @@
 #include "process.h"
 #include "parser.h"
 
-#define numProcesses 3
+// #define numProcesses 3
 #define numQueues 4
 
 extern Queue *readyQueues[numQueues];
 extern Process *runningProcess;
 extern int clockCycle;
+extern int numProcesses;
 
 // Function to run the First Come First Serve scheduler
 void runFCFS();

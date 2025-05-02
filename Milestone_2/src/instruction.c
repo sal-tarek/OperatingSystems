@@ -10,12 +10,10 @@ int safe_atoi(const char *str, int *out);
 
 char *input(const char *prompt)
 {
-    console_log_printf("%s", prompt);
-    static char buffer[MAX_ARG_LEN];
-    console_scanf(buffer, MAX_ARG_LEN);
-    buffer[strcspn(buffer, "\n")] = '\0';
-    console_log_printf("> %s\n", buffer);
-    return strdup(buffer);
+    char *input = console_model_request_input(prompt);
+    input[strcspn(input, "\n")] = '\0';
+    console_model_log_output("> User input was %s\n", input);
+    return input;
 }
 
 // Print "printStatement" to terminal
@@ -32,9 +30,9 @@ void print(Process *process, char *printable)
     }
 
     if (storedData != NULL) {
-        console_program_output("Output of program with process ID: %d At time %d\n%s\n", process->pid, process->quantumUsed, storedData);
+        console_model_program_output("Output of program with process ID: %d\n%s\n", process->pid, storedData);
     } else {
-        console_program_output("Output of program with process ID: %d At time %d\nVariable not found!\n", process->pid, process->quantumUsed);
+        console_model_program_output("Output of program with process ID: %d\nVariable not found!\n", process->pid);
     }
 }
 
@@ -57,7 +55,7 @@ void writeToFile(Process *process, char *varfileName, char *varContent)
     char *fileName = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING) {
-        console_log_printf("Erroneous fetch\n");
+        console_model_log_output("Erroneous fetch\n");
         return;
     }
 
@@ -65,11 +63,11 @@ void writeToFile(Process *process, char *varfileName, char *varContent)
 
     if (fptr == NULL)
     {
-        console_log_printf("Failed to create the file\n");
+        console_model_log_output("Failed to create the file\n");
         return;
     }
 
-    console_program_output("Output of program with process ID: %d At time %d\nFile %s created successfully.\n", process->pid, process->quantumUsed, fileName);
+    console_model_program_output("Output of program with process ID: %d\nFile %s created successfully.\n", process->pid, fileName);
     fprintf(fptr, "%s", varContent);
     fclose(fptr);
 }
@@ -83,7 +81,7 @@ char *readFromFile(Process *process, char *varfileName)
     char *fileName = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING) {
-        console_log_printf("Erroneous fetch\n");
+        console_model_log_output("Erroneous fetch\n");
         return NULL;
     }
 
@@ -91,7 +89,7 @@ char *readFromFile(Process *process, char *varfileName)
 
     if (fptr == NULL)
     {
-        console_log_printf("Error opening file\n");
+        console_model_log_output("Error opening file\n");
         return NULL;
     }
 
@@ -102,7 +100,7 @@ char *readFromFile(Process *process, char *varfileName)
     char *buffer = (char *)malloc(file_size + 1);
     if (!buffer)
     {
-        console_log_printf("Failed to allocate memory\n");
+        console_model_log_output("Failed to allocate memory\n");
         fclose(fptr);
         return NULL;
     }
@@ -123,7 +121,7 @@ void printFromTo(Process *process, char *arg1, char *arg2)
     char *storedData1 = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING) {
-        console_log_printf("Erroneous fetch\n");
+        console_model_log_output("Erroneous fetch\n");
         return;
     }
 
@@ -131,7 +129,7 @@ void printFromTo(Process *process, char *arg1, char *arg2)
     char *storedData2 = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING) {
-        console_log_printf("Erroneous fetch\n");
+        console_model_log_output("Erroneous fetch\n");
         return;
     }
 
@@ -139,20 +137,20 @@ void printFromTo(Process *process, char *arg1, char *arg2)
 
     if (errCode1 == 0 && errCode2 == 0) {
         if (x > y) {
-            console_log_printf("second argument is smaller than first argument");
+            console_model_log_output("second argument is smaller than first argument");
             return;
         }
-        console_program_output("Output of program with process ID: %d At time %d\n", process->pid, process->quantumUsed);
+        console_model_program_output("Output of program with process ID: %d\n", process->pid);
         for (int i = x; i <= y; i++)
         {
-            console_program_output("%d", i);
-            if (i != y) console_program_output(" ");
+            console_model_program_output("%d", i);
+            if (i != y) console_model_program_output(" ");
         }
         printf("\n");
     } else if (errCode1 == 1 || errCode2 == 1) {
-        console_log_printf("either values are invalid inputs (not a number)");
+        console_model_log_output("either values are invalid inputs (not a number)");
     } else {
-        console_log_printf("either values is out of int range");
+        console_model_log_output("either values is out of int range");
     }
 }
 
@@ -168,7 +166,7 @@ void semWait(Process* process, char *x)
     } else if (strcmp(x, "userOutput") == 0) {
         result = mutex_lock(&userOutput_mutex, process);  // Lock the output mutex
     } else {
-        console_log_printf("invalid resource\n");
+        console_model_log_output("Process %d tried to acquire an invalid resource: %s\n", process->pid, x);
         return;
     }
 
@@ -191,7 +189,7 @@ void semSignal(Process* process, char *x) {
     } else if (strcmp(x, "userOutput") == 0) {
         mutex_unlock(&userOutput_mutex, process);  // Unlock the output mutex
     } else {
-        console_log_printf("invalid resource\n");
+        console_model_log_output("Process %d tried to acquire an invalid resource: %s\n", process->pid, x);
         return;
     }
 }

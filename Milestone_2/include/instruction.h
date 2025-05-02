@@ -6,13 +6,11 @@
 #include "process.h"
 #include "memory_manager.h"
 #include "mutex.h"
-#include "console_view.h"
+#include "console_model.h"
 
 extern mutex_t userInput_mutex;
 extern mutex_t userOutput_mutex;
 extern mutex_t file_mutex;
-
-extern GtkWidget *console;
 
 #define MAX_VAR_KEY_LEN 15
 #define MAX_ARG_LEN 100
