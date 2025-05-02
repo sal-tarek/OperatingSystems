@@ -22,10 +22,11 @@ milestone1
 *.d
 
 # Build directories
-/build/
-/bin/
-/Debug/
-/Release/
+/Milestone_2/out/
+/Milestone_2/build/
+/Milestone_2/bin/
+/Milestone_2/Debug/
+/Milestone_2/Release/
 
 # IDE and Editor files
 .vscode/

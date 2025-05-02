@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "../include/instruction.h"
+#include "instruction.h"
 
 // Static decoding hashmap
 static DecodeHashEntry decode_hashmap[DECODE_HASH_SIZE] = {
@@ -43,36 +43,22 @@ char *fetch_instruction(PCB *pcb, int pid)
     char *instruction = fetchDataByIndex(key, &type);
     if (instruction == NULL)
     {
-        fprintf(stderr, "Failed to fetch instruction for key: %s\n", key);
+        console_model_log_output("Failed to fetch instruction for key: %s\n", key);
         return NULL;
     }
 
     // Verify the data type is a string
     if (type != TYPE_STRING)
     {
-        fprintf(stderr, "Invalid data type for instruction key %s: expected TYPE_STRING, got %d\n", key, type);
+        console_model_log_output("Invalid data type for instruction key %s: expected TYPE_STRING, got %d\n", key, type);
         return NULL;
     }
 
     return instruction;
 }
 
-// Helper function to prompt user for input
-char *input(const char *prompt)
-{
-    printf("%s", prompt);
-    static char buffer[MAX_NAME_LEN];
-    if (fgets(buffer, MAX_NAME_LEN, stdin) == NULL)
-    {
-        fprintf(stderr, "Error: Unable to read user input\n");
-        return NULL;
-    }
-    buffer[strcspn(buffer, "\n")] = '\0';
-    return strdup(buffer);
-}
-
 // Decode instruction string into Instruction struct
-Instruction decode_instruction(char *instruction_string)
+Instruction decode_instruction(Process *process, char *instruction_string)
 {
     Instruction result = {0}; // Initialize with zeros
     char *tokens[3];          // Max 3 tokens: command, arg1, arg2
@@ -82,7 +68,7 @@ Instruction decode_instruction(char *instruction_string)
     char *copy = strdup(instruction_string);
     if (!copy)
     {
-        fprintf(stderr, "Error: Memory allocation failed for instruction copy\n");
+        console_model_log_output("Error: Memory allocation failed for instruction copy\n");
         return result;
     }
 
@@ -101,10 +87,7 @@ Instruction decode_instruction(char *instruction_string)
         {
             if (strcmp(tokens[0], decode_hashmap[i].key) == 0)
             {
-                // printf("Debugging: command = %s\n", tokens[0]);
                 result.type = decode_hashmap[i].value;
-                // printf("Debugging: command hash = %d\n", result.type);
-                printf("");
                 break;
             }
         }
@@ -116,7 +99,7 @@ Instruction decode_instruction(char *instruction_string)
         // Expect exactly 1 argument
         if (tokenCount != 2)
         {
-            fprintf(stderr, "Error: %s expects exactly 1 argument, got %d\n", tokens[0], tokenCount - 1);
+            console_model_log_output("Error: %s expects exactly 1 argument, got %d\n", tokens[0], tokenCount - 1);
             free(copy);
             return result;
         }
@@ -125,7 +108,7 @@ Instruction decode_instruction(char *instruction_string)
         {
             strncpy(result.arg1, tokens[1], MAX_NAME_LEN - 1);
             result.arg1[MAX_NAME_LEN - 1] = '\0';
-            char *fileContent = readFromFile(result.arg1);
+            char *fileContent = readFromFile(process, result.arg1);
             if (!fileContent)
             {
                 free(copy);
@@ -146,7 +129,7 @@ Instruction decode_instruction(char *instruction_string)
         // Expect exactly 2 arguments
         if (tokenCount != 3)
         {
-            fprintf(stderr, "Error: %s expects exactly 2 arguments, got %d\n", tokens[0], tokenCount - 1);
+            console_model_log_output("Error: %s expects exactly 2 arguments, got %d\n", tokens[0], tokenCount - 1);
             free(copy);
             return result;
         }
@@ -166,7 +149,7 @@ Instruction decode_instruction(char *instruction_string)
         else if (strncmp(tokens[1], "readFile", 8) == 0)
         {
             char *filename = tokens[1] + 9; // Skip "readFile "
-            char *fileContent = readFromFile(filename);
+            char *fileContent = readFromFile(process, filename);
             if (!fileContent)
             {
                 free(copy);
@@ -197,7 +180,7 @@ Instruction decode_instruction(char *instruction_string)
         else if (strncmp(tokens[2], "readFile", 8) == 0)
         {
             char *filename = tokens[2] + 9; // Skip "readFile "
-            char *fileContent = readFromFile(filename);
+            char *fileContent = readFromFile(process, filename);
             if (!fileContent)
             {
                 free(copy);
@@ -215,7 +198,7 @@ Instruction decode_instruction(char *instruction_string)
     }
     else
     {
-        fprintf(stderr, "Error: Unknown instruction type: %s\n", tokens[0]);
+        console_model_log_output("Error: Unknown instruction type: %s\n", tokens[0]);
     }
 
     free(copy);
@@ -234,17 +217,17 @@ void execute_instruction(PCB *pcb, Process* process, Instruction *instruction)
 {
     if (!instruction)
     {
-        fprintf(stderr, "Error: Invalid instruction\n");
+        console_model_log_output("Error: Invalid instruction\n");
         return;
     }
     if (!pcb)
     {
-        fprintf(stderr, "Error: PCB is NULL for process %d\n", process->pid);
+        console_model_log_output("Error: PCB is NULL for process %d\n", process->pid);
         return;
     }
     if (!process)
     {
-        fprintf(stderr, "Error: process is NULL\n");
+        console_model_log_output("Error: process is NULL\n");
         return;
     }
 
@@ -255,20 +238,21 @@ void execute_instruction(PCB *pcb, Process* process, Instruction *instruction)
     switch (instruction->type)
     {
     case PRINT:
-        print(process->pid, instruction->arg1);
+        print(process, instruction->arg1);
         break;
     case ASSIGN:
-        assign(process->pid, instruction->arg1, instruction->arg2);
+        assign(process, instruction->arg1, instruction->arg2);
         break;
     case WRITETOFILE:
-        writeToFile(instruction->arg1, instruction->arg2);
+        writeToFile(process, instruction->arg1, instruction->arg2);
         break;
     case READFILE:
         // Already handled in decode_instruction, but we can log the result
-        printf("readFile result for process %d: %s\n", process->pid, instruction->arg1);
+        console_model_log_output("readFile result for process %d: %s\n", process->pid, instruction->arg1);
+        readFromFile(process, instruction->arg1);
         break;
     case PRINTFROMTO:
-        printFromTo(process->pid, instruction->arg1, instruction->arg2);
+        printFromTo(process, instruction->arg1, instruction->arg2);
         break;
     case SEMWAIT:
         // printf("Debugging: Resource being used: %s\n", instruction->arg1);
@@ -280,7 +264,7 @@ void execute_instruction(PCB *pcb, Process* process, Instruction *instruction)
         semSignal(process, instruction->arg1);
         break;
     default:
-        fprintf(stderr, "Error: Unknown instruction type: %d\n", instruction->type);
+        console_model_log_output("Error: Unknown instruction type: %d\n", instruction->type);
         return;
     }
     // Increment the program counter using the passed PCB
@@ -299,30 +283,30 @@ void exec_cycle(Process* process)
     void *data = fetchDataByIndex(pcb_key, &type);
     if (!data || type != TYPE_PCB)
     {
-        fprintf(stderr, "Error: Failed to fetch PCB for process %d (key: %s)\n", process->pid, pcb_key);
+        console_model_log_output("Error: Failed to fetch PCB for process %d (key: %s)\n", process->pid, pcb_key);
         return;
     }
 
     PCB *pcb = (PCB *)data;
 
-    // printf("Debugging: process accessing test: %d  program counter %d\n", process->pid, pcb->programCounter);
+    console_model_log_output("Debugging: process accessing test: %d  program counter %d\n", process->pid, pcb->programCounter);
     // Fetch instruction
     char *instruction_str = fetch_instruction(pcb, process->pid);
     // printf("Debugging: memory dump after fetch\n");
     // printMemory();
     if (!instruction_str)
     {
-        fprintf(stderr, "Error: Failed to fetch instruction for process %d\n", process->pid);
+        console_model_log_output("Error: Failed to fetch instruction for process %d\n", process->pid);
         return;
     }
 
     // Decode instruction
-    Instruction instruction = decode_instruction(instruction_str);
+    Instruction instruction = decode_instruction(process, instruction_str);
     // printf("Debugging: memory dump after decode\n");
     // printMemory();
     if (instruction.arg1[0] == '\0' && instruction.arg2[0] == '\0')
     {
-        fprintf(stderr, "Error: Failed to decode instruction for process %d: %s\n", process->pid, instruction_str);
+        console_model_log_output("Error: Failed to decode instruction for process %d: %s\n", process->pid, instruction_str);
         // free(instruction_str);
         return;
     }
@@ -362,7 +346,7 @@ int main() {
         printf("Processing instruction %d: %s\n", i + 1, instructions[i]);
 
         // Decode the instruction
-        Instruction decoded = decode_instruction(instructions[i]);
+        Instruction decoded = decode_instruction(Process *process, instructions[i]);
         if (decoded.type == 0 && decoded.arg1[0] == '\0' && decoded.arg2[0] == '\0') {
             printf("Failed to decode instruction: %s\n", instructions[i]);
             continue;

@@ -38,6 +38,7 @@ void displayProcess(Process *p) {
     if (p != NULL) {
         printf("Process ID: %d\n", p->pid);
         char key[20];
+        snprintf(key, sizeof(key), "P%d_PCB", p->pid);
         ProcessState state = p->state;
         switch (state) {
             case NEW: printf("State: NEW\n"); break;

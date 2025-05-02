@@ -12,11 +12,20 @@
 #include "PCB.h"
 #include "mutex.h"
 #include "controller.h"
+// #include "controller.h"
+#include "console_view.h"
+#include "console_controller.h"
+#include "console_model.h"
 
+#define MAX_NUM_PROCESSES 10    // Maximum number of processes to support
+#define MAX_NUM_QUEUES 4        // Maximum number of queues
 #define MAX_NUM_PROCESSES 10    // Maximum number of processes to support
 #define MAX_NUM_QUEUES 4        // Maximum number of queues
 
 // Global variables
+Queue *readyQueues[MAX_NUM_QUEUES]; // Ready Queue holding processes waiting to run
+Process *runningProcess = NULL; // Currently running process (or NULL if none)
+int clockCycle; // Current clock cycle of the simulation
 Queue *readyQueues[MAX_NUM_QUEUES]; // Ready Queue holding processes waiting to run
 Process *runningProcess = NULL; // Currently running process (or NULL if none)
 int clockCycle; // Current clock cycle of the simulation

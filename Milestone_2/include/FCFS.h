@@ -11,6 +11,7 @@
 extern Queue *readyQueues[MAX_NUM_QUEUES];
 extern Process *runningProcess;
 extern int clockCycle;
+extern int numProcesses;
 
 // Function to run the First Come First Serve scheduler
 void runFCFS();

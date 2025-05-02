@@ -4,7 +4,7 @@
 #include "memory.h"
 #include "process.h"
 #include "PCB.h"
-#include "../include/instruction.h"
+#include "instruction.h"
 
 // Constants
 #define MAX_NAME_LEN 50     // Maximum length for instruction/variable strings
@@ -44,7 +44,7 @@ typedef struct
 char* fetch_instruction(PCB* pcb, int pid);
 
 // Decoding
-Instruction decode_instruction(char* instruction_string);
+Instruction decode_instruction(Process *process, char* instruction_string);
 
 // Execution - Main function
 void execute_instruction(PCB* pcb, Process *process, Instruction* instruction);

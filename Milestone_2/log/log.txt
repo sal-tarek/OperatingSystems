@@ -1,0 +1,108 @@
+=== OS Simulation Console ===
+Available commands:
+  start fcfs    - Start simulation with First-Come First-Served scheduler
+  start rr <q>  - Start with Round Robin (quantum q)
+  start mlfq    - Start with Multi-Level Feedback Queue
+  stop          - Stop the current simulation
+  memory        - Print memory contents
+  exit          - Exit the program
+Press Enter to start with default scheduler (FCFS)
+
+Job Pool: 
+Starting OS simulation with First-Come First-Served scheduler
+
+--- Clock Cycle: 0 ---
+No process currently running
+Debugging: process accessing test: 1  program counter 0
+
+--- Clock Cycle: 1 ---
+Running Process: Debugging: process accessing test: 1  program counter 1
+Enter value for arg2: User entered: 1
+> 1
+
+--- Clock Cycle: 2 ---
+Running Process: Debugging: process accessing test: 1  program counter 2
+Enter value for arg2: User entered: 17
+> 17
+
+--- Clock Cycle: 3 ---
+Running Process: Debugging: process accessing test: 1  program counter 3
+
+--- Clock Cycle: 4 ---
+Running Process: Debugging: process accessing test: 1  program counter 4
+
+--- Clock Cycle: 5 ---
+Running Process: Debugging: process accessing test: 1  program counter 5
+Output of program with process ID: 1 At time 0
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+--- Clock Cycle: 6 ---
+Running Process: Debugging: process accessing test: 1  program counter 6
+
+--- Clock Cycle: 7 ---
+No process currently running
+Debugging: process accessing test: 3  program counter 0
+
+--- Clock Cycle: 8 ---
+Running Process: Debugging: process accessing test: 3  program counter 1
+Enter value for arg2: User entered: ../include/instruction.h
+> ../include/instruction.h
+
+--- Clock Cycle: 9 ---
+Running Process: Debugging: process accessing test: 3  program counter 2
+
+--- Clock Cycle: 10 ---
+Running Process: Debugging: process accessing test: 3  program counter 3
+
+--- Clock Cycle: 11 ---
+Running Process: Debugging: process accessing test: 3  program counter 4
+
+--- Clock Cycle: 12 ---
+Running Process: Debugging: process accessing test: 3  program counter 5
+
+--- Clock Cycle: 13 ---
+Running Process: Debugging: process accessing test: 3  program counter 6
+
+--- Clock Cycle: 14 ---
+Running Process: Debugging: process accessing test: 3  program counter 7
+Output of program with process ID: 3 At time 0
+#ifndef INSTRUCTIONS_H
+#define INSTRUCTIONS_H
+
+#i
+
+--- Clock Cycle: 15 ---
+Running Process: Debugging: process accessing test: 3  program counter 8
+
+--- Clock Cycle: 16 ---
+No process currently running
+Debugging: process accessing test: 2  program counter 0
+
+--- Clock Cycle: 17 ---
+Running Process: Debugging: process accessing test: 2  program counter 1
+Enter value for arg2: User entered: work.txt
+> work.txt
+
+--- Clock Cycle: 18 ---
+Running Process: Debugging: process accessing test: 2  program counter 2
+Enter value for arg2: User entered: abcdefgh
+> abcdefgh
+
+--- Clock Cycle: 19 ---
+Running Process: Debugging: process accessing test: 2  program counter 3
+
+--- Clock Cycle: 20 ---
+Running Process: Debugging: process accessing test: 2  program counter 4
+
+--- Clock Cycle: 21 ---
+Running Process: Debugging: process accessing test: 2  program counter 5
+Error: writeFile expects exactly 1 argument, got 2
+Error: Failed to decode instruction for process 2: writeFile a b
+
+--- Clock Cycle: 22 ---
+Running Process: Debugging: process accessing test: 2  program counter 5
+Error: writeFile expects exactly 1 argument, got 2
+Error: Failed to decode instruction for process 2: writeFile a b
+
+--- Simulation Complete ---
+All processes have terminated after 23 clock cycles
+Simulation stopped.
