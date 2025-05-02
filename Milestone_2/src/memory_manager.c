@@ -208,7 +208,7 @@ void populateMemory() {
                 // Set the process state to READY
                 curr->state = READY;
                 curr->ready_time = clockCycle; // Set ready_time
-                //enqueue(readyQueues[0], curr); // Add to ready_queue
+                enqueue(readyQueues[0], curr); // Add to ready_queue
                 enqueue(processes, curr); // Add to processes queue
             }
             else{

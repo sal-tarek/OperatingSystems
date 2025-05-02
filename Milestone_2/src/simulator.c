@@ -12,6 +12,10 @@
 #define numQueues 4
 #define QUEUE_CAPACITY 10 // Define a capacity for the queues
 
+
+// gcc -o simulator simulator.c simulator_view.c simulator_controller.c Queue.c process.c PCB.c memory.c memory_manager.c index.c $(pkg-config --cflags --libs gtk4)
+
+
 // Global variables
 Queue *readyQueues[numQueues];              // Ready Queue holding processes waiting to run
 Process *runningProcess = NULL;             // Currently running process (or NULL if none)
@@ -20,6 +24,7 @@ Queue *job_pool = NULL;                     // Job pool queue
 MemoryWord *memory = NULL;                  // Memory hashmap
 IndexEntry *index_table = NULL;             // Index table for memory management
 Queue *global_blocked_queue = NULL;         // Global blocked queue
+Queue *processes = NULL; // Blocked queue for processes waiting for I/O
 
 static void activate(GtkApplication *app, gpointer user_data) {
     // Initialize the View
