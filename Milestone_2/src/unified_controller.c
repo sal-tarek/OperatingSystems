@@ -203,8 +203,6 @@ void unified_controller_create_process(GtkButton *button, gpointer user_data) {
         
     // Add to job pool and processes
     enqueue(job_pool, process);
-    enqueue(processes, process);
-    numberOfProcesses++;
     
     // Update the job pool display
     simulator_view_update_job_pool(controller->simulator_view);

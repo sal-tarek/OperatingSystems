@@ -18,6 +18,7 @@ extern IndexEntry *index_table;
 extern Queue *readyQueues[numQueues]; 
 extern int clockCycle;
 extern Queue *processes;
+extern int numberOfProcesses;
 
 // Global array to store memory ranges for each process
 MemoryRange ranges[MAX_PROCESSES];
@@ -198,7 +199,7 @@ void populateMemory() {
                     dequeue(job_pool);
                     curr = peek(job_pool);
                     continue;
-                }
+                } 
 
                 addInstVarsPCB(curr); // This now handles PCB, instructions, and variables
                 ranges_count++;       // Increment ranges_count
@@ -210,6 +211,7 @@ void populateMemory() {
                 curr->ready_time = clockCycle; // Set ready_time
                 enqueue(readyQueues[0], curr); // Add to ready_queue
                 enqueue(processes, curr); // Add to processes queue
+                numberOfProcesses++;
             }
             else{
                 enqueue(job_pool, dequeue(job_pool)); // Re-enqueue the process

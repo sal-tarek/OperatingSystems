@@ -19,7 +19,6 @@ typedef struct {
 
 static DialogCallbackData dialog_callback_data = {NULL, NULL};
 
-// Function pointer typedefs for signal handlers
 typedef void (*ButtonSignalHandler)(GtkButton *, gpointer);
 
 static void show_process_dialog(GtkButton *button, gpointer user_data) {
@@ -93,13 +92,26 @@ SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_contain
     view->dialog_text_view = NULL;
     view->main_window = main_window;
 
+    // Create main horizontal box to contain both simulator sections side by side
+    GtkWidget *horizontal_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_widget_set_margin_start(horizontal_container, 10);
+    gtk_widget_set_margin_end(horizontal_container, 10);
+    gtk_widget_set_margin_top(horizontal_container, 10);
+    gtk_widget_set_margin_bottom(horizontal_container, 10);
+    gtk_box_append(GTK_BOX(parent_container), horizontal_container);
+    
+    // Left side container for memory and job pool - reduce width
     view->main_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_margin_start(view->main_container, 10);
-    gtk_widget_set_margin_end(view->main_container, 10);
-    gtk_widget_set_margin_top(view->main_container, 10);
-    gtk_widget_set_margin_bottom(view->main_container, 10);
-    gtk_box_append(GTK_BOX(parent_container), view->main_container);
+    gtk_widget_set_size_request(view->main_container, 160, -1); // Reduced width for left side
+    gtk_widget_set_hexpand(view->main_container, FALSE); // Don't expand horizontally
+    gtk_box_append(GTK_BOX(horizontal_container), view->main_container);
+    
+    // Right side container - we'll leave this in place but won't add any content to it
+    GtkWidget *right_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_widget_set_hexpand(right_container, TRUE); // Allow right side to expand
+    gtk_box_append(GTK_BOX(horizontal_container), right_container);
 
+    // Job pool setup
     GtkWidget *job_pool_frame = gtk_frame_new(NULL);
     gtk_box_append(GTK_BOX(view->main_container), job_pool_frame);
 
@@ -121,8 +133,10 @@ SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_contain
     gtk_box_append(GTK_BOX(job_pool_content), create_button);
     g_signal_connect(create_button, "clicked", G_CALLBACK((ButtonSignalHandler)show_process_dialog), view);
 
+    // Memory section setup
     GtkWidget *memory_frame = gtk_frame_new(NULL);
     gtk_widget_set_vexpand(memory_frame, TRUE);
+    gtk_widget_set_hexpand(memory_frame, FALSE); // Don't expand horizontally
     gtk_box_append(GTK_BOX(view->main_container), memory_frame);
 
     GtkWidget *memory_title = gtk_label_new("Memory");
@@ -130,6 +144,8 @@ SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_contain
 
     GtkWidget *memory_scrolled = gtk_scrolled_window_new();
     gtk_widget_set_vexpand(memory_scrolled, TRUE);
+    gtk_widget_set_hexpand(memory_scrolled, FALSE); // Don't expand horizontally
+    gtk_widget_set_size_request(memory_scrolled, 250, -1); // Reduced width
 
     GtkWidget *memory_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_append(GTK_BOX(memory_box), memory_title);
@@ -138,8 +154,12 @@ SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_contain
 
     GtkWidget *memory_list = gtk_list_box_new();
     gtk_list_box_set_selection_mode(GTK_LIST_BOX(memory_list), GTK_SELECTION_NONE);
+    gtk_widget_set_size_request(memory_list, 250, -1); // Same reduced width as scrolled window
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(memory_scrolled), memory_list);
     view->memory_list = GTK_LIST_BOX(memory_list);
+
+    // REMOVED: We no longer add any content to the right container
+    // No placeholder_label or process_list_frame in the right container
 
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(provider,
@@ -155,17 +175,17 @@ SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_contain
         ".simulator-entry { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
         ".simulator-textview { background-color: white; color: #000; border: 1px solid #bbb; padding: 8px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; font-size: 13px; }"
         ".simulator-memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); width: 30px; text-align: center; }"
-        ".simulator-memory-content { color: #333; padding: 5px; }"
+        ".simulator-memory-content { color: #333; padding: 2px; }" // Reduced padding
         ".simulator-memory-content:hover { color: #196761; }"
-        ".simulator-memory-empty { color: #777; font-style: italic; padding: 5px; }"
+        ".simulator-memory-empty { color: #777; font-style: italic; padding: 2px; }" // Reduced padding
         ".simulator-memory-pcb { background-color: #f5f5f5; border-radius: 0 0 5px 5px; padding: 0; border: 1px solid #33A19A; margin-bottom: 7px; margin-right:2px;}"
-        ".simulator-memory-pcb-row { padding: 5px 10px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); }"
+        ".simulator-memory-pcb-row { padding: 2px 5px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); font-size: 12px; }" // Reduced padding and font size
         ".simulator-memory-pcb-row:last-child { border-bottom: none; }"
-        ".simulator-memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; max-width: 400px; }"
+        ".simulator-memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; padding: 2px; max-width: 250px; }" // Reduced max-width
         ".simulator-memory-slot:hover .simulator-memory-content { color: #196761; }"
         ".simulator-frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
         ".simulator-pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; margin-top:5px; margin-right:2px;}"
-        ".simulator-process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; max-width:200px; }"
+        ".simulator-process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; max-width:180px; }"
     );
     gtk_style_context_add_provider_for_display(
         gdk_display_get_default(),
@@ -199,12 +219,10 @@ void simulator_view_update_job_pool(SimulatorView *view) {
         return;
     }
 
-    // Clear the existing list box
     while (gtk_list_box_get_row_at_index(view->job_pool_display, 0) != NULL) {
         gtk_list_box_remove(view->job_pool_display, GTK_WIDGET(gtk_list_box_get_row_at_index(view->job_pool_display, 0)));
     }
 
-    // Add each process from job_pool to the display
     int size = getQueueSize(job_pool);
     for (int i = 0; i < size; i++) {
         char pid_str[16];
@@ -213,10 +231,10 @@ void simulator_view_update_job_pool(SimulatorView *view) {
             fprintf(stderr, "Error: Failed to dequeue process from job_pool\n");
             continue;
         }
-        snprintf(pid_str, sizeof(pid_str), "p%d", process->pid); // Simple PID display (p1, p2, etc.)
+        snprintf(pid_str, sizeof(pid_str), "p%d", process->pid);
         GtkWidget *label = gtk_label_new(pid_str);
         gtk_widget_add_css_class(label, "job-pool-item");
-        enqueue(job_pool, process); // Re-enqueue the process to maintain job pool state
+        enqueue(job_pool, process);
         gtk_list_box_append(view->job_pool_display, label);
     }
 }
@@ -266,17 +284,18 @@ void simulator_view_update_memory(SimulatorView *view) {
             char pc_info[32];
             snprintf(pc_info, sizeof(pc_info), "PC: %d", getPCBProgramCounter(pcb));
             char mem_bounds[32];
-            snprintf(mem_bounds, sizeof(mem_bounds), "Mem Bounds: %d-%d",getPCBMemLowerBound(pcb), getPCBMemUpperBound(pcb));
+            snprintf(mem_bounds, sizeof(mem_bounds), "Mem Bounds: %d-%d", getPCBMemLowerBound(pcb), getPCBMemUpperBound(pcb));
             slot_mapped = TRUE;
 
             GtkWidget *full_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-            gtk_widget_set_margin_start(full_container, 15);
+            gtk_widget_set_margin_start(full_container, 5); // Reduced margin
             gtk_widget_set_margin_end(full_container, 5);
             gtk_widget_set_margin_top(full_container, 2);
             gtk_widget_set_margin_bottom(full_container, 2);
 
             GtkWidget *process_title_label = gtk_label_new(process_title);
             gtk_widget_add_css_class(process_title_label, "simulator-process-title");
+            gtk_label_set_ellipsize(GTK_LABEL(process_title_label), PANGO_ELLIPSIZE_END); // Truncate if too long
             gtk_box_append(GTK_BOX(full_container), process_title_label);
 
             GtkWidget *slot_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
@@ -291,7 +310,7 @@ void simulator_view_update_memory(SimulatorView *view) {
             gtk_box_append(GTK_BOX(slot_box), tag_label);
 
             GtkWidget *pcb_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-            gtk_widget_set_hexpand(pcb_container, TRUE);
+            gtk_widget_set_hexpand(pcb_container, FALSE);
 
             GtkWidget *pcb_tab = gtk_label_new(pcb_label);
             gtk_widget_add_css_class(pcb_tab, "simulator-pcb-tab");
@@ -299,25 +318,29 @@ void simulator_view_update_memory(SimulatorView *view) {
 
             GtkWidget *pcb_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
             gtk_widget_add_css_class(pcb_box, "simulator-memory-pcb");
-            gtk_widget_set_hexpand(pcb_box, TRUE);
+            gtk_widget_set_hexpand(pcb_box, FALSE);
 
             GtkWidget *state_row = gtk_label_new(state_info);
             gtk_label_set_xalign(GTK_LABEL(state_row), 0);
+            gtk_label_set_ellipsize(GTK_LABEL(state_row), PANGO_ELLIPSIZE_END); // Truncate if too long
             gtk_widget_add_css_class(state_row, "simulator-memory-pcb-row");
             gtk_box_append(GTK_BOX(pcb_box), state_row);
 
             GtkWidget *priority_row = gtk_label_new(priority_info);
             gtk_label_set_xalign(GTK_LABEL(priority_row), 0);
+            gtk_label_set_ellipsize(GTK_LABEL(priority_row), PANGO_ELLIPSIZE_END);
             gtk_widget_add_css_class(priority_row, "simulator-memory-pcb-row");
             gtk_box_append(GTK_BOX(pcb_box), priority_row);
 
             GtkWidget *pc_row = gtk_label_new(pc_info);
             gtk_label_set_xalign(GTK_LABEL(pc_row), 0);
+            gtk_label_set_ellipsize(GTK_LABEL(pc_row), PANGO_ELLIPSIZE_END);
             gtk_widget_add_css_class(pc_row, "simulator-memory-pcb-row");
             gtk_box_append(GTK_BOX(pcb_box), pc_row);
 
             GtkWidget *mem_row = gtk_label_new(mem_bounds);
             gtk_label_set_xalign(GTK_LABEL(mem_row), 0);
+            gtk_label_set_ellipsize(GTK_LABEL(mem_row), PANGO_ELLIPSIZE_END);
             gtk_widget_add_css_class(mem_row, "simulator-memory-pcb-row");
             gtk_box_append(GTK_BOX(pcb_box), mem_row);
 
@@ -358,7 +381,6 @@ void simulator_view_update_memory(SimulatorView *view) {
                     break;
                 }
             }
-            
         }
 
         if (!slot_mapped) {
@@ -367,7 +389,7 @@ void simulator_view_update_memory(SimulatorView *view) {
 
         GtkWidget *slot_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
         gtk_widget_add_css_class(slot_box, "simulator-memory-slot");
-        gtk_widget_set_margin_start(slot_box, 15);
+        gtk_widget_set_margin_start(slot_box, 5); // Reduced margin
         gtk_widget_set_margin_end(slot_box, 5);
         gtk_widget_set_margin_top(slot_box, 2);
         gtk_widget_set_margin_bottom(slot_box, 2);
@@ -381,7 +403,7 @@ void simulator_view_update_memory(SimulatorView *view) {
 
         GtkWidget *content_label = gtk_label_new(content_text);
         gtk_label_set_xalign(GTK_LABEL(content_label), 0);
-        gtk_label_set_wrap(GTK_LABEL(content_label), TRUE);
+        gtk_label_set_ellipsize(GTK_LABEL(content_label), PANGO_ELLIPSIZE_END); // Truncate instead of wrap
 
         if (strcmp(content_text, "Empty") == 0) {
             gtk_widget_add_css_class(content_label, "simulator-memory-empty");
@@ -389,7 +411,7 @@ void simulator_view_update_memory(SimulatorView *view) {
             gtk_widget_add_css_class(content_label, "simulator-memory-content");
         }
 
-        gtk_widget_set_hexpand(content_label, TRUE);
+        gtk_widget_set_hexpand(content_label, FALSE);
         if (content && strlen(content) > 50) {
             gtk_widget_set_tooltip_text(content_label, content);
             char truncated[51];

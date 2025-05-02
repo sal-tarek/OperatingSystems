@@ -6,7 +6,7 @@ DashboardView *dashboard_view_new(void) {
     return view;
 }
 
-void dashboard_view_init(DashboardView *view, GtkApplication *app, GtkWidget *parent_container) {
+void dashboard_view_init(DashboardView *view, GtkApplication *app, GtkWidget *parent_container, GtkWindow *window) {
     view->window = NULL;
     view->main_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     gtk_widget_set_margin_start(view->main_container, 10);
@@ -14,13 +14,11 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app, GtkWidget *pa
     gtk_widget_set_margin_bottom(view->main_container, 10);
     gtk_box_append(GTK_BOX(parent_container), view->main_container);
 
-    // Create the big container (horizontal box) with grey background
     GtkWidget *big_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
     gtk_widget_set_hexpand(big_container, TRUE);
     gtk_widget_set_vexpand(big_container, FALSE);
     gtk_box_append(GTK_BOX(view->main_container), big_container);
 
-    // Overview Section (vertical box, on the left)
     GtkWidget *overview_section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     gtk_widget_set_halign(overview_section, GTK_ALIGN_START);
     gtk_widget_set_valign(overview_section, GTK_ALIGN_CENTER);
@@ -28,12 +26,11 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app, GtkWidget *pa
     gtk_widget_set_margin_top(overview_section, 20);
     gtk_box_append(GTK_BOX(big_container), overview_section);
 
-    // Create the overview frame
     view->overview_frame = gtk_frame_new("Overview");
+    gtk_widget_add_css_class(view->overview_frame, "dashboard-frame");
     gtk_widget_set_hexpand(view->overview_frame, FALSE);
     gtk_box_append(GTK_BOX(overview_section), view->overview_frame);
 
-    // Create a grid for overview contents
     GtkWidget *overview_grid = gtk_grid_new();
     gtk_grid_set_row_spacing(GTK_GRID(overview_grid), 10);
     gtk_grid_set_column_spacing(GTK_GRID(overview_grid), 10);
@@ -43,7 +40,6 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app, GtkWidget *pa
     gtk_widget_set_margin_bottom(overview_grid, 10);
     gtk_frame_set_child(GTK_FRAME(view->overview_frame), overview_grid);
 
-    // Add labels for process count
     GtkWidget *process_label = gtk_label_new("Total Processes:");
     gtk_widget_set_halign(process_label, GTK_ALIGN_START);
     gtk_grid_attach(GTK_GRID(overview_grid), process_label, 0, 0, 1, 1);
@@ -52,7 +48,6 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app, GtkWidget *pa
     gtk_widget_set_halign(view->process_count_label, GTK_ALIGN_START);
     gtk_grid_attach(GTK_GRID(overview_grid), view->process_count_label, 1, 0, 1, 1);
 
-    // Add labels for clock cycle
     GtkWidget *clock_label = gtk_label_new("Current Clock Cycle:");
     gtk_widget_set_halign(clock_label, GTK_ALIGN_START);
     gtk_grid_attach(GTK_GRID(overview_grid), clock_label, 0, 1, 1, 1);
@@ -61,7 +56,6 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app, GtkWidget *pa
     gtk_widget_set_halign(view->clock_cycle_label, GTK_ALIGN_START);
     gtk_grid_attach(GTK_GRID(overview_grid), view->clock_cycle_label, 1, 1, 1, 1);
 
-    // Add labels for algorithm
     GtkWidget *algorithm_text = gtk_label_new("Active Algorithm:");
     gtk_widget_set_halign(algorithm_text, GTK_ALIGN_START);
     gtk_grid_attach(GTK_GRID(overview_grid), algorithm_text, 0, 2, 1, 1);
@@ -70,26 +64,21 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app, GtkWidget *pa
     gtk_widget_set_halign(view->algorithm_label, GTK_ALIGN_START);
     gtk_grid_attach(GTK_GRID(overview_grid), view->algorithm_label, 1, 2, 1, 1);
 
-    // Process List Section (vertical box, on the right)
     GtkWidget *process_list_section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     gtk_widget_set_halign(process_list_section, GTK_ALIGN_FILL);
     gtk_widget_set_hexpand(process_list_section, TRUE);
     gtk_box_append(GTK_BOX(big_container), process_list_section);
 
-    // Create a frame for the Process List
     GtkWidget *process_list_frame = gtk_frame_new("Process List");
     gtk_widget_add_css_class(process_list_frame, "dashboard-process-list-frame");
     gtk_box_append(GTK_BOX(process_list_section), process_list_frame);
 
-    // Create a vertical box inside the frame
     GtkWidget *process_list_content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     gtk_frame_set_child(GTK_FRAME(process_list_frame), process_list_content);
 
-    // Create a horizontal box for process entries
     GtkWidget *process_list_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
     gtk_widget_set_hexpand(process_list_box, TRUE);
 
-    // Create a scrolled window
     GtkWidget *scrolled_window = gtk_scrolled_window_new();
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolled_window), process_list_box);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -97,70 +86,25 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app, GtkWidget *pa
     gtk_widget_set_size_request(scrolled_window, -1, 150);
     gtk_box_append(GTK_BOX(process_list_content), scrolled_window);
 
-    // Store the process list box
     view->process_list_widgets = g_new(ProcessListWidgets, 1);
     view->process_list_widgets->process_list_box = process_list_box;
 
-    // Apply CSS
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(provider,
-        ".dashboard-frame {"
-        "   background-color: rgb(236, 236, 234);"
-        "   border: 1px solid #bbb;"
-        "   color: #333;"
-        "}"
-        ".dashboard-process-list-frame {"
-        "   background-color: #D9D9D9;"
-        "}"
-        ".dashboard-label {"
-        "   color: #333;"
-        "   font-size: 14px;"
-        "   font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif;"
-        "}"
-        ".dashboard-frame > label, .dashboard-box > label {"
-        "   font-weight: bold;"
-        "   font-size: 14px;"
-        "   color: white;"
-        "   background-color: #33A19A;"
-        "   padding: 5px;"
-        "   border-radius: 3px 3px 0 0;"
-        "}"
-        ".dashboard-big-container {"
-        "   background-color: #D9D9D9;"
-        "   padding: 10px;"
-        "   border-radius: 5px;"
-        "}"
-        ".dashboard-pcb-tab {"
-        "   background-color: #33A19A;"
-        "   color: white;"
-        "   padding: 6px 12px;"
-        "   border-radius: 5px 5px 0 0;"
-        "   font-weight: bold;"
-        "   margin-bottom: 0;"
-        "   margin-top: 5px;"
-        "   margin-right: 2px;"
-        "}"
-        ".dashboard-memory-pcb {"
-        "   background-color: #f5f5f5;"
-        "   border: 1px solid #33A19A;"
-        "   border-radius: 0 0 5px 5px;"
-        "   padding: 0;"
-        "   margin-bottom: 7px;"
-        "   margin-right: 2px;"
-        "}"
-        ".dashboard-memory-pcb-row {"
-        "   color: #333;"
-        "   padding: 5px 10px;"
-        "   border-bottom: 1px solid rgba(51, 161, 154, 0.2);"
-        "}"
-        ".dashboard-memory-pcb-row:last-child {"
-        "   border-bottom: none;"
-        "}"
+        ".dashboard-frame { background-color: rgb(236, 236, 234); border: 1px solid  #196761; color: #196761; padding:10px; }"
+        ".dashboard-process-list-frame { background-color: #f5f5f5; color: #196761; font-weight:bold; letter-spacing: 0.5px; }"
+        ".dashboard-label { color: #333; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
+        ".dashboard-frame > label, .dashboard-box > label { font-weight: bold; font-size: 14px; color: white; background-color: #33A19A; padding: 5px; border-radius: 3px 3px 0 0; }"
+        ".dashboard-big-container { background-color: #33A19A; padding: 10px; border-radius: 5px; }"
+        ".dashboard-pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; margin-top: 5px; margin-right: 2px; }"
+        ".dashboard-memory-pcb { background-color: #f5f5f5; border: 1px solid #33A19A; border-radius: 0 0 5px 5px; padding: 0; margin-bottom: 7px; margin-right: 2px; }"
+        ".dashboard-memory-pcb-row { color: #333; padding: 5px 10px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); }"
+        ".dashboard-memory-pcb-row:last-child { border-bottom: none; }"
     );
 
     gtk_widget_add_css_class(big_container, "dashboard-big-container");
     gtk_style_context_add_provider_for_display(
-        gtk_widget_get_display(view->main_container),
+        gtk_widget_get_display(GTK_WIDGET(window)), // Use the passed window's display
         GTK_STYLE_PROVIDER(provider),
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     g_object_unref(provider);

@@ -11,7 +11,6 @@
 #define numQueues 4
 #define QUEUE_CAPACITY 10
 
-// Global variables
 Queue *readyQueues[numQueues];
 Process *runningProcess = NULL;
 int clockCycle = 0;
@@ -25,7 +24,6 @@ Queue *processes = NULL;
 
 static void activate(GtkApplication *app, gpointer user_data) {
     fprintf(stderr, "activate called\n");
-    // Initialize backend
     job_pool = createQueue();
     if (!job_pool) {
         fprintf(stderr, "Error: Failed to create job_pool\n");
@@ -53,25 +51,26 @@ static void activate(GtkApplication *app, gpointer user_data) {
     numberOfProcesses = 0;
     schedulingAlgorithm = g_strdup("FCFS");
 
-    // Create main window
     GtkWidget *window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), "OS Simulator and Dashboard");
-    gtk_window_set_default_size(GTK_WINDOW(window), 1200, 600);
+    gtk_window_set_default_size(GTK_WINDOW(window), 1200, 800); // Default width is 1200px
 
-    // Main container (horizontal split)
-    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10); // Vertical orientation
     gtk_widget_set_margin_start(main_box, 10);
     gtk_widget_set_margin_end(main_box, 10);
     gtk_widget_set_margin_top(main_box, 10);
     gtk_widget_set_margin_bottom(main_box, 10);
     gtk_window_set_child(GTK_WINDOW(window), main_box);
 
-    // Initialize views (simulator on left, dashboard on right)
-    SimulatorView *simulator_view = simulator_view_new(app, main_box, GTK_WINDOW(window));
     DashboardView *dashboard_view = dashboard_view_new();
-    dashboard_view_init(dashboard_view, app, main_box);
+    dashboard_view_init(dashboard_view, app, main_box, GTK_WINDOW(window));
+    gtk_widget_set_size_request(dashboard_view->main_container, -1, 200); // Fixed dashboard height
 
-    // Initialize unified controller
+    SimulatorView *simulator_view = simulator_view_new(app, main_box, GTK_WINDOW(window));
+    gtk_widget_set_size_request(simulator_view->main_container, 280, -1); // 30% of 1200px = 360px
+    gtk_widget_set_hexpand(simulator_view->main_container, FALSE); // Prevent full width expansion
+    gtk_widget_set_vexpand(simulator_view->main_container, TRUE); // Allow vertical expansion
+
     UnifiedController *controller = unified_controller_new(dashboard_view, simulator_view);
     if (!controller) {
         fprintf(stderr, "Failed to create UnifiedController\n");
@@ -80,18 +79,14 @@ static void activate(GtkApplication *app, gpointer user_data) {
         return;
     }
 
-    // Connect process creation callback
     simulator_view_connect_create_process(simulator_view, G_CALLBACK(unified_controller_create_process), controller);
 
-    // Start simulation
     unified_controller_start(controller);
 
-    // Show views
-    simulator_view_show(simulator_view);
     dashboard_view_show(dashboard_view);
+    simulator_view_show(simulator_view);
     gtk_widget_set_visible(window, TRUE);
 
-    // Clean up on window destroy
     g_signal_connect(window, "destroy", G_CALLBACK(unified_controller_free), controller);
     g_signal_connect(window, "destroy", G_CALLBACK(dashboard_view_free), dashboard_view);
     g_signal_connect(window, "destroy", G_CALLBACK(simulator_view_free), simulator_view);
@@ -104,7 +99,6 @@ int main(int argc, char *argv[]) {
     int status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
 
-    // Clean up backend
     while (!isEmpty(job_pool)) {
         Process *process = dequeue(job_pool);
         if (process) freeProcess(process);
