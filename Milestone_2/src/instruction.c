@@ -1,7 +1,7 @@
 #include <string.h>
 #include <errno.h>
 #include <limits.h>
-#include "../include/instruction.h"
+#include "instruction.h"
 #include "mutex.h"
 
 #define MAX_VAR_KEY_LEN 15

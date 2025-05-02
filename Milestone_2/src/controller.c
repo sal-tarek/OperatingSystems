@@ -8,7 +8,7 @@
 #include "FCFS.h"
 #include "memory.h"
 #include "PCB.h"
-#include "../include/instruction.h"
+#include "instruction.h"
 #include "memory_manager.h"
 
 extern int numProcesses;

@@ -1,17 +1,33 @@
 cmake_minimum_required(VERSION 3.10)
 project(OS_Simulator C)
 
-# Set C standard
 set(CMAKE_C_STANDARD 99)
 
-# Include directories
-include_directories(include src)
+# Find PkgConfig and GTK4
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTK4 REQUIRED gtk4)
 
-# Collect all .c files from src/
-file(GLOB SRC_FILES src/*.c)
+# Print GTK4 config for debug
+message(STATUS "GTK4 Include Dirs: ${GTK4_INCLUDE_DIRS}")
+message(STATUS "GTK4 Libraries: ${GTK4_LIBRARIES}")
+message(STATUS "GTK4 C Flags: ${GTK4_CFLAGS}")
 
-# Exclude "main" binary or other non-C files if necessary
-list(REMOVE_ITEM SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/main")
+# Find threads
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
-# Add the executable
-add_executable(simulator ${SRC_FILES})
+# Automatically gather all .c source files in src/
+file(GLOB SRC_FILES "${CMAKE_SOURCE_DIR}/src/*.c")
+
+# Define executable target
+add_executable(gui_simulator ${SRC_FILES})
+
+# Set include directories
+target_include_directories(gui_simulator PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${GTK4_INCLUDE_DIRS}
+)
+
+# Set compiler options and link libraries
+target_compile_options(gui_simulator PRIVATE ${GTK4_CFLAGS})
+target_link_libraries(gui_simulator PRIVATE ${GTK4_LIBRARIES} Threads::Threads)
