@@ -1,0 +1,22 @@
+Debugging: process accessing test: 1  program counter 0
+Debugging: process accessing test: 1  program counter 1
+> User input was 1
+Debugging: process accessing test: 1  program counter 2
+> User input was 1
+Debugging: process accessing test: 1  program counter 3
+Debugging: process accessing test: 1  program counter 4
+Debugging: process accessing test: 1  program counter 5
+Output of program with process ID: 1
+1Debugging: process accessing test: 1  program counter 6
+Debugging: process accessing test: 3  program counter 0
+Debugging: process accessing test: 3  program counter 1
+> User input was 1
+Debugging: process accessing test: 3  program counter 2
+Debugging: process accessing test: 3  program counter 3
+Debugging: process accessing test: 3  program counter 4
+Error opening file
+Debugging: process accessing test: 3  program counter 5
+Debugging: process accessing test: 3  program counter 6
+Debugging: process accessing test: 3  program counter 7
+Output of program with process ID: 3
+

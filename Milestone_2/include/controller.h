@@ -3,7 +3,7 @@
 
 #include <gtk/gtk.h>
 
-void controller_init(GtkApplication *app, GtkWidget *window);
+void controller_init(GtkApplication *app, GtkWidget *window, GtkWidget *main_box);
 void controller_cleanup(void);
 void controller_update_all(void);
 void controller_update_queue_display(int queue_index);

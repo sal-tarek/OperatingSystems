@@ -5,32 +5,38 @@
 #define LOG_BUFFER_KEY "log_buffer"
 
 // Global console widget (set by console_view_new)
-static GtkWidget *console_widget = NULL;
-static GtkWidget *entry_widget = NULL;
+GtkWidget *console_widget = NULL;
+GtkWidget *entry_widget = NULL;
 
 // Internal function to update a text view
-static gboolean update_text_view_idle(gpointer user_data) {
-    struct {
+static gboolean update_text_view_idle(gpointer user_data)
+{
+    struct
+    {
         GtkTextBuffer *buffer;
         char *text;
     } *data = user_data;
 
-    if (data->buffer) {
+    if (data->buffer)
+    {
         GtkTextIter end;
         gtk_text_buffer_get_end_iter(data->buffer, &end);
         gtk_text_buffer_insert(data->buffer, &end, data->text, -1);
 
         // Update the end mark
         GtkTextMark *end_mark = gtk_text_buffer_get_mark(data->buffer, "end_mark");
-        if (end_mark) {
+        if (end_mark)
+        {
             gtk_text_buffer_move_mark(data->buffer, end_mark, &end);
         }
 
         // Scroll to the end
         GtkWidget *scrolled_window = g_object_get_data(G_OBJECT(data->buffer), "scrolled_window");
-        if (scrolled_window) {
+        if (scrolled_window)
+        {
             GtkWidget *text_view = gtk_scrolled_window_get_child(GTK_SCROLLED_WINDOW(scrolled_window));
-            if (text_view && GTK_IS_TEXT_VIEW(text_view)) {
+            if (text_view && GTK_IS_TEXT_VIEW(text_view))
+            {
                 gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(text_view), end_mark, 0.0, FALSE, 0.0, 0.0);
             }
         }
@@ -41,14 +47,8 @@ static gboolean update_text_view_idle(gpointer user_data) {
     return G_SOURCE_REMOVE;
 }
 
-GtkWidget* console_view_new(GtkWidget **entry_out) {
-    if (console_widget) {
-        // Return existing widget if already created
-        if (entry_out) {
-            *entry_out = entry_widget;
-        }
-        return console_widget;
-    }
+GtkWidget *console_view_new(GtkWidget **entry_out)
+{
 
     // Create vertical box for layout
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -112,18 +112,32 @@ GtkWidget* console_view_new(GtkWidget **entry_out) {
     console_widget = vbox;
     entry_widget = entry;
 
-    if (entry_out) {
+    if (entry_out)
+    {
         *entry_out = entry;
+    }
+    if (console_widget)
+    {
+        // Return existing widget if already created
+        if (entry_out)
+        {
+            *entry_out = entry_widget;
+        }
+        return console_widget;
     }
 
     return vbox;
 }
 
-void console_update_program_output(const char *text) {
-    if (console_widget && text) {
+void console_update_program_output(const char *text)
+{
+    if (console_widget && text)
+    {
         GtkTextBuffer *buffer = g_object_get_data(G_OBJECT(console_widget), CONSOLE_BUFFER_KEY);
-        if (buffer) {
-            struct {
+        if (buffer)
+        {
+            struct
+            {
                 GtkTextBuffer *buffer;
                 char *text;
             } *data = g_new0(typeof(*data), 1);
@@ -134,11 +148,15 @@ void console_update_program_output(const char *text) {
     }
 }
 
-void console_update_log_output(const char *text) {
-    if (console_widget && text) {
+void console_update_log_output(const char *text)
+{
+    if (console_widget && text)
+    {
         GtkTextBuffer *buffer = g_object_get_data(G_OBJECT(console_widget), LOG_BUFFER_KEY);
-        if (buffer) {
-            struct {
+        if (buffer)
+        {
+            struct
+            {
                 GtkTextBuffer *buffer;
                 char *text;
             } *data = g_new0(typeof(*data), 1);
@@ -149,23 +167,33 @@ void console_update_log_output(const char *text) {
     }
 }
 
-void console_clear_input(void) {
-    if (entry_widget) {
+void console_clear_input(void)
+{
+    if (entry_widget)
+    {
         GtkEntryBuffer *buffer = gtk_entry_get_buffer(GTK_ENTRY(entry_widget));
         gtk_entry_buffer_set_text(buffer, "", -1);
         gtk_widget_set_sensitive(entry_widget, FALSE); // Disable after clearing
     }
 }
 
-void console_set_input_focus(void) {
-    if (entry_widget) {
-        gtk_widget_set_sensitive(entry_widget, TRUE); // Enable entry
+void console_set_input_focus(void)
+{
+    if (entry_widget && GTK_IS_WIDGET(entry_widget))
+    {
+        gtk_widget_set_sensitive(entry_widget, TRUE);
         gtk_widget_grab_focus(entry_widget);
+    }
+    else
+    {
+        g_warning("console_set_input_focus: entry_widget is NULL or invalid!");
     }
 }
 
-char* console_get_input_text(void) {
-    if (entry_widget) {
+char *console_get_input_text(void)
+{
+    if (entry_widget)
+    {
         GtkEntryBuffer *buffer = gtk_entry_get_buffer(GTK_ENTRY(entry_widget));
         const char *text = gtk_entry_buffer_get_text(buffer);
         char *text_copy = g_strdup(text);
@@ -176,8 +204,10 @@ char* console_get_input_text(void) {
     return g_strdup("");
 }
 
-void console_set_entry_sensitive(gboolean sensitive) {
-    if (entry_widget) {
+void console_set_entry_sensitive(gboolean sensitive)
+{
+    if (entry_widget)
+    {
         gtk_widget_set_sensitive(entry_widget, sensitive);
     }
 }

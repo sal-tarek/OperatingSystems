@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <gtk/gtk.h>
 #include "instruction.h"
 
 // Static decoding hashmap
@@ -167,9 +168,12 @@ Instruction decode_instruction(Process *process, char *instruction_string)
         // Handle arg2
         if (strcmp(tokens[2], "input") == 0)
         {
+            g_print("decode_instruction: Requesting input for arg2\n");
             char *userInput = input("Enter value for arg2: ");
+            g_print("decode_instruction: Got input for arg2: %s\n", userInput ? userInput : "(null)");
             if (!userInput)
             {
+                g_printerr("Error: input returned NULL for arg2\n");
                 free(copy);
                 return result;
             }

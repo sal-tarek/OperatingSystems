@@ -3,6 +3,9 @@
 
 #include <gtk/gtk.h>
 
+extern GtkWidget *console_widget;
+extern GtkWidget *entry_widget;
+
 // Creates the console view widget and returns the entry widget for external use
 GtkWidget* console_view_new(GtkWidget **entry_out);
 

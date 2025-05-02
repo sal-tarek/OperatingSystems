@@ -285,10 +285,9 @@ static gboolean animate_process(gpointer user_data)
     return any_animating ? G_SOURCE_CONTINUE : G_SOURCE_REMOVE;
 }
 
-void view_init(GtkWidget *window)
+void view_init(GtkWidget *window, GtkWidget *main_box)
 {
     view = g_new0(View, 1);
-
     css_provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(css_provider, css_data);
     gtk_style_context_add_provider_for_display(
@@ -299,12 +298,8 @@ void view_init(GtkWidget *window)
     view->window = window;
     gtk_widget_add_css_class(window, "scheduler-view");
 
-    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
-    gtk_widget_set_margin_start(main_box, 15);
-    gtk_widget_set_margin_end(main_box, 15);
-    gtk_widget_set_margin_top(main_box, 15);
-    gtk_widget_set_margin_bottom(main_box, 15);
-    gtk_window_set_child(GTK_WINDOW(window), main_box);
+    // Use provided main_box instead of creating a new one
+    g_print("view_init: using main_box: %p\n", main_box);
 
     GtkWidget *scheduler_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
     gtk_widget_set_halign(scheduler_box, GTK_ALIGN_CENTER);
@@ -348,8 +343,7 @@ void view_init(GtkWidget *window)
     gtk_widget_add_css_class(view->drawing_areas[4], "queue-area");
     gtk_grid_attach(GTK_GRID(grid), view->drawing_areas[4], 0, 0, 1, 4);
 
-    for (int i = 0; i < 4; i++)
-    {
+    for (int i = 0; i < 4; i++) {
         view->drawing_areas[i] = gtk_drawing_area_new();
         gtk_widget_set_size_request(view->drawing_areas[i], 720, 90);
         gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(view->drawing_areas[i]),
@@ -396,8 +390,7 @@ void view_init(GtkWidget *window)
 
     gtk_box_append(GTK_BOX(main_box), button_box);
 
-    for (int i = 0; i < 5; i++)
-    {
+    for (int i = 0; i < 5; i++) {
         view->queue_processes[i] = NULL;
         queue_animations[i].animations = NULL;
     }

@@ -137,13 +137,11 @@ static void run_selected_scheduler()
     }
 }
 
-void controller_init(GtkApplication *app, GtkWidget *window)
+void controller_init(GtkApplication *app, GtkWidget *window, GtkWidget *main_box)
 {
     controller = g_new0(Controller, 1);
-
-    // Initialize view with the provided window
     controller->view_window = window;
-    view_init(window);
+    view_init(window, main_box); // Pass main_box
     controller->running_process_label = view_get_running_process_label();
     controller->step_button = view_get_step_button();
     controller->automatic_button = view_get_automatic_button();

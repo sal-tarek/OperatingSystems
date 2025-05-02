@@ -17,13 +17,13 @@
 #include "console_controller.h"
 #include "console_model.h"
 
-#define MAX_NUM_PROCESSES 10    // Maximum number of processes to support
-#define MAX_NUM_QUEUES 4        // Maximum number of queues
+#define MAX_NUM_PROCESSES 10 // Maximum number of processes to support
+#define MAX_NUM_QUEUES 4     // Maximum number of queues
 
 // Global variables
 Queue *readyQueues[MAX_NUM_QUEUES]; // Ready Queue holding processes waiting to run
-Process *runningProcess = NULL; // Currently running process (or NULL if none)
-int clockCycle; // Current clock cycle of the simulation
+Process *runningProcess = NULL;     // Currently running process (or NULL if none)
+int clockCycle;                     // Current clock cycle of the simulation
 Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
@@ -31,59 +31,62 @@ Queue *global_blocked_queue = NULL;
 int numProcesses = 0; // Number of processes in the simulation
 
 // Callback for application activation
-static void activate(GtkApplication *app, gpointer user_data) {
-    // Create main window
+static void activate(GtkApplication *app, gpointer user_data)
+{
     GtkWidget *window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), "Operating System Simulator");
     gtk_window_set_default_size(GTK_WINDOW(window), 950, 900);
 
-    // Create main vertical box
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
     gtk_widget_set_margin_start(main_box, 15);
     gtk_widget_set_margin_end(main_box, 15);
     gtk_widget_set_margin_top(main_box, 15);
     gtk_widget_set_margin_bottom(main_box, 15);
 
-    // Create console widget
+    // Pass main_box to controller_init
+    controller_init(app, window, main_box);
+    
     GtkWidget *entry = NULL;
     GtkWidget *console = console_view_new(&entry);
     g_print("Console widget: %p, Entry widget: %p\n", console, entry);
-    if (console == NULL || !GTK_IS_WIDGET(console)) {
+    if (console == NULL || !GTK_IS_WIDGET(console))
+    {
         g_printerr("Error: console_view_new returned invalid widget\n");
-    } else {
+    }
+    else
+    {
         gtk_widget_set_vexpand(console, FALSE);
         gtk_widget_set_hexpand(console, TRUE);
-        gtk_widget_set_size_request(console, -1, 300); // Fixed height for console
+        gtk_widget_set_size_request(console, -1, -1); // Remove fixed height
         gtk_box_append(GTK_BOX(main_box), console);
-        gtk_widget_set_visible(console, TRUE); // Ensure visibility
+        gtk_widget_set_visible(console, TRUE);
     }
 
-    // Connect console entry signal
-    if (entry && GTK_IS_WIDGET(entry)) {
+    if (entry && GTK_IS_WIDGET(entry))
+    {
         g_signal_connect(entry, "activate", G_CALLBACK(console_controller_on_entry_activate), NULL);
-    } else {
+    }
+    else
+    {
         g_printerr("Error: console entry widget is invalid\n");
     }
 
-    // Set the main box as the window's child
     gtk_window_set_child(GTK_WINDOW(window), main_box);
 
-    // Initialize controller with the main window
-    controller_init(app, window);
-
-    // Ensure console entry is disabled initially
-    if (entry && GTK_IS_WIDGET(entry)) {
+    if (entry && GTK_IS_WIDGET(entry))
+    {
         console_set_entry_sensitive(FALSE);
-    } else {
+    }
+    else
+    {
         g_printerr("Error: Cannot set console entry sensitivity, entry is invalid\n");
     }
 
-    // Show the window
     gtk_window_present(GTK_WINDOW(window));
 }
-
 // Main function for UI and simulation
-static int start_simulation_and_ui(int argc, char **argv) {
+static int start_simulation_and_ui(int argc, char **argv)
+{
     // Initialize console
     console_model_init();
     console_controller_init();
@@ -104,20 +107,22 @@ static int start_simulation_and_ui(int argc, char **argv) {
     return status;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     clockCycle = 0;
 
     // Initialize memory
     memory = NULL;
     // Create job_pool queue
     job_pool = createQueue();
-    if (!job_pool) {
+    if (!job_pool)
+    {
         fprintf(stderr, "Failed to create job_pool\n");
         return 1;
     }
 
     // Create ready queues
-    for (int i = 0; i < MAX_NUM_QUEUES; i++) 
+    for (int i = 0; i < MAX_NUM_QUEUES; i++)
         readyQueues[i] = createQueue();
 
     // Create global blocked queue
@@ -130,7 +135,8 @@ int main(int argc, char *argv[]) {
     numProcesses++;
     Process *p3 = createProcess(3, "../programs/Program_3.txt", 0);
     numProcesses++;
-    if (!p1 || !p2 || !p3) {
+    if (!p1 || !p2 || !p3)
+    {
         fprintf(stderr, "Failed to create processes\n");
         freeQueue(job_pool);
         for (int i = 0; i < MAX_NUM_QUEUES; i++)
