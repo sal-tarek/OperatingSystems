@@ -1,124 +1,32 @@
-#include <gtk/gtk.h>
-#include <stdarg.h>
 #include "console_view.h"
 
-// Forward declaration of idle callback
-static gboolean append_text_idle(gpointer data);
+// Keys for storing buffers in the widget
+#define CONSOLE_BUFFER_KEY "console_buffer"
+#define LOG_BUFFER_KEY "log_buffer"
 
-gboolean is_prompted_input = FALSE;
+// Global console widget (set by console_view_new)
+static GtkWidget *console_widget = NULL;
+static GtkWidget *entry_widget = NULL;
 
-// --- Public function to create the console view ---
-GtkWidget* console_view_new(GtkWidget **entry_out) {
-    // Create a vertical box for overall layout
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    
-    // Create a horizontal box for side-by-side text views
-    GtkWidget *hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-    gtk_widget_set_vexpand(hbox, TRUE);  // Allow vertical expansion
-    gtk_widget_set_hexpand(hbox, TRUE);  // Allow horizontal expansion
-    
-    // Create scrolled window for program output
-    GtkWidget *output_scrolled = gtk_scrolled_window_new();
-    gtk_widget_set_vexpand(output_scrolled, TRUE);
-    gtk_widget_set_hexpand(output_scrolled, TRUE);
-    
-    // Create text view for program output
-    GtkWidget *output_view = gtk_text_view_new();
-    gtk_text_view_set_editable(GTK_TEXT_VIEW(output_view), FALSE);
-    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(output_view), GTK_WRAP_WORD);
-    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(output_scrolled), output_view);
-    
-    // Get output buffer and create end mark
-    GtkTextBuffer *output_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(output_view));
-    GtkTextIter output_end;
-    gtk_text_buffer_get_end_iter(output_buffer, &output_end);
-    gtk_text_buffer_create_mark(output_buffer, "end_mark", &output_end, FALSE);
-    
-    // Create scrolled window for execution logging
-    GtkWidget *log_scrolled = gtk_scrolled_window_new();
-    gtk_widget_set_vexpand(log_scrolled, TRUE);
-    gtk_widget_set_hexpand(log_scrolled, TRUE);
-    
-    // Create text view for execution logging
-    GtkWidget *log_view = gtk_text_view_new();
-    gtk_text_view_set_editable(GTK_TEXT_VIEW(log_view), FALSE);
-    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(log_view), GTK_WRAP_WORD);
-    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(log_scrolled), log_view);
-    
-    // Get log buffer and create end mark
-    GtkTextBuffer *log_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(log_view));
-    GtkTextIter log_end;
-    gtk_text_buffer_get_end_iter(log_buffer, &log_end);
-    gtk_text_buffer_create_mark(log_buffer, "end_mark", &log_end, FALSE);
-    
-    // Store buffers in the vbox for easy access
-    g_object_set_data(G_OBJECT(vbox), CONSOLE_BUFFER_KEY, output_buffer);
-    g_object_set_data(G_OBJECT(vbox), LOG_BUFFER_KEY, log_buffer);
-    
-    // Store scrolled windows for scrolling access
-    g_object_set_data(G_OBJECT(output_buffer), "scrolled_window", output_scrolled);
-    g_object_set_data(G_OBJECT(log_buffer), "scrolled_window", log_scrolled);
-    
-    // Add scrolled windows to horizontal box
-    gtk_box_append(GTK_BOX(hbox), log_scrolled);
-    gtk_box_append(GTK_BOX(hbox), output_scrolled);
-    
-    // Add horizontal box to vertical box
-    gtk_box_append(GTK_BOX(vbox), hbox);
-    
-    // Create entry field for input
-    GtkWidget *entry = gtk_entry_new();
-    gtk_widget_set_margin_top(entry, 5);
-    gtk_widget_set_margin_bottom(entry, 5);
-    gtk_box_append(GTK_BOX(vbox), entry);
-    
-    // Create input queue if not already done
-    if (!input_queue) {
-        input_queue = g_async_queue_new_full(g_free);
-    }
-    
-    // Connect Enter key signal
-    g_signal_connect(entry, "activate", G_CALLBACK(on_entry_activate), NULL);
-    
-    if (entry_out) {
-        *entry_out = entry;
-    }
-    
-    return vbox;
-}
+// Internal function to update a text view
+static gboolean update_text_view_idle(gpointer user_data) {
+    struct {
+        GtkTextBuffer *buffer;
+        char *text;
+    } *data = user_data;
 
-// Callback for Enter key in the entry widget
-void on_entry_activate(GtkWidget *widget, gpointer user_data)
-{
-    // Get the entry buffer
-    GtkEntryBuffer *buffer = gtk_entry_get_buffer(GTK_ENTRY(widget));
-    
-    // Get text from the buffer
-    const char *text = gtk_entry_buffer_get_text(buffer);
-    
-    if (strlen(text) > 0)
-    {
-        char *text_copy = g_strdup(text);
-        g_async_queue_push(input_queue, text_copy);
-        // Clear the buffer
-        gtk_entry_buffer_set_text(buffer, "", -1);
-    }
-}
-
-static gboolean console_printf_idle(gpointer user_data) {
-    PrintData *data = (PrintData *)user_data;
     if (data->buffer) {
         GtkTextIter end;
         gtk_text_buffer_get_end_iter(data->buffer, &end);
         gtk_text_buffer_insert(data->buffer, &end, data->text, -1);
-        
+
         // Update the end mark
         GtkTextMark *end_mark = gtk_text_buffer_get_mark(data->buffer, "end_mark");
         if (end_mark) {
             gtk_text_buffer_move_mark(data->buffer, end_mark, &end);
         }
-        
-        // Scroll to the end mark
+
+        // Scroll to the end
         GtkWidget *scrolled_window = g_object_get_data(G_OBJECT(data->buffer), "scrolled_window");
         if (scrolled_window) {
             GtkWidget *text_view = gtk_scrolled_window_get_child(GTK_SCROLLED_WINDOW(scrolled_window));
@@ -127,98 +35,149 @@ static gboolean console_printf_idle(gpointer user_data) {
             }
         }
     }
+
     g_free(data->text);
     g_free(data);
     return G_SOURCE_REMOVE;
 }
 
-void console_log_printf(const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    char buffer[1024];
-    vsnprintf(buffer, sizeof(buffer), format, args);
-    va_end(args);
-    PrintData *data = g_new(PrintData, 1);
-    data->text = g_strdup(buffer);
-    data->buffer = g_object_get_data(G_OBJECT(console), LOG_BUFFER_KEY);
-    g_idle_add(console_printf_idle, data);
-    writeToLogFile(data->text);
+GtkWidget* console_view_new(GtkWidget **entry_out) {
+    if (console_widget) {
+        // Return existing widget if already created
+        if (entry_out) {
+            *entry_out = entry_widget;
+        }
+        return console_widget;
+    }
+
+    // Create vertical box for layout
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+
+    // Create horizontal box for text views
+    GtkWidget *hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+    gtk_widget_set_vexpand(hbox, TRUE);
+    gtk_widget_set_hexpand(hbox, TRUE);
+
+    // Program output scrolled window
+    GtkWidget *output_scrolled = gtk_scrolled_window_new();
+    gtk_widget_set_vexpand(output_scrolled, TRUE);
+    gtk_widget_set_hexpand(output_scrolled, TRUE);
+
+    // Program output text view
+    GtkWidget *output_view = gtk_text_view_new();
+    gtk_text_view_set_editable(GTK_TEXT_VIEW(output_view), FALSE);
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(output_view), GTK_WRAP_WORD);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(output_scrolled), output_view);
+
+    // Program output buffer and end mark
+    GtkTextBuffer *output_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(output_view));
+    GtkTextIter output_end;
+    gtk_text_buffer_get_end_iter(output_buffer, &output_end);
+    gtk_text_buffer_create_mark(output_buffer, "end_mark", &output_end, FALSE);
+    g_object_set_data(G_OBJECT(vbox), CONSOLE_BUFFER_KEY, output_buffer);
+    g_object_set_data(G_OBJECT(output_buffer), "scrolled_window", output_scrolled);
+
+    // Execution log scrolled window
+    GtkWidget *log_scrolled = gtk_scrolled_window_new();
+    gtk_widget_set_vexpand(log_scrolled, TRUE);
+    gtk_widget_set_hexpand(log_scrolled, TRUE);
+
+    // Execution log text view
+    GtkWidget *log_view = gtk_text_view_new();
+    gtk_text_view_set_editable(GTK_TEXT_VIEW(log_view), FALSE);
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(log_view), GTK_WRAP_WORD);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(log_scrolled), log_view);
+
+    // Execution log buffer and end mark
+    GtkTextBuffer *log_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(log_view));
+    GtkTextIter log_end;
+    gtk_text_buffer_get_end_iter(log_buffer, &log_end);
+    gtk_text_buffer_create_mark(log_buffer, "end_mark", &log_end, FALSE);
+    g_object_set_data(G_OBJECT(vbox), LOG_BUFFER_KEY, log_buffer);
+    g_object_set_data(G_OBJECT(log_buffer), "scrolled_window", log_scrolled);
+
+    // Add scrolled windows to horizontal box
+    gtk_box_append(GTK_BOX(hbox), log_scrolled);
+    gtk_box_append(GTK_BOX(hbox), output_scrolled);
+    gtk_box_append(GTK_BOX(vbox), hbox);
+
+    // Create input entry field
+    GtkWidget *entry = gtk_entry_new();
+    gtk_widget_set_margin_top(entry, 5);
+    gtk_widget_set_margin_bottom(entry, 5);
+    gtk_widget_set_sensitive(entry, FALSE); // Disabled by default
+    gtk_box_append(GTK_BOX(vbox), entry);
+
+    // Store globally
+    console_widget = vbox;
+    entry_widget = entry;
+
+    if (entry_out) {
+        *entry_out = entry;
+    }
+
+    return vbox;
 }
 
-void console_program_output(const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    char buffer[1024];
-    vsnprintf(buffer, sizeof(buffer), format, args);
-    va_end(args);
-    PrintData *data = g_new(PrintData, 1);
-    data->text = g_strdup(buffer);
-    data->buffer = g_object_get_data(G_OBJECT(console), CONSOLE_BUFFER_KEY);
-    g_idle_add(console_printf_idle, data);
-    writeToLogFile(data->text);
-}
-
-char* console_scanf(char *buffer, size_t size)
-{
-    is_prompted_input = TRUE;
-    gpointer data = g_async_queue_pop(input_queue);
-    strncpy(buffer, (char *)data, size - 1);
-    buffer[size - 1] = '\0';
-    char formattedString[1024];
-    sprintf(formattedString, "User entered: %s\n", data);
-    writeToLogFile(formattedString);
-    g_free(data);
-    return buffer;
-}
-
-// Write to Log file
-void writeToLogFile(char *content)
-{
-    fprintf(logFile, "%s", content);
-}
-
-// Clean up resources
-void console_view_cleanup(void) {
-    if (console) {
-        // Retrieve buffers
-        GtkTextBuffer *output_buffer = g_object_get_data(G_OBJECT(console), CONSOLE_BUFFER_KEY);
-        GtkTextBuffer *log_buffer = g_object_get_data(G_OBJECT(console), LOG_BUFFER_KEY);
-        
-        // Open file for writing
-        FILE *file = fopen("console_log.txt", "w");
-        if (file) {
-            // Save program output
-            if (output_buffer) {
-                fprintf(file, "=== Program Output ===\n");
-                GtkTextIter start, end;
-                gtk_text_buffer_get_bounds(output_buffer, &start, &end);
-                char *text = gtk_text_buffer_get_text(output_buffer, &start, &end, FALSE);
-                if (text) {
-                    fwrite(text, sizeof(char), strlen(text), file);
-                    g_free(text);
-                }
-                fprintf(file, "\n\n");
-            }
-            
-            // Save execution log
-            if (log_buffer) {
-                fprintf(file, "=== Execution Log ===\n");
-                GtkTextIter start, end;
-                gtk_text_buffer_get_bounds(log_buffer, &start, &end);
-                char *text = gtk_text_buffer_get_text(log_buffer, &start, &end, FALSE);
-                if (text) {
-                    fwrite(text, sizeof(char), strlen(text), file);
-                    g_free(text);
-                }
-            }
-            
-            fclose(file);
+void console_update_program_output(const char *text) {
+    if (console_widget && text) {
+        GtkTextBuffer *buffer = g_object_get_data(G_OBJECT(console_widget), CONSOLE_BUFFER_KEY);
+        if (buffer) {
+            struct {
+                GtkTextBuffer *buffer;
+                char *text;
+            } *data = g_new0(typeof(*data), 1);
+            data->buffer = buffer;
+            data->text = g_strdup(text);
+            g_idle_add(update_text_view_idle, data);
         }
     }
-    
-    // Clean up input queue
-    if (input_queue) {
-        g_async_queue_unref(input_queue);
-        input_queue = NULL;
+}
+
+void console_update_log_output(const char *text) {
+    if (console_widget && text) {
+        GtkTextBuffer *buffer = g_object_get_data(G_OBJECT(console_widget), LOG_BUFFER_KEY);
+        if (buffer) {
+            struct {
+                GtkTextBuffer *buffer;
+                char *text;
+            } *data = g_new0(typeof(*data), 1);
+            data->buffer = buffer;
+            data->text = g_strdup(text);
+            g_idle_add(update_text_view_idle, data);
+        }
+    }
+}
+
+void console_clear_input(void) {
+    if (entry_widget) {
+        GtkEntryBuffer *buffer = gtk_entry_get_buffer(GTK_ENTRY(entry_widget));
+        gtk_entry_buffer_set_text(buffer, "", -1);
+        gtk_widget_set_sensitive(entry_widget, FALSE); // Disable after clearing
+    }
+}
+
+void console_set_input_focus(void) {
+    if (entry_widget) {
+        gtk_widget_set_sensitive(entry_widget, TRUE); // Enable entry
+        gtk_widget_grab_focus(entry_widget);
+    }
+}
+
+char* console_get_input_text(void) {
+    if (entry_widget) {
+        GtkEntryBuffer *buffer = gtk_entry_get_buffer(GTK_ENTRY(entry_widget));
+        const char *text = gtk_entry_buffer_get_text(buffer);
+        char *text_copy = g_strdup(text);
+        gtk_entry_buffer_set_text(buffer, "", -1);
+        gtk_widget_set_sensitive(entry_widget, FALSE); // Disable after input
+        return text_copy;
+    }
+    return g_strdup("");
+}
+
+void console_set_entry_sensitive(gboolean sensitive) {
+    if (entry_widget) {
+        gtk_widget_set_sensitive(entry_widget, sensitive);
     }
 }

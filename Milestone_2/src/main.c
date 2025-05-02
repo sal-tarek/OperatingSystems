@@ -1,3 +1,5 @@
+/*
+#include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "memory_manager.h"
@@ -10,25 +12,26 @@
 #include "index.h"
 #include "PCB.h"
 #include "mutex.h"
+#include "controller.h"
 
-#define numProcesses 3
-#define numQueues 4
+#define MAX_NUM_PROCESSES 10    // Maximum number of processes to support
+#define MAX_NUM_QUEUES 4        // Maximum number of queues
 
 // Global variables
-Queue *readyQueues[numQueues];              // Ready Queue holding processes waiting to run by the chosen Scheduler
-Process *runningProcess = NULL;             // currently running process (or NULL if none)
-int clockCycle;                             // current clock cycle of the simulation
+Queue *readyQueues[MAX_NUM_QUEUES]; // Ready Queue holding processes waiting to run
+Process *runningProcess = NULL; // Currently running process (or NULL if none)
+int clockCycle; // Current clock cycle of the simulation
 Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 Queue *global_blocked_queue = NULL;
+int numProcesses = 0; // Number of processes in the simulation
 
-int main() {
+int main(int argc, char *argv[]) {
     clockCycle = 0;
 
-    // Initialize memory hashmap (empty for now)
-    // MemoryWord *memory = NULL; // Remove this line as it shadows the global variable
-
+    // Initialize memory
+    memory = NULL; 
     // Create job_pool queue
     job_pool = createQueue();
     if (!job_pool) {
@@ -37,32 +40,25 @@ int main() {
     }
 
     // Create ready queues
-    for (int i = 0; i < numQueues; i++) 
+    for (int i = 0; i < MAX_NUM_QUEUES; i++) 
         readyQueues[i] = createQueue();
 
     // Create global blocked queue
     global_blocked_queue = createQueue();
 
-    // Create blocked_queue
-    /*
-    blocked_queue = createQueue();
-    if (!blocked_queue) {
-        fprintf(stderr, "Failed to create blocked_queue\n");
-        freeQueue(job_pool);
-        for(int i = 0; i < 4; i++)
-            freeQueue(readyQueues[i]);
-        return 1;
-    }*/
-
     // Create processes
     Process *p1 = createProcess(1, "../programs/Program_1.txt", 0);
+    numProcesses++;
     Process *p2 = createProcess(2, "../programs/Program_2.txt", 3);
+    numProcesses++;
     Process *p3 = createProcess(3, "../programs/Program_3.txt", 0);
+    numProcesses++;
     if (!p1 || !p2 || !p3) {
         fprintf(stderr, "Failed to create processes\n");
         freeQueue(job_pool);
-        for(int i = 0; i < 4; i++)
+        for (int i = 0; i < MAX_NUM_QUEUES; i++)
             freeQueue(readyQueues[i]);
+        freeQueue(global_blocked_queue);
         return 1;
     }
 
@@ -74,120 +70,17 @@ int main() {
     displayQueue(job_pool);
     printf("\n");
 
-
-    // Schedulers
-
-    // MLFQ
-    // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
-    //     populateMemory();
-    //     runMLFQ(); 
-    //     clockCycle++;
-    // }
-
-    // RR
-    // Get quantum from user
-    // int q;
-    // do {
-    //     printf("Enter quantum (positive integer): ");
-    //     if (scanf("%d", &q) != 1) { // Invalid input: not a number
-    //         printf("Invalid input. Please enter a number.\n");
-    //         q = -1; 
-    //     } else if (q <= 0) {
-    //         printf("Quantum must be a positive integer.\n");
-    //     }
-        
-    //     // clear the input buffer after using scanf
-    //     int c;
-    //     while ((c = getchar()) != '\n' && c != EOF); 
-    // } while (q <= 0);
-    // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
-    //     populateMemory();
-    //     runRR(q); 
-    //     clockCycle++; 
-    // }
-
-    // FCFS
-    while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
-        populateMemory();
-        displayProcess(runningProcess);
-        runFCFS(); 
-        clockCycle++; 
-    }
-
-
-    // Test 1: Populate memory at time 0
-    printf("Populating memory at time 0...\n");
-    printf("size: %d\n", getQueueSize(job_pool));
-    // populateMemory();
-    printMemory();
-    // displayMemoryRange(0); // Show all memory ranges
-
-
-    // Test 2: Fetch instruction (P1_Instruction_1)
-   
-    // DataType type;
-    // void *data = fetchDataByIndex("P1_Instruction_1", &type);
-    // if (data && type == TYPE_STRING) {
-    //     printf("Fetched P1_Instruction_1: %s\n", (char*)data);
-    // } else {
-    //     printf("Failed to fetch P1_Instruction_1\n");
-    // }
-
-    // DataType type;
-    // // Test 3: Fetch variable (P1_Variable_1)
-    // void *data = fetchDataByIndex("P1_Variable_c", &type);
-    // if (data && type == TYPE_STRING) {
-    //     printf("Fetched P1_Variable_c: %s\n", (char*)data);
-    // } else {
-    //     printf("Failed to fetch P1_Variable_c\n");
-    // }
-
-    // // Test 4: Fetch PCB (P1_PCB)
-    // data = fetchDataByIndex("P1_PCB", &type);
-    // if (data && type == TYPE_PCB) {
-    //     struct PCB *pcb = (struct PCB*)data;
-    //     printf("Fetched P1_PCB: PID=%d, State=%d, PC=%d, MemLower=%d, MemUpper=%d\n",
-    //            getPCBId(pcb), getPCBState(pcb), getPCBProgramCounter(pcb),
-    //            getPCBMemLowerBound(pcb), getPCBMemUpperBound(pcb));
-    // } else {
-    //     printf("Failed to fetch P1_PCB\n");
-    // }
-
-    // // Test 6: Update PCB fields directly
-    // printf("Updating P1_PCB state to RUNNING and PC to 2...\n");
-    // data = fetchDataByIndex("P1_PCB", &type);
-    // if (data && type == TYPE_PCB) {
-    //     struct PCB *pcb = (struct PCB*)data;
-    //     setPCBState(pcb, RUNNING);
-    //     setPCBProgramCounter(pcb, 2);
-    //     printf("Updated P1_PCB: PID=%d, State=%d, PC=%d\n",
-    //            getPCBId(pcb), getPCBState(pcb), getPCBProgramCounter(pcb));
-    // }
-
-    // // Test 7: Replace PCB via updateDataByIndex
-    // printf("Replacing P1_PCB with new PCB...\n");
-    // struct PCB *new_pcb = createPCBWithBounds(1, 0, 14);
-    // new_pcb->state = TERMINATED;
-    // new_pcb->programCounter = 3;
-    // if (updateDataByIndex("P1_PCB", new_pcb, TYPE_PCB) == 0) {
-    //     data = fetchDataByIndex("P1_PCB", &type);
-    //     if (data && type == TYPE_PCB) {
-    //         struct PCB *pcb = (struct PCB*)data;
-    //         printf("New P1_PCB: PID=%d, State=%d, PC=%d\n",
-    //                getPCBId(pcb), getPCBState(pcb), getPCBProgramCounter(pcb));
-    //     }
-    // } else {
-    //     printf("Failed to replace P1_PCB\n");
-    //     freePCB(new_pcb);
-    // }
+    // Start the UI and simulation
+    //int status = controller_start(argc, argv);
 
     // Cleanup
     freeMemoryWord();
     freeIndex(&index_table);
     freeQueue(job_pool);
-    for(int i = 0; i < 4; i++)
+    for (int i = 0; i < MAX_NUM_QUEUES; i++)
         freeQueue(readyQueues[i]);
+    freeQueue(global_blocked_queue);
 
-    printf("Test completed.\n");
-    return 0;
+    return status;
 }
+    */

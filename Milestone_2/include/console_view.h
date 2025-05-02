@@ -2,42 +2,26 @@
 #define CONSOLE_VIEW_H
 
 #include <gtk/gtk.h>
-#include <stdarg.h>
-#include <string.h>
 
-// Internal data keys
-#define CONSOLE_BUFFER_KEY "console-buffer"
-#define LOG_BUFFER_KEY "log-buffer"
-#define ENTRY_KEY "input-entry"
-#define CONSOLE_WIDGET_KEY "console-widget"
-#define DIALOG_WIDGET_KEY "dialog-widget"
-
-typedef struct {
-    GtkWidget *console;
-    char *text;
-    const char *buffer_key;
-} AppendData;
-
-typedef struct {
-    GtkTextBuffer *buffer;
-    char *text;
-} PrintData;
-
-// Global async queue to store input lines
-extern GtkWidget *console;
-extern GtkWidget *entry;
-extern GAsyncQueue *input_queue;
-extern GAsyncQueue *action_queue;
-extern gboolean is_prompted_input;
-
-extern FILE *logFile;
-
+// Creates the console view widget and returns the entry widget for external use
 GtkWidget* console_view_new(GtkWidget **entry_out);
-void console_log_printf(const char *format, ...);
-void console_program_output(const char *format, ...);
-char* console_scanf(char *buffer, size_t size);
-void on_entry_activate(GtkWidget *widget, gpointer user_data);
-void writeToLogFile(char *content);
-void console_view_cleanup(void);
 
-#endif
+// Updates the program output text view with new text
+void console_update_program_output(const char *text);
+
+// Updates the execution log text view with new text
+void console_update_log_output(const char *text);
+
+// Clears the input entry field
+void console_clear_input(void);
+
+// Sets focus to the input entry field
+void console_set_input_focus(void);
+
+// Gets the text from the input entry field and clears it
+char* console_get_input_text(void);
+
+// Enables or disables the entry field
+void console_set_entry_sensitive(gboolean sensitive);
+
+#endif // CONSOLE_VIEW_H
