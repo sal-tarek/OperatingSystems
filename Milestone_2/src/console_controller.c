@@ -6,18 +6,28 @@ static GAsyncQueue *input_queue = NULL;
 static char *pending_input = NULL;
 static gboolean input_request_active = FALSE;
 
+// Forward declarations for callback functions
+static gboolean process_input_on_main_thread(gpointer data);
+static gboolean clear_input_on_main_thread(gpointer data);
+static gboolean show_prompt_on_main_thread(gpointer data);
+
+typedef struct
+{
+    InputCallback callback;
+    void *user_data;
+    char *input;
+} MainThreadCallbackData;
+
 void console_controller_init(void)
 {
     if (!input_queue)
     {
         input_queue = g_async_queue_new();
-        g_print("Initialized input_queue: %p\n", input_queue);
     }
 }
 
 void console_controller_cleanup(void)
 {
-    g_print("Cleaning up controller, entry_widget: %p, input_queue: %p\n", entry_widget, input_queue);
     if (input_queue)
     {
         char *input;
@@ -36,28 +46,67 @@ void console_controller_cleanup(void)
     input_request_active = FALSE;
 }
 
+static gboolean process_input_on_main_thread(gpointer data)
+{
+    MainThreadCallbackData *cb_data = (MainThreadCallbackData *)data;
+    if (cb_data)
+    {
+        if (cb_data->callback)
+        {
+            cb_data->callback(cb_data->user_data, cb_data->input);
+        }
+        g_free(cb_data);
+    }
+    return G_SOURCE_REMOVE;
+}
+
+static gboolean clear_input_on_main_thread(gpointer data)
+{
+    console_clear_input();
+    return G_SOURCE_REMOVE;
+}
+
+static gboolean show_prompt_on_main_thread(gpointer data)
+{
+    const char *prompt = (const char *)data;
+    if (prompt)
+    {
+        console_update_program_output(prompt);
+        g_free((char *)prompt);
+    }
+    return G_SOURCE_REMOVE;
+}
+
 // Callback to check for input periodically
 static gboolean check_input_queue(gpointer user_data)
 {
     InputCallbackData *cb_data = (InputCallbackData *)user_data;
-    g_print("Checking input queue: %p\n", input_queue);
+
+    // Guard against null input_queue
     if (!input_queue)
     {
-        g_printerr("Error: input_queue is NULL\n");
-        if (cb_data->callback)
+        g_warning("Input queue is unavailable");
+        if (cb_data && cb_data->callback)
         {
             cb_data->callback(cb_data->user_data, g_strdup(""));
         }
         g_free(cb_data);
         return G_SOURCE_REMOVE;
     }
+
     char *input = (char *)g_async_queue_try_pop(input_queue);
     if (input)
     {
-        g_print("Popped input from queue: %s\n", input);
-        if (cb_data->callback)
+        if (cb_data && cb_data->callback)
         {
-            cb_data->callback(cb_data->user_data, input); // Pass input to callback
+            // Use g_idle_add to ensure callback runs on the main thread
+            MainThreadCallbackData *main_data = g_new0(MainThreadCallbackData, 1);
+
+            main_data->callback = cb_data->callback;
+            main_data->user_data = cb_data->user_data;
+            main_data->input = input;
+
+            g_idle_add(process_input_on_main_thread, main_data);
         }
         else
         {
@@ -65,55 +114,61 @@ static gboolean check_input_queue(gpointer user_data)
             console_controller_process_input(input);
             g_free(input);
         }
-        console_clear_input();
+
+        // Use idle to safely clear input on main thread
+        g_idle_add(clear_input_on_main_thread, NULL);
+
         input_request_active = FALSE;
         g_free(cb_data);
         return G_SOURCE_REMOVE;
     }
+
     return G_SOURCE_CONTINUE;
 }
 
 void console_controller_on_entry_activate(GtkWidget *widget, gpointer user_data)
 {
-    g_print("Entry activated, input_request_active: %d, input_queue: %p\n", input_request_active, input_queue);
-    if (!input_request_active)
+    if (!input_request_active || !input_queue)
     {
         console_clear_input();
         return;
     }
+
     char *text = console_get_input_text();
-    g_print("Got input text: %s\n", text ? text : "(null)");
+
     if (text && strlen(text) > 0 && input_queue)
     {
-        g_print("Pushing input to queue: %s\n", text);
         g_async_queue_push(input_queue, text);
     }
     else
     {
-        g_print("Freeing empty or null input\n");
         g_free(text);
     }
 }
 
 void console_controller_request_input_with_callback(const char *prompt, void (*callback)(void *, char *), void *user_data)
 {
-    g_print("Requesting input with prompt: %s, input_queue: %p\n", prompt, input_queue);
     if (!input_queue)
     {
-        g_printerr("Error: input_queue is NULL\n");
+        g_warning("Cannot request input - input queue is not initialized");
         if (callback)
         {
             callback(user_data, g_strdup(""));
         }
         return;
     }
-    console_update_program_output(prompt);
+
+    // Show prompt in program output using idle to ensure thread safety
+    g_idle_add(show_prompt_on_main_thread, g_strdup(prompt));
+
     input_request_active = TRUE;
+
+    // Set focus on the entry widget
     console_set_input_focus();
+
     char *input = (char *)g_async_queue_try_pop(input_queue);
     if (input)
     {
-        g_print("Immediate input found: %s\n", input);
         if (callback)
         {
             callback(user_data, input);
@@ -129,7 +184,6 @@ void console_controller_request_input_with_callback(const char *prompt, void (*c
     }
     else
     {
-        g_print("No immediate input, starting queue polling\n");
         InputCallbackData *cb_data = g_new0(InputCallbackData, 1);
         cb_data->callback = callback;
         cb_data->user_data = user_data;

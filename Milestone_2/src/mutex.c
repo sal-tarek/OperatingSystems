@@ -21,14 +21,39 @@ mutex_t userInput_mutex = {"userInput", true, NULL, {0}, 0};
 mutex_t userOutput_mutex = {"userOutput", true, NULL, {0}, 0};
 mutex_t file_mutex = {"file", true, NULL, {0}, 0};
 
+// Function to check if a process was unblocked by a semSignal operation
+Process *checkUnblocked(char *resource_name)
+{
+    mutex_t *mutex = get_mutex_by_name(resource_name);
+
+    if (mutex && !mutex->available && mutex->holder)
+    {
+        // Check if this process was previously blocked
+        for (int i = 0; i < MAX_NUM_QUEUES; i++)
+        {
+            Process *temp = readyQueues[i]->front;
+            while (temp)
+            {
+                if (temp->pid == mutex->holder->pid && temp->state == READY)
+                {
+                    return temp; // This process was unblocked
+                }
+                temp = temp->next;
+            }
+        }
+    }
+
+    return NULL; // No process was unblocked
+}
+
 void remove_from_global_blocked_queue(Process *process)
 {
-    while(!isEmpty(global_blocked_queue))
+    while (!isEmpty(global_blocked_queue))
     {
         printf("Before: Global Blocked ");
         displayQueueSimplified(global_blocked_queue);
 
-        if(process == global_blocked_queue->front)
+        if (process == global_blocked_queue->front)
         {
             dequeue(global_blocked_queue);
             enqueue(readyQueues[getProcessPriority(process->pid)], process);
@@ -61,7 +86,7 @@ void mutex_init_system(void)
 }
 
 // Lock a mutex (semWait)
-int mutex_lock(mutex_t *mutex, Process* process)
+int mutex_lock(mutex_t *mutex, Process *process)
 {
     if (mutex == NULL)
     {
@@ -73,17 +98,17 @@ int mutex_lock(mutex_t *mutex, Process* process)
     {
         // Mutex is available, acquire it
         mutex->available = false;
-        mutex->holder = process;  // Assign the process as the mutex holder
+        mutex->holder = process; // Assign the process as the mutex holder
         printf("Mutex %s acquired by process %d\n", mutex->name, process->pid);
 
-        return 0;                 // Success
+        return 0; // Success
     }
     else
     {
         // Mutex is not available, block the process
         mutex->blocked_queue[mutex->blocked_count++] = process;
-         
-        process->state = BLOCKED; 
+
+        process->state = BLOCKED;
         setProcessState(process->pid, BLOCKED); // set PCB State to BLOCKED
 
         enqueue(global_blocked_queue, process); // Add to global blocked queue
@@ -94,7 +119,7 @@ int mutex_lock(mutex_t *mutex, Process* process)
 }
 
 // Unlock a mutex (semSignal)
-int mutex_unlock(mutex_t *mutex, Process* process)
+int mutex_unlock(mutex_t *mutex, Process *process)
 {
     if (mutex == NULL)
     {
@@ -158,7 +183,7 @@ int mutex_unlock(mutex_t *mutex, Process* process)
     }
     else
     {
-        fprintf(stderr, "Error: Process %d doesn't hold mutex %s\n",process->pid, mutex->name);
+        fprintf(stderr, "Error: Process %d doesn't hold mutex %s\n", process->pid, mutex->name);
     }
     return 1; // Failure
 }

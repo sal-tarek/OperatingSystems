@@ -5,8 +5,8 @@
 #include "memory_manager.h"
 #include "Queue.h"
 
-#define MAX_NUM_PROCESSES 10    // Maximum number of processes to support
-#define MAX_NUM_QUEUES 4        // Maximum number of queues
+#define MAX_NUM_PROCESSES 10 // Maximum number of processes to support
+#define MAX_NUM_QUEUES 4     // Maximum number of queues
 
 // Mutex structure (opaque pointer)
 typedef struct mutex_t mutex_t;
@@ -19,7 +19,8 @@ extern Queue *readyQueues[MAX_NUM_QUEUES];
 void mutex_init_system(void);
 int mutex_lock(mutex_t *mutex, Process *process);
 int mutex_unlock(mutex_t *mutex, Process *process);
-mutex_t* get_mutex_by_name(const char* name);
+mutex_t *get_mutex_by_name(const char *name);
 void cleanup_process_mutexes(Process *process);
+Process *checkUnblocked(char *resource_name);
 
 #endif // MUTEX_H

@@ -177,17 +177,24 @@ void console_clear_input(void)
     }
 }
 
-void console_set_input_focus(void)
+// Thread-safe version that runs on the main thread
+static gboolean set_input_focus_idle(gpointer user_data)
 {
-    if (entry_widget && GTK_IS_WIDGET(entry_widget))
+    if (entry_widget && GTK_IS_WIDGET(entry_widget) && gtk_widget_get_realized(entry_widget))
     {
         gtk_widget_set_sensitive(entry_widget, TRUE);
         gtk_widget_grab_focus(entry_widget);
+        return G_SOURCE_REMOVE;
     }
-    else
-    {
-        g_warning("console_set_input_focus: entry_widget is NULL or invalid!");
-    }
+
+    g_warning("Cannot set focus on input field - widget not available");
+    return G_SOURCE_REMOVE;
+}
+
+void console_set_input_focus(void)
+{
+    // Schedule the focus operation on the main thread to avoid threading issues
+    g_idle_add_full(G_PRIORITY_HIGH_IDLE, set_input_focus_idle, NULL, NULL);
 }
 
 char *console_get_input_text(void)

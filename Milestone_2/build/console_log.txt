@@ -1,22 +1,41 @@
-Debugging: process accessing test: 1  program counter 0
-Debugging: process accessing test: 1  program counter 1
-> User input was 1
-Debugging: process accessing test: 1  program counter 2
-> User input was 1
-Debugging: process accessing test: 1  program counter 3
-Debugging: process accessing test: 1  program counter 4
-Debugging: process accessing test: 1  program counter 5
+[SYSTEM] OS Scheduler Simulation started
+[SYSTEM] Clock cycle: 0
+[SYSTEM] Processes loaded: 3
+[INFO] Process 1 executing instruction at PC=0
+[EXEC] Process 1: Executing semWait userInput
+[MUTEX] Process 1 attempting to acquire userInput resource
+[MUTEX] Process 1 successfully acquired resource: userInput
+[INFO] Process 3 executing instruction at PC=0
+[EXEC] Process 3: Executing semWait userInput
+[MUTEX] Process 3 attempting to acquire userInput resource
+[BLOCKED] Process 3 blocked waiting for resource: userInput
+[INFO] Process 1 executing instruction at PC=1
+[INPUT] User input requested: Enter value for arg2: 
+[INPUT] User entered: "1"
+[EXEC] Process 1: Executing assign a 1
+[MEMORY] Process 1: Variable 'a' assigned value '1'
+[INFO] Process 1 executing instruction at PC=2
+[INPUT] User input requested: Enter value for arg2: 
+[INPUT] User entered: "6"
+[EXEC] Process 1: Executing assign b 6
+[MEMORY] Process 1: Variable 'b' assigned value '6'
+[INFO] Process 2 executing instruction at PC=0
+[EXEC] Process 2: Executing semWait userInput
+[MUTEX] Process 2 attempting to acquire userInput resource
+[BLOCKED] Process 2 blocked waiting for resource: userInput
+[INFO] Process 1 executing instruction at PC=3
+[EXEC] Process 1: Executing semSignal userInput
+[MUTEX] Process 1 released userInput resource
+[UNBLOCKED] Process 3 was unblocked from resource userInput
+[INFO] Process 1 executing instruction at PC=4
+[EXEC] Process 1: Executing semWait userOutput
+[MUTEX] Process 1 attempting to acquire userOutput resource
+[MUTEX] Process 1 successfully acquired resource: userOutput
+[INFO] Process 1 executing instruction at PC=5
+[EXEC] Process 1: Executing printFromTo a b
 Output of program with process ID: 1
-1Debugging: process accessing test: 1  program counter 6
-Debugging: process accessing test: 3  program counter 0
-Debugging: process accessing test: 3  program counter 1
-> User input was 1
-Debugging: process accessing test: 3  program counter 2
-Debugging: process accessing test: 3  program counter 3
-Debugging: process accessing test: 3  program counter 4
-Error opening file
-Debugging: process accessing test: 3  program counter 5
-Debugging: process accessing test: 3  program counter 6
-Debugging: process accessing test: 3  program counter 7
-Output of program with process ID: 3
-
+1 2 3 4 5 6
+[OUTPUT] Process 1 executed printFromTo from 1 to 6
+[INFO] Process 1 executing instruction at PC=6
+[EXEC] Process 1: Executing semSignal userOutput
+[MUTEX] Process 1 released userOutput resource
