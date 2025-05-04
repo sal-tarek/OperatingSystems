@@ -101,7 +101,7 @@ void runMLFQ() {
         }
     }
     else{
-        printf("CPU is idle\n", clockCycle);
+        printf("CPU is idle\n");
     }
 
     // Display the ready queues

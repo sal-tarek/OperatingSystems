@@ -144,9 +144,10 @@ int mutex_unlock(mutex_t *mutex, Process *process)
             // Find highest priority process in blocked queue
             for (int i = 0; i < mutex->blocked_count; i++)
             {
-                if (getProcessPriority(mutex->blocked_queue[i]->pid) < highest_pri)
+                int current_pri = getProcessPriority(mutex->blocked_queue[i]->pid);
+                if (current_pri < highest_pri)
                 {
-                    highest_pri = getProcessPriority(mutex->blocked_queue[i]->pid);
+                    highest_pri = current_pri;
                     selected_idx = i;
                 }
             }

@@ -7,15 +7,36 @@
 #include "memory.h"
 #include "index.h"
 
-Process* createProcess(int pid, char *file_path, int arrival_time) {
+
+Process* createProcess(int pid, const char *file_path, int arrival_time) {
     Process* newProcess = (Process*)malloc(sizeof(Process));
     if (!newProcess) {
         fprintf(stderr, "Memory allocation for Process failed\n");
         exit(EXIT_FAILURE);
     }
+
     newProcess->pid = pid;
-    char full_path[64];
-    newProcess->file_path = file_path;
+
+    // Set file path using the parameter
+    if (file_path != NULL) {
+        newProcess->file_path = strdup(file_path);
+        if (!newProcess->file_path) {
+            fprintf(stderr, "Failed to allocate memory for file_path\n");
+            free(newProcess);
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        // Handle NULL file_path by providing a default path or error
+        char full_path[64];
+        snprintf(full_path, sizeof(full_path), "../programs/Program_%d.txt", pid);
+        newProcess->file_path = strdup(full_path);
+        if (!newProcess->file_path) {
+            fprintf(stderr, "Failed to allocate memory for file_path\n");
+            free(newProcess);
+            exit(EXIT_FAILURE);
+        }
+    }
+
     newProcess->state = NEW;
     newProcess->arrival_time = arrival_time;
     newProcess->ready_time = 0;
@@ -23,13 +44,13 @@ Process* createProcess(int pid, char *file_path, int arrival_time) {
     newProcess->remainingTime = 0;
     newProcess->next = NULL;
     newProcess->quantumUsed = 0;
-    newProcess->timeInQueue = 0;    
-    
-    if (!newProcess->file_path) {
-        fprintf(stderr, "Failed to allocate memory for file_path\n");
-        free(newProcess);
-        exit(EXIT_FAILURE);
-    }
+    newProcess->instruction_count = 0;
+    newProcess->instructions = NULL; // Initialize to NULL
+    newProcess->variable_count = 0;
+    newProcess->variables = NULL; // Initialize to NULL
+
+    // Read instructions and variables from the file
+    readInstructionsOnly(newProcess);
 
     return newProcess;
 }
@@ -38,7 +59,6 @@ void displayProcess(Process *p) {
     if (p != NULL) {
         printf("Process ID: %d\n", p->pid);
         char key[20];
-        snprintf(key, sizeof(key), "P%d_PCB", p->pid);
         ProcessState state = p->state;
         switch (state) {
             case NEW: printf("State: NEW\n"); break;
@@ -59,6 +79,7 @@ void displayProcess(Process *p) {
         printf("Arrival Time: %d\n", p->arrival_time);
         printf("Burst Time: %d\n", p->burstTime);
         printf("Remaining Time: %d\n", p->remainingTime);
+        printf("instructions: %s\n", p->instructions);
         printf("------------------------\n");
     }
 }
@@ -82,6 +103,7 @@ void setProcessState(int pid, ProcessState newState) {
         fprintf(stderr, "Failed to update PCB state for PID %d\n", pid);
     }
 }
+
 
 ProcessState getProcessState(int pid) {
     char key[20];

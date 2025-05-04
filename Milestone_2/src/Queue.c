@@ -17,7 +17,6 @@ void enqueue(Queue* q, Process* newProcess) {
         q->front = q->rear = newProcess;
         return;
     }
-
     q->rear->next = newProcess;
     q->rear = newProcess;
 }

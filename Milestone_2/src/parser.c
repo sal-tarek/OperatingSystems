@@ -154,6 +154,7 @@ Instruction decode_instruction(Process *process, char *instruction_string)
         if (strcmp(tokens[2], "input") == 0)
         {
             char *userInput = input("Enter value for arg2: ");
+            
             if (!userInput)
             {
                 console_model_log_output("[ERROR] Failed to get user input for arg2\n");

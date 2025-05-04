@@ -14,6 +14,6 @@ extern int clockCycle;
 extern int numProcesses;
 
 // Function to run the RoundRobin scheduler
-void runRR();
+void runRR(int quantum);
 
 #endif 

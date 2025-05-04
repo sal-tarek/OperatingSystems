@@ -1,39 +1,46 @@
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
 
-#include "process.h"
 #include "memory.h"
-#include "index.h"
 #include "Queue.h"
+#include "PCB.h"
+#include "process.h"
+#include "index.h"
 
+// Constants
+#define MAX_MEMORY_WORDS 60
+#define MAX_PROCESSES 3
+
+// Structure for memory ranges
 typedef struct {
-    int inst_start;  // Start address for instructions
-    int inst_count;  // Number of instructions
-    int var_start;   // Start address for variables
-    int var_count;   // Number of variables
-    int pcb_start;   // Start address for PCB
-    int pcb_count;   // Number of PCB entries (typically 1)
+    int pid; // Add PID to track which process this range belongs to
+    int inst_start;
+    int inst_count;
+    int var_start;
+    int var_count;
+    int pcb_start;
+    int pcb_count;
 } MemoryRange;
 
-#define MAX_NUM_PROCESSES 10    // Maximum number of processes to support
-#define MAX_NUM_QUEUES 4        // Maximum number of queues
-#define MAX_MEMORY_WORDS 60 // Maximum memory size
-
-
-// Global variables declared in main.c
+// Global variables (declared in main.c)
 extern Queue *job_pool;
+extern Queue *readyQueues[4];
 extern MemoryWord *memory;
 extern IndexEntry *index_table;
-extern Queue *readyQueues[MAX_NUM_QUEUES]; 
 extern int clockCycle;
+extern MemoryRange ranges[MAX_PROCESSES];
+extern int ranges_count;
+extern int current_memory_usage;
 
-void readInstructions(Process *process);
-void populatePCB(Process *process);
-void populateMemory(void);
+// Function declarations
+void readInstructionsOnly(Process *process);
+void addInstVarsPCB(Process *process);
+void populateMemory();
 void* fetchDataByIndex(const char *key, DataType *type_out);
 int updateDataByIndex(const char *key, void *new_data, DataType type);
 MemoryRange getProcessMemoryRange(int pid);
 void displayMemoryRange(int pid);
 void freeMemoryRanges();
+void deleteProcessFromMemory(int pid);
 
 #endif
