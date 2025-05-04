@@ -10,12 +10,16 @@
 #include "PCB.h"
 #include "instruction.h"
 #include "memory_manager.h"
+#include "controller.h"
 
-extern int numProcesses;
+extern int numOfProcesses;
 extern Process *runningProcess;
 extern Queue *readyQueues[MAX_NUM_QUEUES];
 extern Queue *global_blocked_queue;
 extern int clockCycle;
+
+// Define schedulingAlgorithm globally so it can be accessed from other files
+char *schedulingAlgorithm = NULL;
 
 typedef struct
 {
@@ -30,7 +34,6 @@ typedef struct
     GtkWidget *quantum_label;
     guint automatic_timer_id;
     gboolean is_running;
-    int selected_scheduler;
     int quantum;
 } Controller;
 
@@ -123,17 +126,29 @@ void controller_update_all()
 
 static void run_selected_scheduler()
 {
-    switch (controller->selected_scheduler)
+    if (!schedulingAlgorithm)
     {
-    case 0:
+        // Default to MLFQ if no algorithm is set
         runMLFQ();
-        break;
-    case 1:
+        return;
+    }
+
+    if (strcmp(schedulingAlgorithm, "MLFQ") == 0)
+    {
+        runMLFQ();
+    }
+    else if (strcmp(schedulingAlgorithm, "FCFS") == 0)
+    {
         runFCFS();
-        break;
-    case 2:
+    }
+    else if (strcmp(schedulingAlgorithm, "Round Robin") == 0)
+    {
         runRR(controller->quantum);
-        break;
+    }
+    else
+    {
+        // Default case
+        runMLFQ();
     }
 }
 
@@ -152,7 +167,7 @@ void controller_init(GtkApplication *app, GtkWidget *window, GtkWidget *main_box
     controller->quantum_label = view_get_quantum_label();
     controller->automatic_timer_id = 0;
     controller->is_running = FALSE;
-    controller->selected_scheduler = 0;
+    schedulingAlgorithm = g_strdup("MLFQ"); // Initialize with default algorithm
     controller->quantum = 2;
 
     gtk_window_set_application(GTK_WINDOW(controller->view_window), app);
@@ -185,27 +200,44 @@ static void on_scheduler_changed(GtkWidget *combo, GParamSpec *pspec, gpointer u
 {
     if (controller->is_running)
     {
-        gtk_drop_down_set_selected(GTK_DROP_DOWN(combo), controller->selected_scheduler);
+        // Don't allow changing scheduler while running
         return;
     }
 
-    controller->selected_scheduler = gtk_drop_down_get_selected(GTK_DROP_DOWN(combo));
-    if (controller->selected_scheduler == 2)
+    guint selected = gtk_drop_down_get_selected(GTK_DROP_DOWN(combo));
+
+    // Free previous algorithm name if it exists
+    if (schedulingAlgorithm)
     {
-        gtk_widget_set_visible(controller->quantum_label, TRUE);
-        gtk_widget_set_visible(controller->quantum_entry, TRUE);
+        g_free(schedulingAlgorithm);
+        schedulingAlgorithm = NULL;
     }
-    else
+
+    // Set new algorithm based on selection
+    if (selected == 0)
     {
+        schedulingAlgorithm = g_strdup("MLFQ");
         gtk_widget_set_visible(controller->quantum_label, FALSE);
         gtk_widget_set_visible(controller->quantum_entry, FALSE);
+    }
+    else if (selected == 1)
+    {
+        schedulingAlgorithm = g_strdup("FCFS");
+        gtk_widget_set_visible(controller->quantum_label, FALSE);
+        gtk_widget_set_visible(controller->quantum_entry, FALSE);
+    }
+    else if (selected == 2)
+    {
+        schedulingAlgorithm = g_strdup("Round Robin");
+        gtk_widget_set_visible(controller->quantum_label, TRUE);
+        gtk_widget_set_visible(controller->quantum_entry, TRUE);
     }
 }
 
 static void on_step_clicked(GtkWidget *button, gpointer user_data)
 {
     int any_running = 0;
-    for (int i = 1; i <= numProcesses; i++)
+    for (int i = 1; i <= numOfProcesses; i++)
     {
         if (getProcessState(i) != TERMINATED)
         {
@@ -219,7 +251,7 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data)
         gtk_widget_set_sensitive(controller->scheduler_combo, FALSE);
         gtk_widget_set_sensitive(controller->quantum_entry, FALSE);
 
-        if (controller->selected_scheduler == 2)
+        if (schedulingAlgorithm && strcmp(schedulingAlgorithm, "Round Robin") == 0)
         {
             const char *quantum_text = gtk_editable_get_text(GTK_EDITABLE(controller->quantum_entry));
             controller->quantum = atoi(quantum_text);
@@ -252,7 +284,7 @@ static void on_automatic_clicked(GtkWidget *button, gpointer user_data)
         gtk_widget_set_sensitive(controller->scheduler_combo, FALSE);
         gtk_widget_set_sensitive(controller->quantum_entry, FALSE);
 
-        if (controller->selected_scheduler == 2)
+        if (schedulingAlgorithm && strcmp(schedulingAlgorithm, "Round Robin") == 0)
         {
             const char *quantum_text = gtk_editable_get_text(GTK_EDITABLE(controller->quantum_entry));
             controller->quantum = atoi(quantum_text);
@@ -292,9 +324,14 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
 
     controller->is_running = FALSE;
     controller->quantum = 2;
-    controller->selected_scheduler = 0;
 
-    numProcesses = 0;
+    // Free previous algorithm and set default
+    if (schedulingAlgorithm)
+    {
+        g_free(schedulingAlgorithm);
+    }
+    schedulingAlgorithm = g_strdup("MLFQ");
+
     clockCycle = 0;
     runningProcess = NULL;
 
@@ -344,7 +381,7 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
 static gboolean automatic_step(gpointer user_data)
 {
     int any_running = 0;
-    for (int i = 1; i <= numProcesses; i++)
+    for (int i = 1; i <= numOfProcesses; i++)
     {
         if (getProcessState(i) != TERMINATED)
         {

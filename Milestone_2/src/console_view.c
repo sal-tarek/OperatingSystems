@@ -49,19 +49,25 @@ static gboolean update_text_view_idle(gpointer user_data)
 
 GtkWidget *console_view_new(GtkWidget **entry_out)
 {
-
     // Create vertical box for layout
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5); // Increased spacing to 5px
 
     // Create horizontal box for text views
-    GtkWidget *hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+    GtkWidget *hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10); // Increased spacing to 10px
     gtk_widget_set_vexpand(hbox, TRUE);
     gtk_widget_set_hexpand(hbox, TRUE);
+
+    // Add margin around the console area
+    gtk_widget_set_margin_start(hbox, 5);
+    gtk_widget_set_margin_end(hbox, 5);
+    gtk_widget_set_margin_top(hbox, 5);
+    gtk_widget_set_margin_bottom(hbox, 5);
 
     // Program output scrolled window
     GtkWidget *output_scrolled = gtk_scrolled_window_new();
     gtk_widget_set_vexpand(output_scrolled, TRUE);
     gtk_widget_set_hexpand(output_scrolled, TRUE);
+    gtk_widget_set_size_request(output_scrolled, 300, 150); // Reduced from 200px
 
     // Program output text view
     GtkWidget *output_view = gtk_text_view_new();
@@ -81,6 +87,7 @@ GtkWidget *console_view_new(GtkWidget **entry_out)
     GtkWidget *log_scrolled = gtk_scrolled_window_new();
     gtk_widget_set_vexpand(log_scrolled, TRUE);
     gtk_widget_set_hexpand(log_scrolled, TRUE);
+    gtk_widget_set_size_request(log_scrolled, 300, 150); // Reduced from 200px
 
     // Execution log text view
     GtkWidget *log_view = gtk_text_view_new();
@@ -101,12 +108,50 @@ GtkWidget *console_view_new(GtkWidget **entry_out)
     gtk_box_append(GTK_BOX(hbox), output_scrolled);
     gtk_box_append(GTK_BOX(vbox), hbox);
 
-    // Create input entry field
+    // Create a horizontal box for the input area to keep label and entry on the same line
+    GtkWidget *input_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_widget_set_margin_start(input_box, 5);
+    gtk_widget_set_margin_end(input_box, 5);
+    gtk_widget_set_margin_top(input_box, 10);
+    gtk_widget_set_margin_bottom(input_box, 5);
+
+    // Add label for the input area
+    GtkWidget *input_label = gtk_label_new("Console Input:");
+    gtk_widget_set_margin_start(input_label, 5);
+    gtk_widget_set_margin_end(input_label, 10);
+    gtk_box_append(GTK_BOX(input_box), input_label);
+
+    // Create entry with increased height and better styling
     GtkWidget *entry = gtk_entry_new();
-    gtk_widget_set_margin_top(entry, 5);
-    gtk_widget_set_margin_bottom(entry, 5);
+    gtk_widget_set_hexpand(entry, TRUE); // Allow entry to expand horizontally
+    gtk_widget_set_margin_start(entry, 0);
+    gtk_widget_set_margin_end(entry, 5);
+    gtk_widget_set_size_request(entry, -1, 40);
+
+    // Add a stylesheet to make entry more visible
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider,
+                                    "entry { background-color: #f0f0f0; color: #000000; font-size: 14px; font-weight: bold; }", -1);
+    gtk_style_context_add_provider_for_display(gdk_display_get_default(),
+                                               GTK_STYLE_PROVIDER(provider),
+                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(provider);
+
+    gtk_box_append(GTK_BOX(input_box), entry);
+    gtk_box_append(GTK_BOX(vbox), input_box);
+
+    // Add status label below input box to indicate when input is enabled
+    GtkWidget *status_label = gtk_label_new("Input disabled - waiting for program request");
+    gtk_widget_set_margin_bottom(status_label, 5);
+    gtk_widget_set_margin_top(status_label, 5);
+    gtk_widget_set_halign(status_label, GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(vbox), status_label);
+
+    // Store status label for later updates
+    g_object_set_data(G_OBJECT(entry), "status_label", status_label);
+
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "Type your input here and press Enter...");
     gtk_widget_set_sensitive(entry, FALSE); // Disabled by default
-    gtk_box_append(GTK_BOX(vbox), entry);
 
     // Store globally
     console_widget = vbox;
@@ -115,15 +160,6 @@ GtkWidget *console_view_new(GtkWidget **entry_out)
     if (entry_out)
     {
         *entry_out = entry;
-    }
-    if (console_widget)
-    {
-        // Return existing widget if already created
-        if (entry_out)
-        {
-            *entry_out = entry_widget;
-        }
-        return console_widget;
     }
 
     return vbox;

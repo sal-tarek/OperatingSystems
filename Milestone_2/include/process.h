@@ -21,7 +21,7 @@ typedef struct Process {
     char **variables;     // Array of variable names
 } Process;
 
-Process* createProcess(int pid, char *file_path, int arrival_time);
+Process *createProcess(int pid, const char *file_path, int arrival_time);
 void displayProcess(Process *p);
 void freeProcess(Process *p);
 char* getProcessInstructions(int pid);

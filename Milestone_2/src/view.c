@@ -301,34 +301,6 @@ void view_init(GtkWidget *window, GtkWidget *main_box)
     // Use provided main_box instead of creating a new one
     g_print("view_init: using main_box: %p\n", main_box);
 
-    GtkWidget *scheduler_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-    gtk_widget_set_halign(scheduler_box, GTK_ALIGN_CENTER);
-    GtkWidget *scheduler_label = gtk_label_new("Scheduler:");
-    gtk_widget_add_css_class(scheduler_label, "label");
-    gtk_box_append(GTK_BOX(scheduler_box), scheduler_label);
-
-    GtkStringList *scheduler_list = gtk_string_list_new(NULL);
-    gtk_string_list_append(scheduler_list, "MLFQ");
-    gtk_string_list_append(scheduler_list, "FCFS");
-    gtk_string_list_append(scheduler_list, "Round Robin");
-    view->scheduler_combo = gtk_drop_down_new(G_LIST_MODEL(scheduler_list), NULL);
-    gtk_drop_down_set_selected(GTK_DROP_DOWN(view->scheduler_combo), 0);
-    gtk_widget_add_css_class(view->scheduler_combo, "drop-down");
-    gtk_box_append(GTK_BOX(scheduler_box), view->scheduler_combo);
-
-    view->quantum_label = gtk_label_new("Quantum:");
-    gtk_widget_add_css_class(view->quantum_label, "label");
-    view->quantum_entry = gtk_entry_new();
-    gtk_editable_set_text(GTK_EDITABLE(view->quantum_entry), "2");
-    gtk_entry_set_max_length(GTK_ENTRY(view->quantum_entry), 3);
-    gtk_widget_set_size_request(view->quantum_entry, 50, -1);
-    gtk_widget_add_css_class(view->quantum_entry, "entry");
-    gtk_widget_set_visible(view->quantum_label, FALSE);
-    gtk_widget_set_visible(view->quantum_entry, FALSE);
-    gtk_box_append(GTK_BOX(scheduler_box), view->quantum_label);
-    gtk_box_append(GTK_BOX(scheduler_box), view->quantum_entry);
-    gtk_box_append(GTK_BOX(main_box), scheduler_box);
-
     GtkWidget *grid = gtk_grid_new();
     gtk_grid_set_row_spacing(GTK_GRID(grid), 15);
     gtk_grid_set_column_spacing(GTK_GRID(grid), 20);
@@ -343,7 +315,8 @@ void view_init(GtkWidget *window, GtkWidget *main_box)
     gtk_widget_add_css_class(view->drawing_areas[4], "queue-area");
     gtk_grid_attach(GTK_GRID(grid), view->drawing_areas[4], 0, 0, 1, 4);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
+    {
         view->drawing_areas[i] = gtk_drawing_area_new();
         gtk_widget_set_size_request(view->drawing_areas[i], 720, 90);
         gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(view->drawing_areas[i]),
@@ -369,10 +342,45 @@ void view_init(GtkWidget *window, GtkWidget *main_box)
     gtk_widget_set_margin_top(view->running_process_label, 10);
     gtk_box_append(GTK_BOX(main_box), view->running_process_label);
 
+    // Create button box with scheduler combo
     GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
     gtk_widget_set_margin_top(button_box, 15);
     gtk_widget_set_halign(button_box, GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(main_box), button_box);
 
+    // Create scheduler selection controls - now in the button box
+    GtkWidget *scheduler_label = gtk_label_new("Scheduler:");
+    gtk_widget_add_css_class(scheduler_label, "label");
+    gtk_box_append(GTK_BOX(button_box), scheduler_label);
+
+    GtkStringList *scheduler_list = gtk_string_list_new(NULL);
+    gtk_string_list_append(scheduler_list, "MLFQ");
+    gtk_string_list_append(scheduler_list, "FCFS");
+    gtk_string_list_append(scheduler_list, "Round Robin");
+    view->scheduler_combo = gtk_drop_down_new(G_LIST_MODEL(scheduler_list), NULL);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(view->scheduler_combo), 0);
+    gtk_widget_add_css_class(view->scheduler_combo, "drop-down");
+    gtk_box_append(GTK_BOX(button_box), view->scheduler_combo);
+
+    view->quantum_label = gtk_label_new("Quantum:");
+    gtk_widget_add_css_class(view->quantum_label, "label");
+    view->quantum_entry = gtk_entry_new();
+    gtk_editable_set_text(GTK_EDITABLE(view->quantum_entry), "2");
+    gtk_entry_set_max_length(GTK_ENTRY(view->quantum_entry), 3);
+    gtk_widget_set_size_request(view->quantum_entry, 50, -1);
+    gtk_widget_add_css_class(view->quantum_entry, "entry");
+    gtk_widget_set_visible(view->quantum_label, FALSE);
+    gtk_widget_set_visible(view->quantum_entry, FALSE);
+    gtk_box_append(GTK_BOX(button_box), view->quantum_label);
+    gtk_box_append(GTK_BOX(button_box), view->quantum_entry);
+
+    // Add a separator between scheduler controls and action buttons
+    GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
+    gtk_widget_set_margin_start(separator, 5);
+    gtk_widget_set_margin_end(separator, 5);
+    gtk_box_append(GTK_BOX(button_box), separator);
+
+    // Create action buttons
     view->step_button = gtk_button_new_with_label("Step");
     gtk_widget_add_css_class(view->step_button, "button");
     view->automatic_button = gtk_button_new_with_label("Automatic");
@@ -388,9 +396,8 @@ void view_init(GtkWidget *window, GtkWidget *main_box)
     gtk_box_append(GTK_BOX(button_box), view->pause_button);
     gtk_box_append(GTK_BOX(button_box), view->reset_button);
 
-    gtk_box_append(GTK_BOX(main_box), button_box);
-
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++)
+    {
         view->queue_processes[i] = NULL;
         queue_animations[i].animations = NULL;
     }
