@@ -34,7 +34,7 @@ MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 Queue *global_blocked_queue = NULL;
 int numberOfProcesses = 0;
-Queue *processes = NULL;
+Process *processes[MAX_PROCESSES] = {NULL};
 int numOfProcesses = 3;
 
 // Forward declaration of cleanup function
@@ -52,12 +52,7 @@ static void activate(GtkApplication *app, gpointer user_data)
         fprintf(stderr, "Error: Failed to create job_pool\n");
         return;
     }
-    processes = createQueue();
-    if (!processes)
-    {
-        fprintf(stderr, "Error: Failed to create processes queue\n");
-        return;
-    }
+
     global_blocked_queue = createQueue();
     if (!global_blocked_queue)
     {
@@ -225,13 +220,15 @@ static void cleanup_resources(void) {
     }
     freeQueue(job_pool);
 
-    while (!isEmpty(processes))
+    for(int i = 0; i < numberOfProcesses; i++)
     {
-        Process *process = dequeue(processes);
-        if (process)
-            freeProcess(process);
+        if (processes[i])
+        {
+            freeProcess(processes[i]);
+            processes[i] = NULL;
+        }
     }
-    freeQueue(processes);
+    numberOfProcesses = 0;
 
     while (!isEmpty(global_blocked_queue))
     {

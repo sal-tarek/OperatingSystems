@@ -18,7 +18,7 @@ extern MemoryWord *memory;
 extern IndexEntry *index_table;
 extern Queue *readyQueues[MAX_NUM_QUEUES]; 
 extern int clockCycle;
-extern Queue *processes;
+extern Process *processes[MAX_PROCESSES];
 extern int numberOfProcesses;
 
 // Global array to store memory ranges for each process
@@ -134,7 +134,7 @@ void addInstVarsPCB(Process *process) {
     // Step 3: Allocate variables ranges after instructions
     ranges[ranges_count].var_start = ranges[ranges_count].inst_start + ranges[ranges_count].inst_count;
     ranges[ranges_count].var_count = var_count;
-
+ 
     // Create and store the PCB
     int lower_bound = ranges[ranges_count].pcb_start; // Start of PCB
     int upper_bound = ranges[ranges_count].var_start + ranges[ranges_count].var_count - 1; // End of variables
@@ -210,8 +210,9 @@ void populateMemory() {
                 printf("Mem After ");
                 for(int i = 0; i < 4; i++)
                     displayQueueSimplified(readyQueues[i]);
-                enqueue(processes, curr); // Add to processes queue
+                processes[numberOfProcesses] = curr; // Store the process in the global array
                 numberOfProcesses++;
+                printMemory();
             }
             else{
                 enqueue(job_pool, dequeue(job_pool)); // Re-enqueue the process
@@ -399,23 +400,23 @@ void freeMemoryRange(int inst_start, int inst_count, int var_start, int var_coun
 }
 
 void deleteProcessFromMemory(int pid) {
-    // Step 1: Find the process's memory range
-    int range_idx = -1;
-    for (int i = 0; i < ranges_count; i++) {
-        if (ranges[i].pid == pid) {
-            range_idx = i;
-            break;
-        }
-    }
-    if (range_idx == -1) {
-        fprintf(stderr, "No memory range found for PID: %d\n", pid);
-        return;
-    }
+    // // Step 1: Find the process's memory range
+    // int range_idx = -1;
+    // for (int i = 0; i < ranges_count; i++) {
+    //     if (ranges[i].pid == pid) {
+    //         range_idx = i;
+    //         break;
+    //     }
+    // }
+    // if (range_idx == -1) {
+    //     fprintf(stderr, "No memory range found for PID: %d\n", pid);
+    //     return;
+    // }
 
-    MemoryRange range = ranges[range_idx];
+    MemoryRange range = ranges[pid];
 
-    // Step 2: Free the memory range
-    freeMemoryRange(range.inst_start, range.inst_count, range.var_start, range.var_count, range.pcb_start);
+    // // Step 2: Free the memory range
+    // freeMemoryRange(range.inst_start, range.inst_count, range.var_start, range.var_count, range.pcb_start);
 
     // Step 3: Remove index entries for this process
     IndexEntry *entry, *tmp;
@@ -432,12 +433,6 @@ void deleteProcessFromMemory(int pid) {
     // Step 4: Update memory usage
     int total_words_freed = range.inst_count + range.var_count + range.pcb_count;
     current_memory_usage -= total_words_freed;
-
-    // Step 5: Remove the range entry by shifting subsequent entries
-    for (int i = range_idx; i < ranges_count - 1; i++) {
-        ranges[i] = ranges[i + 1];
-    }
-    ranges_count--;
 
     printf("Freed memory for P%d: %d words\n", pid, total_words_freed);
 }

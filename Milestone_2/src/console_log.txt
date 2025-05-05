@@ -1,0 +1,116 @@
+[CLOCK] Clock controller initialized
+[CLOCK] Clock controller initialized
+[UPDATE] Refreshed all displays at cycle 0
+[CONTROLLER] Unified controller started
+[SYSTEM] OS Scheduler Simulation started
+[SYSTEM] Clock cycle: 0
+[SYSTEM] Processes loaded: 0
+[PROCESS] Created process PID 1 with arrival time 0
+[PROCESS] Created process PID 2 with arrival time 3
+[PROCESS] Created process PID 3 with arrival time 0
+[STEP] Executing single step at cycle 0
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 1 executing instruction at PC=0
+[EXEC] Process 1: Executing semWait userInput
+[MUTEX] Process 1 attempting to acquire userInput resource
+[MUTEX] Process 1 successfully acquired resource: userInput
+[UPDATE] Refreshed all displays at cycle 0
+[CLOCK] Cycle incremented to 1
+[STEP] Executing single step at cycle 1
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 3 executing instruction at PC=0
+[EXEC] Process 3: Executing semWait userInput
+[MUTEX] Process 3 attempting to acquire userInput resource
+[BLOCKED] Process 3 blocked waiting for resource: userInput
+[UPDATE] Refreshed all displays at cycle 1
+[CLOCK] Cycle incremented to 2
+[STEP] Executing single step at cycle 2
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 1 executing instruction at PC=1
+[EXEC] Process 1: Executing assign a input
+[MEMORY] Process 1: Variable 'a' assigned value 'input'
+[UPDATE] Refreshed all displays at cycle 2
+[CLOCK] Cycle incremented to 3
+[STEP] Executing single step at cycle 3
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 1 executing instruction at PC=2
+[EXEC] Process 1: Executing assign b input
+[MEMORY] Process 1: Variable 'b' assigned value 'input'
+[UPDATE] Refreshed all displays at cycle 3
+[CLOCK] Cycle incremented to 4
+[STEP] Executing single step at cycle 4
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 2 executing instruction at PC=0
+[EXEC] Process 2: Executing semWait userInput
+[MUTEX] Process 2 attempting to acquire userInput resource
+[BLOCKED] Process 2 blocked waiting for resource: userInput
+[UPDATE] Refreshed all displays at cycle 4
+[CLOCK] Cycle incremented to 5
+[STEP] Executing single step at cycle 5
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 1 executing instruction at PC=3
+[EXEC] Process 1: Executing semSignal userInput
+[MUTEX] Process 1 released userInput resource
+[UNBLOCKED] Process 3 was unblocked from resource userInput
+[UPDATE] Refreshed all displays at cycle 5
+[CLOCK] Cycle incremented to 6
+[STEP] Executing single step at cycle 6
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 1 executing instruction at PC=4
+[EXEC] Process 1: Executing semWait userOutput
+[MUTEX] Process 1 attempting to acquire userOutput resource
+[MUTEX] Process 1 successfully acquired resource: userOutput
+[UPDATE] Refreshed all displays at cycle 6
+[CLOCK] Cycle incremented to 7
+[STEP] Executing single step at cycle 7
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 1 executing instruction at PC=5
+[EXEC] Process 1: Executing printFromTo a b
+[ERROR] printFromTo: invalid numeric input (not a number): 'input' or 'input'
+[UPDATE] Refreshed all displays at cycle 7
+[CLOCK] Cycle incremented to 8
+[STEP] Executing single step at cycle 8
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 1 executing instruction at PC=6
+[EXEC] Process 1: Executing semSignal userOutput
+[MUTEX] Process 1 released userOutput resource
+[UPDATE] Refreshed all displays at cycle 8
+[CLOCK] Cycle incremented to 9
+[STEP] Executing single step at cycle 9
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 3 executing instruction at PC=1
+[EXEC] Process 3: Executing assign a input
+[MEMORY] Process 3: Variable 'a' assigned value 'input'
+[UPDATE] Refreshed all displays at cycle 9
+[CLOCK] Cycle incremented to 10
+[STEP] Executing single step at cycle 10
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 3 executing instruction at PC=2
+[EXEC] Process 3: Executing semSignal userInput
+[MUTEX] Process 3 released userInput resource
+[UNBLOCKED] Process 2 was unblocked from resource userInput
+[UPDATE] Refreshed all displays at cycle 10
+[CLOCK] Cycle incremented to 11
+[STEP] Executing single step at cycle 11
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 2 executing instruction at PC=1
+[EXEC] Process 2: Executing assign a input
+[MEMORY] Process 2: Variable 'a' assigned value 'input'
+[UPDATE] Refreshed all displays at cycle 11
+[CLOCK] Cycle incremented to 12
+[STEP] Executing single step at cycle 12
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 2 executing instruction at PC=2
+[EXEC] Process 2: Executing assign b input
+[MEMORY] Process 2: Variable 'b' assigned value 'input'
+[UPDATE] Refreshed all displays at cycle 12
+[CLOCK] Cycle incremented to 13
+[STEP] Executing single step at cycle 13
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 3 executing instruction at PC=3
+[EXEC] Process 3: Executing semWait file
+[MUTEX] Process 3 attempting to acquire file resource
+[MUTEX] Process 3 successfully acquired resource: file
+[UPDATE] Refreshed all displays at cycle 13
+[CLOCK] Cycle incremented to 14
+[CONTROLLER] Unified controller stopped

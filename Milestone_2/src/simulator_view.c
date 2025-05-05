@@ -373,7 +373,6 @@ void simulator_view_update_memory(SimulatorView *view) {
                     pid = p;
                     if (slot && slot->type == TYPE_STRING && slot->data) {
                         content = (char *)slot->data;
-                        //char**variables = (char*)malloc(256);
                         snprintf(content_text, sizeof(content_text), "%s", content ? content : "Empty");
                     } else {
                         snprintf(content_text, sizeof(content_text), "Empty");
