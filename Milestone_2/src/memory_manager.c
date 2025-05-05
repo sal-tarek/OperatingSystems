@@ -174,7 +174,7 @@ void addInstVarsPCB(Process *process) {
 
     // Store variables in memory
     for (int i = 0; i < var_count; i++) {
-        addMemoryData(&memory, ranges[ranges_count].var_start + i, variables[i], TYPE_STRING);
+        addMemoryData(&memory, ranges[ranges_count].var_start + i, "Variable Not Initialized", TYPE_STRING);
         char key[32];
         snprintf(key, sizeof(key), "P%d_Variable_%s", process->pid, variables[i]);
         addIndexEntry(&index_table, key, ranges[ranges_count].var_start + i);
