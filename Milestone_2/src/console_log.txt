@@ -5,3 +5,179 @@
 [SYSTEM] OS Scheduler Simulation started
 [SYSTEM] Clock cycle: -1
 [SYSTEM] Processes loaded: 0
+[PROCESS] Created process PID 1 with arrival time 3
+[PROCESS] Created process PID 2 with arrival time 0
+[PROCESS] Created process PID 3 with arrival time 2
+[STEP] Executing single step at cycle 0
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 2 executing instruction at PC=0
+[EXEC] Process 2: Executing semWait userInput
+[MUTEX] Process 2 attempting to acquire userInput resource
+[MUTEX] Process 2 successfully acquired resource: userInput
+[UPDATE] Refreshed all displays at cycle 0
+[CLOCK] Cycle incremented to 0
+[STEP] Executing single step at cycle 1
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 2 executing instruction at PC=1
+[EXEC] Process 2: Executing assign a input
+[MEMORY] Process 2: Variable 'a' assigned value 'input'
+[UPDATE] Refreshed all displays at cycle 1
+[CLOCK] Cycle incremented to 1
+[STEP] Executing single step at cycle 2
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 3 executing instruction at PC=0
+[EXEC] Process 3: Executing semWait userInput
+[MUTEX] Process 3 attempting to acquire userInput resource
+[BLOCKED] Process 3 blocked waiting for resource: userInput
+[UPDATE] Refreshed all displays at cycle 2
+[CLOCK] Cycle incremented to 2
+[STEP] Executing single step at cycle 3
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 1 executing instruction at PC=0
+[EXEC] Process 1: Executing semWait userInput
+[MUTEX] Process 1 attempting to acquire userInput resource
+[BLOCKED] Process 1 blocked waiting for resource: userInput
+[UPDATE] Refreshed all displays at cycle 3
+[CLOCK] Cycle incremented to 3
+[STEP] Executing single step at cycle 4
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 2 executing instruction at PC=2
+[EXEC] Process 2: Executing assign b input
+[MEMORY] Process 2: Variable 'b' assigned value 'input'
+[UPDATE] Refreshed all displays at cycle 4
+[CLOCK] Cycle incremented to 4
+[STEP] Executing single step at cycle 5
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 2 executing instruction at PC=3
+[EXEC] Process 2: Executing semSignal userInput
+[MUTEX] Process 2 released userInput resource
+[UNBLOCKED] Process 2 was unblocked from resource userInput
+[UPDATE] Refreshed all displays at cycle 5
+[CLOCK] Cycle incremented to 5
+[STEP] Executing single step at cycle 6
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 2 executing instruction at PC=4
+[EXEC] Process 2: Executing semWait file
+[MUTEX] Process 2 attempting to acquire file resource
+[MUTEX] Process 2 successfully acquired resource: file
+[UPDATE] Refreshed all displays at cycle 6
+[CLOCK] Cycle incremented to 6
+[STEP] Executing single step at cycle 7
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 2 executing instruction at PC=5
+[ERROR] writeFile expects exactly 1 argument, got 2
+[ERROR] Failed to decode instruction for process 2: writeFile a b
+[UPDATE] Refreshed all displays at cycle 7
+[CLOCK] Cycle incremented to 7
+[STEP] Executing single step at cycle 8
+[SCHEDULER] Running MLFQ algorithm
+[INFO] Process 2 executing instruction at PC=5
+[ERROR] writeFile expects exactly 1 argument, got 2
+[ERROR] Failed to decode instruction for process 2: writeFile a b
+[UPDATE] Refreshed all displays at cycle 8
+[CLOCK] Cycle incremented to 8
+[STEP] Executing single step at cycle 9
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 9
+[CLOCK] Cycle incremented to 9
+[STEP] Executing single step at cycle 10
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 10
+[CLOCK] Cycle incremented to 10
+[STEP] Executing single step at cycle 11
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 11
+[CLOCK] Cycle incremented to 11
+[STEP] Executing single step at cycle 12
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 12
+[CLOCK] Cycle incremented to 12
+[STEP] Executing single step at cycle 13
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 13
+[CLOCK] Cycle incremented to 13
+[STEP] Executing single step at cycle 14
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 14
+[CLOCK] Cycle incremented to 14
+[STEP] Executing single step at cycle 15
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 15
+[CLOCK] Cycle incremented to 15
+[STEP] Executing single step at cycle 16
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 16
+[CLOCK] Cycle incremented to 16
+[STEP] Executing single step at cycle 17
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 17
+[CLOCK] Cycle incremented to 17
+[STEP] Executing single step at cycle 18
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 18
+[CLOCK] Cycle incremented to 18
+[STEP] Executing single step at cycle 19
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 19
+[CLOCK] Cycle incremented to 19
+[STEP] Executing single step at cycle 20
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 20
+[CLOCK] Cycle incremented to 20
+[STEP] Executing single step at cycle 21
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 21
+[CLOCK] Cycle incremented to 21
+[STEP] Executing single step at cycle 22
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 22
+[CLOCK] Cycle incremented to 22
+[STEP] Executing single step at cycle 23
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 23
+[CLOCK] Cycle incremented to 23
+[STEP] Executing single step at cycle 24
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 24
+[CLOCK] Cycle incremented to 24
+[STEP] Executing single step at cycle 25
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 25
+[CLOCK] Cycle incremented to 25
+[STEP] Executing single step at cycle 26
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 26
+[CLOCK] Cycle incremented to 26
+[STEP] Executing single step at cycle 27
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 27
+[CLOCK] Cycle incremented to 27
+[STEP] Executing single step at cycle 28
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 28
+[CLOCK] Cycle incremented to 28
+[STEP] Executing single step at cycle 29
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 29
+[CLOCK] Cycle incremented to 29
+[STEP] Executing single step at cycle 30
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 30
+[CLOCK] Cycle incremented to 30
+[STEP] Executing single step at cycle 31
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 31
+[CLOCK] Cycle incremented to 31
+[STEP] Executing single step at cycle 32
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 32
+[CLOCK] Cycle incremented to 32
+[STEP] Executing single step at cycle 33
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 33
+[CLOCK] Cycle incremented to 33
+[STEP] Executing single step at cycle 34
+[SCHEDULER] Running MLFQ algorithm
+[UPDATE] Refreshed all displays at cycle 34
+[CLOCK] Cycle incremented to 34
+[CONTROLLER] Unified controller stopped

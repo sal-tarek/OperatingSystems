@@ -20,7 +20,7 @@ const char *process_state_to_string(ProcessState state) {
         case NEW: return "NEW";
         case READY: return "READY";
         case RUNNING: return "RUNNING";
-        case BLOCKED: return "WAITING";
+        case BLOCKED: return "BLOCKED";
         case TERMINATED: return "TERMINATED";
         default: return "UNKNOWN";
     }

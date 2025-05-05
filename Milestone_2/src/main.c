@@ -250,7 +250,7 @@ static void cleanup_resources(void)
     }
 
     freeMemoryWord();
-    freeIndex(&index_table);
+    freeIndex();
 }
 
 int main(int argc, char *argv[])
