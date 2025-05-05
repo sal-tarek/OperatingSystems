@@ -29,5 +29,6 @@ ProcessState getProcessState(int pid);
 void setProcessState(int pid, ProcessState newState);
 int getProcessPriority(int pid);
 void setProcessPriority(int pid, int priority);
+Process *cloneProcess(Process *original); 
 
 #endif // PROCESS_H

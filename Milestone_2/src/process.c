@@ -86,10 +86,17 @@ void displayProcess(Process *p) {
 }
 
 void freeProcess(Process *p) {
-    if (p != NULL) {
-        free(p->file_path);
-        free(p);
+    if (p == NULL) return;
+
+    free(p->file_path);
+    free(p->instructions);
+    if (p->variables) {
+        for (int i = 0; i < p->variable_count; i++) {
+            free(p->variables[i]);
+        }
+        free(p->variables);
     }
+    free(p);
 }
 
 void setProcessState(int pid, ProcessState newState) {
@@ -147,4 +154,79 @@ void setProcessPriority(int pid, int newPriority) {
     } else {
         fprintf(stderr, "Failed to update PCB priority for PID %d\n", pid);
     }
+}
+
+Process *cloneProcess(Process *original) {
+    if (original == NULL) {
+        return NULL;
+    }
+
+    // Allocate new Process struct
+    Process *clone = (Process *)malloc(sizeof(Process));
+    if (clone == NULL) {
+        fprintf(stderr, "Failed to allocate memory for cloned process\n");
+        return NULL;
+    }
+
+    // Copy scalar values
+    clone->pid = original->pid;
+    clone->state = original->state;
+    clone->arrival_time = original->arrival_time;
+    clone->ready_time = original->ready_time;
+    clone->burstTime = original->burstTime;
+    clone->remainingTime = original->remainingTime;
+    clone->quantumUsed = original->quantumUsed;
+    clone->timeInQueue = original->timeInQueue;
+    clone->instruction_count = original->instruction_count;
+    clone->variable_count = original->variable_count;
+
+    // Deep copy file_path
+    clone->file_path = original->file_path ? strdup(original->file_path) : NULL;
+    if (original->file_path && clone->file_path == NULL) {
+        fprintf(stderr, "Failed to copy file_path for PID %d\n", clone->pid);
+        free(clone);
+        return NULL;
+    }
+
+    // Deep copy instructions
+    clone->instructions = original->instructions ? strdup(original->instructions) : NULL;
+    if (original->instructions && clone->instructions == NULL) {
+        fprintf(stderr, "Failed to copy instructions for PID %d\n", clone->pid);
+        free(clone->file_path);
+        free(clone);
+        return NULL;
+    }
+
+    // Deep copy variables array
+    if (original->variable_count > 0 && original->variables) {
+        clone->variables = (char **)calloc(original->variable_count, sizeof(char *));
+        if (clone->variables == NULL) {
+            fprintf(stderr, "Failed to allocate variables array for PID %d\n", clone->pid);
+            free(clone->file_path);
+            free(clone->instructions);
+            free(clone);
+            return NULL;
+        }
+        for (int i = 0; i < original->variable_count; i++) {
+            clone->variables[i] = original->variables[i] ? strdup(original->variables[i]) : NULL;
+            if (original->variables[i] && clone->variables[i] == NULL) {
+                fprintf(stderr, "Failed to copy variable %d for PID %d\n", i, clone->pid);
+                for (int j = 0; j < i; j++) {
+                    free(clone->variables[j]);
+                }
+                free(clone->variables);
+                free(clone->file_path);
+                free(clone->instructions);
+                free(clone);
+                return NULL;
+            }
+        }
+    } else {
+        clone->variables = NULL;
+    }
+
+    // Initialize next pointer
+    clone->next = NULL;
+
+    return clone;
 }

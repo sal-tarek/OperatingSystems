@@ -187,39 +187,41 @@ void addInstVarsPCB(Process *process) {
 }
 
 void populateMemory() {
-    if (!isEmpty(job_pool)) {
-        Process *curr;
-        DataType type;
-        int size = getQueueSize(job_pool);
-        for (int i = 0; i < size && !isEmpty(job_pool); i++) {
-            curr = peek(job_pool);
-            if (curr->arrival_time <= clockCycle) {
-                addInstVarsPCB(curr); // This now handles PCB, instructions, and variables
-                ranges_count++;       // Increment ranges_count
+    printf("Mem Before ");
+    for(int i = 0; i < 4; i++)
+        displayQueueSimplified(readyQueues[i]);
 
-                // Dequeue from job pool
-                dequeue(job_pool);
-                // Set the process state to READY
-                curr->state = READY;
-                curr->ready_time = clockCycle; // Set ready_time
-                printf("Clock cycle: %d\n", clockCycle);
-                printf("Mem Before ");
-                for(int i = 0; i < 4; i++)
-                    displayQueueSimplified(readyQueues[i]);
-                enqueue(readyQueues[0], curr); // Add to ready_queue
-                printf("Mem After ");
-                for(int i = 0; i < 4; i++)
-                    displayQueueSimplified(readyQueues[i]);
-                enqueue(processes, curr); // Add to processes queue
-                numberOfProcesses++;
-            }
-            else{
-                enqueue(job_pool, dequeue(job_pool)); // Re-enqueue the process
-            }
+    DataType type;
+    int size = getQueueSize(job_pool);
+    for (int i = 0; i < size; i++) {
+        Process *curr = peek(job_pool);
+
+        if (curr->arrival_time <= clockCycle) {
+            addInstVarsPCB(curr); // This now handles PCB, instructions, and variables
+            ranges_count++;       // Increment ranges_count
+
+            // Dequeue from job pool
+            dequeue(job_pool);
+            // Set the process state to READY
+            curr->state = READY;
+            curr->ready_time = clockCycle; // Set ready_time
+
+    
+            enqueue(readyQueues[0], curr); // Add to ready_queue
+
+    
+            enqueue(processes, curr); // Add to processes queue
+            numberOfProcesses++;
         }
-    } else {
-        printf("Job pool is empty\n");
+        else{
+            enqueue(job_pool, dequeue(job_pool)); // Re-enqueue the process
+        }
     }
+
+    printf("Mem After ");
+    for(int i = 0; i < 4; i++)
+        displayQueueSimplified(readyQueues[i]);
+        
 }
 
 void* fetchDataByIndex(const char *key, DataType *type_out) {

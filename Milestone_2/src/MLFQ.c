@@ -7,8 +7,6 @@ int lastUsedLevel = -1;  // -1 means no pending process
 
 // runs one cycle of the MLFQ scheduler
 void runMLFQ() {
-    printf("\nTime %d: \n \n", clockCycle);
-
     // Display the ready queues
     printf("Before ");
     for(int i = 0; i < 4; i++)
