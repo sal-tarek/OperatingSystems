@@ -144,7 +144,7 @@ void addInstVarsPCB(Process *process) {
     addMemoryData(&memory, ranges[ranges_count].pcb_start, pcb, TYPE_PCB);
     char pcb_key[32];
     snprintf(pcb_key, sizeof(pcb_key), "P%d_PCB", process->pid);
-    addIndexEntry(&index_table, pcb_key, ranges[ranges_count].pcb_start);
+    addIndexEntry(pcb_key, ranges[ranges_count].pcb_start);
 
     // If we have stored instructions
     if (instruction_ptr) {
@@ -167,7 +167,7 @@ void addInstVarsPCB(Process *process) {
             // Create and add index entry
             char key[32];
             snprintf(key, sizeof(key), "P%d_Instruction_%d", process->pid, inst_idx + 1);
-            addIndexEntry(&index_table, key, ranges[ranges_count].inst_start + inst_idx);
+            addIndexEntry(key, ranges[ranges_count].inst_start + inst_idx);
             inst_idx++;
         }
     }
@@ -177,7 +177,7 @@ void addInstVarsPCB(Process *process) {
         addMemoryData(&memory, ranges[ranges_count].var_start + i, "Variable Not Initialized", TYPE_STRING);
         char key[32];
         snprintf(key, sizeof(key), "P%d_Variable_%s", process->pid, variables[i]);
-        addIndexEntry(&index_table, key, ranges[ranges_count].var_start + i);
+        addIndexEntry(key, ranges[ranges_count].var_start + i);
         free(variables[i]);
     }
     free(variables);
@@ -217,7 +217,7 @@ void populateMemory() {
 }
 
 void* fetchDataByIndex(const char *key, DataType *type_out) {
-    int address = getIndexAddress(index_table, key);
+    int address = getIndexAddress(key);
     if (address == -1) {
         fprintf(stderr, "Key not found, it is not yet stored in memory: %s\n", key);
         return NULL;
@@ -242,7 +242,7 @@ int updateDataByIndex(const char *key, void *new_data, DataType type) {
         return -1;
     }
 
-    int address = getIndexAddress(index_table, key);
+    int address = getIndexAddress(key);
     if (address == -1) {
         fprintf(stderr, "Key not found: %s\n", key);
         return -1;
@@ -393,23 +393,47 @@ void freeMemoryRange(int inst_start, int inst_count, int var_start, int var_coun
 }
 
 void deleteProcessFromMemory(int pid) {
-    // // Step 1: Find the process's memory range
-    // int range_idx = -1;
-    // for (int i = 0; i < ranges_count; i++) {
-    //     if (ranges[i].pid == pid) {
-    //         range_idx = i;
-    //         break;
-    //     }
-    // }
-    // if (range_idx == -1) {
-    //     fprintf(stderr, "No memory range found for PID: %d\n", pid);
-    //     return;
-    // }
-
+    // Step 1: Find the process's memory range
+    if (pid < 0 || pid >= ranges_count || ranges[pid].pid == -1) {
+        fprintf(stderr, "No memory range found for PID: %d\n", pid);
+        return;
+    }
     MemoryRange range = ranges[pid];
 
-    // // Step 2: Free the memory range
-    // freeMemoryRange(range.inst_start, range.inst_count, range.var_start, range.var_count, range.pcb_start);
+    // Step 2: Free the memory range from the memory hash
+    for (int i = range.pcb_start; i < range.pcb_start + range.pcb_count; i++) {
+        MemoryWord *slot;
+        HASH_FIND_INT(memory, &i, slot);
+        if (slot) {
+            if (slot->type == TYPE_PCB && slot->data) {
+                free(slot->data); // Free the PCB data
+            }
+            HASH_DEL(memory, slot); // Remove the slot from the hash
+            free(slot); // Free the MemoryWord struct
+        }
+    }
+    for (int i = range.inst_start; i < range.inst_start + range.inst_count; i++) {
+        MemoryWord *slot;
+        HASH_FIND_INT(memory, &i, slot);
+        if (slot) {
+            if (slot->type == TYPE_STRING && slot->data) {
+                free(slot->data); // Free the instruction string
+            }
+            HASH_DEL(memory, slot); // Remove the slot from the hash
+            free(slot); // Free the MemoryWord struct
+        }
+    }
+    for (int i = range.var_start; i < range.var_start + range.var_count; i++) {
+        MemoryWord *slot;
+        HASH_FIND_INT(memory, &i, slot);
+        if (slot) {
+            if (slot->type == TYPE_STRING && slot->data) {
+                free(slot->data); // Free the variable string
+            }
+            HASH_DEL(memory, slot); // Remove the slot from the hash
+            free(slot); // Free the MemoryWord struct
+        }
+    }
 
     // Step 3: Remove index entries for this process
     IndexEntry *entry, *tmp;
@@ -417,15 +441,55 @@ void deleteProcessFromMemory(int pid) {
     snprintf(prefix, sizeof(prefix), "P%d_", pid);
     HASH_ITER(hh, index_table, entry, tmp) {
         if (strncmp(entry->key, prefix, strlen(prefix)) == 0) {
-            HASH_DEL(index_table, entry);
-            free(entry->key);
-            free(entry);
+            HASH_DEL(index_table, entry); // Remove from index hash
+            free(entry->key); // Free the key string
+            free(entry); // Free the entry
         }
     }
 
     // Step 4: Update memory usage
-    int total_words_freed = range.inst_count + range.var_count + range.pcb_count;
+    int total_words_freed = range.pcb_count + range.inst_count + range.var_count;
     current_memory_usage -= total_words_freed;
 
+    // Step 5: Clear the range entry
+    ranges[pid].pid = -1; // Mark as unused
+    ranges[pid].pcb_count = 0;
+    ranges[pid].inst_count = 0;
+    ranges[pid].var_count = 0;
+    ranges[pid].pcb_start = -1;
+    ranges[pid].inst_start = -1;
+    ranges[pid].var_start = -1;
+
     printf("Freed memory for P%d: %d words\n", pid, total_words_freed);
+}
+void resetMemory() {
+    // Free all memory words
+   freeMemoryWord();
+   freeIndex();
+   resetMemoryRanges();
+   resetProcessList();
+   current_memory_usage = 0;
+}
+
+void resetProcessList(){
+    for (int i = 0; i < MAX_PROCESSES; i++) {
+        if (processes[i]) {
+            freeProcess(processes[i]);
+            processes[i] = NULL;
+        }
+    }
+    numberOfProcesses = 0;
+}
+
+voif resetMemoryRanges(){
+    for (int i = 0; i < MAX_PROCESSES; i++) {
+        ranges[i].pid = -1;
+        ranges[i].pcb_count = 0;
+        ranges[i].inst_count = 0;
+        ranges[i].var_count = 0;
+        ranges[i].pcb_start = -1;
+        ranges[i].inst_start = -1;
+        ranges[i].var_start = -1;
+    }
+    ranges_count = 0;
 }
