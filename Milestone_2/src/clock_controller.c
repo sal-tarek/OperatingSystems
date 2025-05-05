@@ -55,12 +55,12 @@ gboolean clock_controller_increment()
     clockCycle++;
 
     // Step 6: Log the increment
-    console_model_log_output("[CLOCK] Cycle incremented to %d\n", clockCycle);
+    console_model_log_output("[CLOCK] Cycle incremented to %d\n", (clockCycle-1));
     return TRUE;
 }
 
 void clock_controller_reset(void)
 {
     clockCycle = 0;
-    console_model_log_output("[CLOCK] Clock reset to 0\n");
+    console_model_log_output("[CLOCK] Clock reset to -1\n");
 }
