@@ -19,7 +19,7 @@
 #include "unified_controller.h"
 #include "dashboard_view.h"
 #include "simulator_view.h"
-#include "clock_controller.h" 
+#include "clock_controller.h"
 
 #define MAX_NUM_PROCESSES 10 // Maximum number of processes to support
 #define MAX_NUM_QUEUES 4     // Maximum number of queues
@@ -35,7 +35,6 @@ IndexEntry *index_table = NULL;
 Queue *global_blocked_queue = NULL;
 int numberOfProcesses = 0;
 Process *processes[MAX_PROCESSES] = {NULL};
-int numOfProcesses = 3;
 
 // Forward declaration of cleanup function
 static void cleanup_resources(void);
@@ -128,7 +127,7 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     // Initialize clock controller first
     clock_controller_init();
-    
+
     // Initialize controller with the controls container
     controller_init(app, window, controls_container);
 
@@ -152,7 +151,7 @@ static void activate(GtkApplication *app, gpointer user_data)
         // Style the console
         gtk_widget_set_vexpand(console, FALSE);
         gtk_widget_set_hexpand(console, TRUE);
-        gtk_widget_set_size_request(console, -1, 250); 
+        gtk_widget_set_size_request(console, -1, 250);
 
         // Add frame with better padding for visibility
         GtkWidget *console_frame = gtk_frame_new(NULL);
@@ -207,7 +206,8 @@ static void activate(GtkApplication *app, gpointer user_data)
 }
 
 // Called when the application is shutting down to free all allocated resources
-static void cleanup_resources(void) {
+static void cleanup_resources(void)
+{
     console_controller_cleanup();
     console_model_cleanup();
     controller_cleanup();
@@ -220,7 +220,7 @@ static void cleanup_resources(void) {
     }
     freeQueue(job_pool);
 
-    for(int i = 0; i < numberOfProcesses; i++)
+    for (int i = 0; i < numberOfProcesses; i++)
     {
         if (processes[i])
         {

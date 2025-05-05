@@ -14,7 +14,7 @@
 #include "clock_controller.h"
 #include "console_model.h"
 
-extern int numOfProcesses;
+extern int numberOfProcesses;
 extern Process *runningProcess;
 extern Queue *readyQueues[MAX_NUM_QUEUES];
 extern Queue *global_blocked_queue;
@@ -120,17 +120,17 @@ void controller_update_running_process()
 void controller_update_all()
 {
     printf("UI ");
-    for(int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++)
         displayQueueSimplified(readyQueues[i]);
 
     for (int i = 0; i < MAX_NUM_QUEUES; i++)
     {
         controller_update_queue_display(i);
     }
-    
+
     controller_update_blocked_queue_display();
     controller_update_running_process();
-    
+
     // Log the current state to console
     console_model_log_output("[UPDATE] Refreshed all displays at cycle %d\n", clockCycle);
 }
@@ -160,7 +160,7 @@ void controller_init(GtkApplication *app, GtkWidget *window, GtkWidget *main_box
 {
     controller = g_new0(Controller, 1);
     controller->view_window = window;
-    view_init(window, main_box); 
+    view_init(window, main_box);
     controller->running_process_label = view_get_running_process_label();
     controller->step_button = view_get_step_button();
     controller->automatic_button = view_get_automatic_button();
@@ -226,9 +226,13 @@ static void on_scheduler_changed(GtkWidget *combo, GParamSpec *pspec, gpointer u
 // Handle step button click
 static void on_step_clicked(GtkWidget *button, gpointer user_data)
 {
+    populateMemory();
+    if(numberOfProcesses<=0){
+        return;
+    }
     // Check if any processes are still running
     int any_running = 0;
-    for (int i = 1; i <= numOfProcesses; i++)
+    for (int i = 1; i <= numberOfProcesses; i++)
     {
         if (getProcessState(i) != TERMINATED)
         {
@@ -236,7 +240,7 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data)
             break;
         }
     }
-    
+
     if (any_running)
     {
         controller->is_running = TRUE;
@@ -253,9 +257,10 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data)
         }
 
         console_model_log_output("[STEP] Executing single step at cycle %d\n", clockCycle);
-        
+
         // Update clock cycle which also updates all UI components
-        if (!clock_controller_increment()) {
+        if (!clock_controller_increment())
+        {
             // All processes terminated
             controller->is_running = FALSE;
             gtk_widget_set_sensitive(controller->scheduler_combo, TRUE);
@@ -278,6 +283,11 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data)
 
 static void on_automatic_clicked(GtkWidget *button, gpointer user_data)
 {
+    populateMemory();
+    if (numberOfProcesses <= 0)
+    {
+        return ;
+    }
     if (controller->automatic_timer_id == 0)
     {
         controller->is_running = TRUE;
@@ -337,7 +347,7 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
 
     // Reset clock to 0
     clock_controller_reset();
-    
+
     runningProcess = NULL;
 
     freeMemoryWord();
@@ -381,9 +391,9 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     gtk_widget_set_sensitive(controller->step_button, TRUE);
     gtk_widget_set_sensitive(controller->automatic_button, TRUE);
     gtk_widget_set_sensitive(controller->pause_button, FALSE);
-    
+
     console_model_log_output("[RESET] Simulation reset to initial state\n");
-    
+
     // Update all displays
     controller_update_all();
 }
@@ -393,7 +403,7 @@ static gboolean automatic_step(gpointer user_data)
 {
     // Check if any processes are still running
     int any_running = 0;
-    for (int i = 1; i <= numOfProcesses; i++)
+    for (int i = 1; i <= numberOfProcesses; i++)
     {
         if (getProcessState(i) != TERMINATED)
         {
@@ -401,15 +411,16 @@ static gboolean automatic_step(gpointer user_data)
             break;
         }
     }
-    
+
     if (any_running)
     {
         console_model_log_output("[AUTO] Executing automatic step at cycle %d\n", clockCycle);
-        
+
         run_selected_scheduler();
-        
+
         // Update clock cycle which also updates all UI components
-        if (!clock_controller_increment()) {
+        if (!clock_controller_increment())
+        {
             // All processes terminated - stop automatic execution
             controller->automatic_timer_id = 0;
             controller->is_running = FALSE;
@@ -421,7 +432,7 @@ static gboolean automatic_step(gpointer user_data)
             console_model_log_output("[AUTO] All processes terminated, automatic execution stopped\n");
             return G_SOURCE_REMOVE;
         }
-        
+
         return G_SOURCE_CONTINUE;
     }
     else
@@ -447,7 +458,7 @@ void controller_cleanup()
             g_source_remove(controller->automatic_timer_id);
             controller->automatic_timer_id = 0;
         }
-        
+
         g_free(controller);
         controller = NULL;
     }
