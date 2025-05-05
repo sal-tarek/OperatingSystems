@@ -122,7 +122,7 @@ void dashboard_view_set_process_count(DashboardView *view, int count) {
 
 void dashboard_view_set_clock_cycle(DashboardView *view, int cycle) {
     char cycle_str[32];
-    snprintf(cycle_str, sizeof(cycle_str), "%d", cycle);
+    snprintf(cycle_str, sizeof(cycle_str), "%d", (cycle-1));
     gtk_label_set_text(GTK_LABEL(view->clock_cycle_label), cycle_str);
 }
 
