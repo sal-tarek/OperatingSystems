@@ -9,46 +9,21 @@ int lastUsedLevel = -1;  // -1 means no pending process
 void runMLFQ() {
     printf("\nTime %d: \n \n", clockCycle);
 
-    // there is a pending process in the last used queue (didn't finish its quantum), so check if it is blocked or not
-    if(lastUsedLevel != -1){
-        // check if this process is still not blocked
-        if(runningProcess->state == BLOCKED) {
-            dequeue(readyQueues[lastUsedLevel]);
-            runningProcess = NULL; // Reset running process
-            lastUsedLevel = -1;
-        }
+    // Display the ready queues
+    printf("Before ");
+    for(int i = 0; i < 4; i++)
+        displayQueueSimplified(readyQueues[i]);
+    printf("Blocked ");
+    displayQueueSimplified(global_blocked_queue);
 
-        exec_cycle(runningProcess); 
-
-        // check if this process is blocked because it accessed a locked resource
-        if(runningProcess->state == BLOCKED) {
-            dequeue(readyQueues[lastUsedLevel]);
-            runningProcess = NULL; // Reset running process
-            lastUsedLevel = -1;
-        }
-    }
-
-    // there is no pending process, we need to find the next process to execute
+    // there is no pending process(didn't complete its quantum), so we need to find the next process to execute
     if(lastUsedLevel == -1){
         for (int i = 0; i < MAX_NUM_QUEUES; i++) {
-            while (!isEmpty(readyQueues[i])) {
-                if(peek(readyQueues[i])->state == BLOCKED) 
-                    dequeue(readyQueues[i]);
-                else{
-                    runningProcess = peek(readyQueues[i]);
-                    lastUsedLevel = i;
-
-                    exec_cycle(runningProcess); 
-
-                    // check if this process is blocked because it accessed a locked resource
-                    if(runningProcess->state == BLOCKED) {
-                        dequeue(readyQueues[i]);
-                        runningProcess = NULL; // Reset running process
-                    }
-                }
-                if(runningProcess != NULL) break; // Exit if we found a process
+            if(!isEmpty(readyQueues[i])) {
+                runningProcess = peek(readyQueues[i]);
+                lastUsedLevel = i;
+                break;
             }
-            if(runningProcess != NULL) break; // Exit if we found a process
         }
     }
 
@@ -66,6 +41,8 @@ void runMLFQ() {
 
         setProcessState(runningProcess->pid, RUNNING);
         runningProcess->state = RUNNING; 
+
+        exec_cycle(runningProcess); 
 
         runningProcess->quantumUsed++;
         runningProcess->remainingTime--;
@@ -104,8 +81,21 @@ void runMLFQ() {
         printf("CPU is idle\n");
     }
 
+
+    // Remove the blokced process from the ready queues because they've already been put in the blocked Queue, so they don't appear in the ready queues the next cycle
+    for(int i = 0; i < MAX_NUM_QUEUES; i++){
+        int size = getQueueSize(readyQueues[i]);
+        for(int j = 0; j < size; j++){
+            Process* curr = dequeue(readyQueues[i]);
+            if(curr->state != BLOCKED)
+                enqueue(readyQueues[i], curr); 
+        }
+    }
+
     // Display the ready queues
-    printf("Ready ");
+    printf("After ");
     for(int i = 0; i < 4; i++)
         displayQueueSimplified(readyQueues[i]);
+    printf("Blocked ");
+    displayQueueSimplified(global_blocked_queue);
 }

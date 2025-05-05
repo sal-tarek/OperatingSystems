@@ -44,6 +44,7 @@ Process* createProcess(int pid, const char *file_path, int arrival_time) {
     newProcess->remainingTime = 0;
     newProcess->next = NULL;
     newProcess->quantumUsed = 0;
+    newProcess->timeInQueue = 0;
     newProcess->instruction_count = 0;
     newProcess->instructions = NULL; // Initialize to NULL
     newProcess->variable_count = 0;

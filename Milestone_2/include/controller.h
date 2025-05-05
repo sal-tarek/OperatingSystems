@@ -11,5 +11,6 @@ void controller_cleanup(void);
 void controller_update_all(void);
 void controller_update_queue_display(int queue_index);
 void controller_update_blocked_queue_display(void);
+void run_selected_scheduler(void);
 
 #endif // CONTROLLER_H

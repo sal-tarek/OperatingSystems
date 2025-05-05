@@ -23,8 +23,7 @@ void dashboard_view_show(DashboardView *view);
 void dashboard_view_set_process_count(DashboardView *view, int count);
 void dashboard_view_set_clock_cycle(DashboardView *view, int cycle);
 void dashboard_view_set_algorithm(DashboardView *view, const char *algorithm);
-void dashboard_view_add_process(DashboardView *view, int pid, const char *state, int priority,
-                               int mem_lower, int mem_upper, int program_counter);
+void dashboard_view_add_process(DashboardView *view, int pid, const char *state, int priority, int mem_lower, int mem_upper, int program_counter);
 void dashboard_view_free(DashboardView *view);
 
 #endif // DASHBOARD_VIEW_H

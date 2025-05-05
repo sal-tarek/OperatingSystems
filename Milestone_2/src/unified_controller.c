@@ -4,17 +4,16 @@
 #include "Queue.h"
 #include "process.h"
 #include "memory_manager.h"
+#include "clock_controller.h" 
+#include "console_model.h"
 #include <stdio.h>
 #include <string.h>
 
 extern Queue *job_pool;
 extern Queue *processes;
-extern int clockCycle;
+extern int clockCycle;      // This is now managed by clock_controller
 extern int numberOfProcesses;
 extern char *schedulingAlgorithm;
-
-
-// gcc -o simulator main.c unified_controller.c dashboard_view.c simulator_view.c Queue.c process.c PCB.c memory.c memory_manager.c index.c RoundRobin.c FCFS.c MLFQ.c parser.c mutex.c instruction.c $(pkg-config --cflags --libs gtk4)
 
 const char *process_state_to_string(ProcessState state) {
     switch (state) {
@@ -27,19 +26,7 @@ const char *process_state_to_string(ProcessState state) {
     }
 }
 
-int get_number_of_processes(void) {
-    return numberOfProcesses;
-}
-
-int get_current_clock_cycle(void) {
-    return clockCycle;
-}
-
-const char *get_active_scheduling_algorithm(void) {
-    return schedulingAlgorithm ? schedulingAlgorithm : "None";
-}
-
-
+// Update the GUI components based on current system state
 static gboolean update_gui(gpointer user_data) {
     UnifiedController *controller = (UnifiedController *)user_data;
     if (!controller || !controller->dashboard_view || !controller->simulator_view) {
@@ -47,15 +34,14 @@ static gboolean update_gui(gpointer user_data) {
         return G_SOURCE_REMOVE;
     }
     
+    // Update memory visualization
     simulator_view_update_memory(controller->simulator_view);
     
     // Update dashboard view (overview and process list)
-    int process_count = get_number_of_processes();
-    int clock_cycle = get_current_clock_cycle();
-    const char *algorithm = get_active_scheduling_algorithm();
+    int process_count = numberOfProcesses;
     dashboard_view_set_process_count(controller->dashboard_view, process_count);
-    dashboard_view_set_clock_cycle(controller->dashboard_view, clock_cycle);
-    dashboard_view_set_algorithm(controller->dashboard_view, algorithm);
+    dashboard_view_set_clock_cycle(controller->dashboard_view, clockCycle);
+    dashboard_view_set_algorithm(controller->dashboard_view, schedulingAlgorithm);
     
     // Update process list
     GtkWidget *process_list_box = controller->dashboard_view->process_list_widgets->process_list_box;
@@ -72,14 +58,14 @@ static gboolean update_gui(gpointer user_data) {
         child = next;
     }
    
-    // Loop through the processes queue (PCB logic unchanged)
+    // Loop through the processes queue and update the process display
     for (int i = 0; i < process_count; i++) {
         Process *curr = dequeue(processes);
         int pid = curr->pid;
-        DataType type; // Define type as DataType, not a pointer
+        DataType type;
         char varKey[15];
         snprintf(varKey, 15, "P%d_PCB", pid);
-        PCB *pcb = (PCB *)fetchDataByIndex(varKey, &type); // Pass &type
+        PCB *pcb = (PCB *)fetchDataByIndex(varKey, &type);
         if (type != TYPE_PCB) {
             enqueue(processes, curr);
             continue;
@@ -92,6 +78,7 @@ static gboolean update_gui(gpointer user_data) {
     return G_SOURCE_REMOVE; // Only update once per idle add
 }
 
+// Main simulation loop that runs in a separate thread
 static gpointer simulation_loop(gpointer user_data) {
     UnifiedController *controller = (UnifiedController *)user_data;
     if (!controller) {
@@ -100,22 +87,18 @@ static gpointer simulation_loop(gpointer user_data) {
     }
         
     while (controller->running) {
-        // Call back-end to populate memory
-        populateMemory();
-
-        // Call front-end to update memory display
+        // Instead of manual updates, we'll use the clock controller to handle updates
+        // The clock controller will be triggered by the UI buttons (step/auto/etc)
         g_idle_add(update_gui, controller);
-
-        // Increment clock cycle
-        clockCycle++;
-
-        // Sleep for 1 second (1 clock cycle = 1 second)
+        
+        // Sleep for 1 second 
         g_usleep(1000000);
     }
     
     return NULL;
 }
 
+// Create a new unified controller instance
 UnifiedController *unified_controller_new(DashboardView *dashboard_view, SimulatorView *simulator_view) {
     if (!dashboard_view || !simulator_view) {
         fprintf(stderr, "Error: Cannot create UnifiedController - views are NULL\n");
@@ -137,6 +120,7 @@ UnifiedController *unified_controller_new(DashboardView *dashboard_view, Simulat
     return controller;
 }
 
+// Start the unified controller and its simulation thread
 void unified_controller_start(UnifiedController *controller) {
     if (!controller) {
         fprintf(stderr, "Error: Cannot start UnifiedController - controller is NULL\n");
@@ -145,8 +129,11 @@ void unified_controller_start(UnifiedController *controller) {
     
     controller->running = TRUE;
     controller->simulation_thread = g_thread_new("simulation-loop", simulation_loop, controller);
+    
+    console_model_log_output("[CONTROLLER] Unified controller started\n");
 }
 
+// Create a new process based on user input
 void unified_controller_create_process(GtkButton *button, gpointer user_data) {
     UnifiedController *controller = (UnifiedController *)user_data;
     if (!controller || !controller->simulator_view) {
@@ -191,7 +178,8 @@ void unified_controller_create_process(GtkButton *button, gpointer user_data) {
     }
     
     // Create the process
-    int pid = controller->process_id_counter + 1;
+    controller->process_id_counter++;
+    int pid = controller->process_id_counter;
     fprintf(stderr, "Creating process with PID %d, file: %s, arrival: %d\n", pid, file_path, arrival_time);
     Process *process = createProcess(pid, file_path, arrival_time);
     if (!process) {
@@ -201,7 +189,7 @@ void unified_controller_create_process(GtkButton *button, gpointer user_data) {
         return;
     }
         
-    // Add to job pool and processes
+    // Add to job pool
     enqueue(job_pool, process);
     
     // Update the job pool display
@@ -212,19 +200,25 @@ void unified_controller_create_process(GtkButton *button, gpointer user_data) {
              "Added process p%d:\nInstructions: %s\nArrival Time: %d\n", 
              pid, process->instructions ? process->instructions : "None", arrival_time);
     simulator_view_append_dialog_text(controller->simulator_view, message);
+        
+    console_model_log_output("[PROCESS] Created process PID %d with arrival time %d\n", pid, arrival_time);
     
-    // Increment process ID counter
-    controller->process_id_counter++;
-    
-    // Free allocated memory
     g_free(file_path);
 }
 
+// Free resources used by the unified controller
 void unified_controller_free(UnifiedController *controller) {
+    if (!controller) {
+        return;
+    }
+    
     controller->running = FALSE;
     if (controller->simulation_thread) {
         g_thread_join(controller->simulation_thread);
         controller->simulation_thread = NULL;
     }
+    
+    console_model_log_output("[CONTROLLER] Unified controller stopped\n");
+    
     g_free(controller);
 }

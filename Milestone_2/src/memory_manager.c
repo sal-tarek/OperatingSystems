@@ -8,14 +8,15 @@
 #include "Queue.h"
 #include "memory.h"
 
-#define numProcesses 3
-#define numQueues 4
+#define MAX_NUM_PROCESSES 10 // Maximum number of processes to support
+#define MAX_NUM_QUEUES 4     // Maximum number of queues
+#define QUEUE_CAPACITY 10
 
 // Global variables declared in main.c
 extern Queue *job_pool;
 extern MemoryWord *memory;
 extern IndexEntry *index_table;
-extern Queue *readyQueues[numQueues]; 
+extern Queue *readyQueues[MAX_NUM_QUEUES]; 
 extern int clockCycle;
 extern Queue *processes;
 extern int numberOfProcesses;
@@ -193,14 +194,6 @@ void populateMemory() {
         for (int i = 0; i < size && !isEmpty(job_pool); i++) {
             curr = peek(job_pool);
             if (curr->arrival_time <= clockCycle) {
-                int pid = curr->pid - 1;
-                if (pid < 0 || pid > 2) {
-                    fprintf(stderr, "Invalid pid: %d\n", curr->pid);
-                    dequeue(job_pool);
-                    curr = peek(job_pool);
-                    continue;
-                } 
-
                 addInstVarsPCB(curr); // This now handles PCB, instructions, and variables
                 ranges_count++;       // Increment ranges_count
 
@@ -209,7 +202,14 @@ void populateMemory() {
                 // Set the process state to READY
                 curr->state = READY;
                 curr->ready_time = clockCycle; // Set ready_time
+                printf("Clock cycle: %d\n", clockCycle);
+                printf("Mem Before ");
+                for(int i = 0; i < 4; i++)
+                    displayQueueSimplified(readyQueues[i]);
                 enqueue(readyQueues[0], curr); // Add to ready_queue
+                printf("Mem After ");
+                for(int i = 0; i < 4; i++)
+                    displayQueueSimplified(readyQueues[i]);
                 enqueue(processes, curr); // Add to processes queue
                 numberOfProcesses++;
             }

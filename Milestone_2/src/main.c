@@ -19,6 +19,7 @@
 #include "unified_controller.h"
 #include "dashboard_view.h"
 #include "simulator_view.h"
+#include "clock_controller.h" 
 
 #define MAX_NUM_PROCESSES 10 // Maximum number of processes to support
 #define MAX_NUM_QUEUES 4     // Maximum number of queues
@@ -27,15 +28,17 @@
 // Global variables
 Queue *readyQueues[MAX_NUM_QUEUES]; // Ready Queue holding processes waiting to run
 Process *runningProcess = NULL;     // Currently running process (or NULL if none)
-int clockCycle = 0;                 // Current clock cycle of the simulation
+int clockCycle = 0;                 // Current clock cycle of the simulation (managed by clock_controller)
 Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 Queue *global_blocked_queue = NULL;
 int numberOfProcesses = 0;
-// schedulingAlgorithm is now defined in controller.c and declared as extern in controller.h
 Queue *processes = NULL;
 int numOfProcesses = 3;
+
+// Forward declaration of cleanup function
+static void cleanup_resources(void);
 
 // Callback for application activation
 static void activate(GtkApplication *app, gpointer user_data)
@@ -128,6 +131,9 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     gtk_box_append(GTK_BOX(middle_container), controls_container);
 
+    // Initialize clock controller first
+    clock_controller_init();
+    
     // Initialize controller with the controls container
     controller_init(app, window, controls_container);
 
@@ -148,10 +154,10 @@ static void activate(GtkApplication *app, gpointer user_data)
     }
     else
     {
-        // Style the console - increased height to 300px but don't expand vertically
+        // Style the console
         gtk_widget_set_vexpand(console, FALSE);
         gtk_widget_set_hexpand(console, TRUE);
-        gtk_widget_set_size_request(console, -1, 250); // Reduced from 300px to ensure input field visibility
+        gtk_widget_set_size_request(console, -1, 250); 
 
         // Add frame with better padding for visibility
         GtkWidget *console_frame = gtk_frame_new(NULL);
@@ -202,56 +208,15 @@ static void activate(GtkApplication *app, gpointer user_data)
     g_signal_connect(window, "destroy", G_CALLBACK(unified_controller_free), controller);
     g_signal_connect(window, "destroy", G_CALLBACK(dashboard_view_free), dashboard_view);
     g_signal_connect(window, "destroy", G_CALLBACK(simulator_view_free), simulator_view);
+    g_signal_connect(window, "destroy", G_CALLBACK(cleanup_resources), NULL);
 }
 
-int main(int argc, char *argv[])
-{
-    fprintf(stderr, "main called\n");
-    clockCycle = 0;
-
-    // Initialize console
-    console_model_init();
-    console_controller_init();
-
-    // Create GTK application
-    GtkApplication *app = gtk_application_new("org.example.ossimulator", G_APPLICATION_DEFAULT_FLAGS);
-    g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-
-    // Create processes
-    Process *p1 = createProcess(1, "../programs/Program_1.txt", 0);
-    numberOfProcesses++;
-    Process *p2 = createProcess(2, "../programs/Program_2.txt", 3);
-    numberOfProcesses++;
-    Process *p3 = createProcess(3, "../programs/Program_3.txt", 0);
-    numberOfProcesses++;
-    if (!p1 || !p2 || !p3)
-    {
-        fprintf(stderr, "Failed to create processes\n");
-        return 1;
-    }
-
-    // Create job_pool queue
-    job_pool = createQueue();
-    if (!job_pool)
-    {
-        fprintf(stderr, "Failed to create job_pool\n");
-        return 1;
-    }
-
-    // Enqueue processes
-    enqueue(job_pool, p1);
-    enqueue(job_pool, p2);
-    enqueue(job_pool, p3);
-
-    // Run application
-    int status = g_application_run(G_APPLICATION(app), argc, argv);
-
-    // Cleanup
+// Called when the application is shutting down to free all allocated resources
+static void cleanup_resources(void) {
     console_controller_cleanup();
     console_model_cleanup();
     controller_cleanup();
 
-    // Free resources
     while (!isEmpty(job_pool))
     {
         Process *process = dequeue(job_pool);
@@ -289,6 +254,25 @@ int main(int argc, char *argv[])
 
     freeMemoryWord();
     freeIndex(&index_table);
+}
+
+int main(int argc, char *argv[])
+{
+    // Reset clockCycle - though this will be managed by clock_controller
+    clockCycle = 0;
+
+    // Initialize console
+    console_model_init();
+    console_controller_init();
+
+    // Create GTK application
+    GtkApplication *app = gtk_application_new("org.example.ossimulator", G_APPLICATION_DEFAULT_FLAGS);
+    g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
+
+    // Run application
+    int status = g_application_run(G_APPLICATION(app), argc, argv);
+
+    // Cleanup & Free resources done by the destroy signal handler
     g_object_unref(app);
 
     return status;
