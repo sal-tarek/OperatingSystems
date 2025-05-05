@@ -48,19 +48,22 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data);
 static void on_scheduler_changed(GtkWidget *combo, GParamSpec *pspec, gpointer user_data);
 static gboolean automatic_step(gpointer user_data);
 
-void controller_update_queue_display(int queue_index) {
+void controller_update_queue_display(int queue_index)
+{
     if (queue_index < 0 || queue_index >= MAX_NUM_QUEUES)
         return;
     printf("Updating Queue %d: ", queue_index);
     Process *curr = readyQueues[queue_index]->front;
-    while (curr != NULL) {
+    while (curr != NULL)
+    {
         printf("%d -> ", curr->pid);
         curr = curr->next;
     }
     printf("NULL\n");
     GList *pid_list = NULL;
     curr = readyQueues[queue_index]->front;
-    while (curr != NULL) {
+    while (curr != NULL)
+    {
         pid_list = g_list_append(pid_list, GINT_TO_POINTER(curr->pid));
         curr = curr->next;
     }
@@ -226,32 +229,41 @@ static void on_scheduler_changed(GtkWidget *combo, GParamSpec *pspec, gpointer u
 }
 
 // Handle step button click
-static void on_step_clicked(GtkWidget *button, gpointer user_data) {
+static void on_step_clicked(GtkWidget *button, gpointer user_data)
+{
 
+    populateMemory();
+    if (numberOfProcesses <= 0)
+    {
+        clockCycle++;
+        return;
+    }
     printf("\nTime %d: \n \n", clockCycle);
 
     // Check if any processes are still running
-    int any_running = 1;
+    int any_running = 0;
 
-    // for (int i = 1; i <= numberOfProcesses; i++)
-    // {
-    //     if (getProcessState(i) != TERMINATED)
-    //     {
-    //         any_running = 1;
-    //         break;
-    //     }
-    // }
+    for (int i = 1; i <= numberOfProcesses; i++)
+    {
+        if (getProcessState(i) != TERMINATED)
+        {
+            any_running = 1;
+            break;
+        }
+    }
 
-    // if(!isEmpty(job_pool))
-    //     any_running = 1;
-    
-    // if (any_running) {
+    if (!isEmpty(job_pool))
+        any_running = 1;
+
+    if (any_running)
+    {
         controller->is_running = TRUE;
         gtk_widget_set_sensitive(controller->scheduler_combo, FALSE);
         gtk_widget_set_sensitive(controller->quantum_entry, FALSE);
 
         // Get quantum value if using Round Robin
-        if (schedulingAlgorithm && strcmp(schedulingAlgorithm, "Round Robin") == 0) {
+        if (schedulingAlgorithm && strcmp(schedulingAlgorithm, "Round Robin") == 0)
+        {
             const char *quantum_text = gtk_editable_get_text(GTK_EDITABLE(controller->quantum_entry));
             controller->quantum = atoi(quantum_text);
             if (controller->quantum <= 0)
@@ -259,9 +271,10 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data) {
         }
 
         console_model_log_output("[STEP] Executing single step at cycle %d\n", clockCycle);
-        
+
         // Update clock cycle
-        if (!clock_controller_increment()) {
+        if (!clock_controller_increment())
+        {
             // All processes terminated
             controller->is_running = FALSE;
             gtk_widget_set_sensitive(controller->scheduler_combo, TRUE);
@@ -270,14 +283,16 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data) {
             gtk_widget_set_sensitive(controller->automatic_button, FALSE);
             console_model_log_output("[STEP] All processes terminated\n");
         }
-    // } else {
-    //     controller->is_running = FALSE;
-    //     gtk_widget_set_sensitive(controller->scheduler_combo, TRUE);
-    //     gtk_widget_set_sensitive(controller->quantum_entry, TRUE);
-    //     gtk_widget_set_sensitive(button, FALSE);
-    //     gtk_widget_set_sensitive(controller->automatic_button, FALSE);
-    //     console_model_log_output("[STEP] No processes to run\n");
-    // }
+    }
+    else
+    {
+        controller->is_running = FALSE;
+        gtk_widget_set_sensitive(controller->scheduler_combo, TRUE);
+        gtk_widget_set_sensitive(controller->quantum_entry, TRUE);
+        gtk_widget_set_sensitive(button, FALSE);
+        gtk_widget_set_sensitive(controller->automatic_button, FALSE);
+        console_model_log_output("[STEP] No processes to run\n");
+    }
 }
 
 static void on_automatic_clicked(GtkWidget *button, gpointer user_data)
@@ -285,7 +300,8 @@ static void on_automatic_clicked(GtkWidget *button, gpointer user_data)
     populateMemory();
     if (numberOfProcesses <= 0)
     {
-        return ;
+        clockCycle++;
+        return;
     }
     if (controller->automatic_timer_id == 0)
     {
@@ -347,7 +363,6 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     // Reset clock to 0
     clock_controller_reset();
 
-
     runningProcess = NULL;
 
     freeMemoryWord();
@@ -404,14 +419,14 @@ static gboolean automatic_step(gpointer user_data)
     // Check if any processes are still running
     int any_running = 0;
     for (int i = 1; i <= numberOfProcesses; i++)
-    for (int i = 1; i <= numberOfProcesses; i++)
-    {
-        if (getProcessState(i) != TERMINATED)
+        for (int i = 1; i <= numberOfProcesses; i++)
         {
-            any_running = 1;
-            break;
+            if (getProcessState(i) != TERMINATED)
+            {
+                any_running = 1;
+                break;
+            }
         }
-    }
 
     if (any_running)
     {
