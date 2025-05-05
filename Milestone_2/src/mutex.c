@@ -56,7 +56,7 @@ void remove_from_global_blocked_queue(Process *process)
         if (process == global_blocked_queue->front)
         {
             dequeue(global_blocked_queue);
-            enqueue(readyQueues[getProcessPriority(process->pid)], process);
+            enqueueWithoutClone(readyQueues[getProcessPriority(process->pid)], process);
 
             printf("After: Global Blocked ");
             displayQueueSimplified(global_blocked_queue);
@@ -64,7 +64,7 @@ void remove_from_global_blocked_queue(Process *process)
         }
         else
         {
-            enqueue(global_blocked_queue, dequeue(global_blocked_queue));
+            enqueueWithoutClone(global_blocked_queue, dequeue(global_blocked_queue));
         }
     }
 }
@@ -111,7 +111,7 @@ int mutex_lock(mutex_t *mutex, Process *process)
         process->state = BLOCKED;
         setProcessState(process->pid, BLOCKED); // set PCB State to BLOCKED
 
-        enqueue(global_blocked_queue, process); // Add to global blocked queue
+        enqueueWithoutClone(global_blocked_queue, process); // Add to global blocked queue
 
         printf("Process %d is blocked waiting for %s\n", process->pid, mutex->name);
     }
