@@ -67,7 +67,7 @@ GtkWidget *console_view_new(GtkWidget **entry_out)
     GtkWidget *output_scrolled = gtk_scrolled_window_new();
     gtk_widget_set_vexpand(output_scrolled, TRUE);
     gtk_widget_set_hexpand(output_scrolled, TRUE);
-    gtk_widget_set_size_request(output_scrolled, 300, 150); // Reduced from 200px
+    gtk_widget_set_size_request(output_scrolled, 300, 120); // Reduced from 200px
 
     // Program output text view
     GtkWidget *output_view = gtk_text_view_new();
@@ -87,7 +87,7 @@ GtkWidget *console_view_new(GtkWidget **entry_out)
     GtkWidget *log_scrolled = gtk_scrolled_window_new();
     gtk_widget_set_vexpand(log_scrolled, TRUE);
     gtk_widget_set_hexpand(log_scrolled, TRUE);
-    gtk_widget_set_size_request(log_scrolled, 300, 150); // Reduced from 200px
+    gtk_widget_set_size_request(log_scrolled, 300, 120); // Reduced from 200px
 
     // Execution log text view
     GtkWidget *log_view = gtk_text_view_new();
@@ -112,7 +112,7 @@ GtkWidget *console_view_new(GtkWidget **entry_out)
     GtkWidget *input_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
     gtk_widget_set_margin_start(input_box, 5);
     gtk_widget_set_margin_end(input_box, 5);
-    gtk_widget_set_margin_top(input_box, 10);
+    gtk_widget_set_margin_top(input_box, 0);
     gtk_widget_set_margin_bottom(input_box, 5);
 
     // Add label for the input area
