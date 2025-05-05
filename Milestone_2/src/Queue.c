@@ -10,15 +10,19 @@ Queue* createQueue() {
     return q;
 }
 
-void enqueue(Queue* q, Process* newProcess) {
-    //newProcess->state = READY;
+void enqueue(Queue *q, Process *newProcess) {
+    // Deep clone the process
+    Process *clonedProcess = cloneProcess(newProcess);
+    // Ensure the cloned process has no lingering next pointer
+    clonedProcess->next = NULL;
 
+    // Add the cloned process to the queue
     if (q->rear == NULL) {
-        q->front = q->rear = newProcess;
-        return;
+        q->front = q->rear = clonedProcess;
+    } else {
+        q->rear->next = clonedProcess;
+        q->rear = clonedProcess;
     }
-    q->rear->next = newProcess;
-    q->rear = newProcess;
 }
 
 void enqueueSortedByArrivalTime(Queue* q, Process* newProcess) {

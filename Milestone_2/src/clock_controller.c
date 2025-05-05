@@ -20,7 +20,44 @@ void clock_controller_init(void) {
     console_model_log_output("[CLOCK] Clock controller initialized\n");
 }
 
-gboolean clock_controller_increment() {
+// gboolean clock_controller_increment() {
+//     // Step 1: Check if any processes are still running
+//     int any_running = 0;
+//     for (int i = 1; i <= numOfProcesses; i++) {
+//         if (getProcessState(i) != TERMINATED) {
+//             any_running = 1;
+//             break;
+//         }
+//     }
+    
+//     if (!any_running) {
+//         console_model_log_output("[CLOCK] All processes terminated, stopping clock\n");
+//         return FALSE;
+//     }
+    
+//     printf("Clock cycle: %d\n", clockCycle);
+
+
+//     // Step 3: Run the selected scheduler
+//     run_selected_scheduler();
+
+//         // Step 2: Update memory representation
+//         populateMemory();
+//     // Step 4: Update all UI components
+//     controller_update_all();
+
+//     // Step 5: Increment the clock cycle
+//     clockCycle++;
+    
+    
+//     // Step 6: Log the increment
+//     console_model_log_output("[CLOCK] Cycle incremented to %d\n", clockCycle);
+//     return TRUE;
+// }
+
+gboolean clock_controller_increment(int *clockCycle) {
+    int currentCycle = *clockCycle;
+    printf("clock_controller_increment: Starting with clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
     // Step 1: Check if any processes are still running
     int any_running = 0;
     for (int i = 1; i <= numOfProcesses; i++) {
@@ -35,21 +72,17 @@ gboolean clock_controller_increment() {
         return FALSE;
     }
     
-    printf("Clock cycle: %d\n", clockCycle);
-    // Step 2: Update memory representation
+    printf("clock_controller_increment: Before populateMemory, clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
     populateMemory();
-
-    // Step 3: Run the selected scheduler
+    printf("clock_controller_increment: After populateMemory, clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
     run_selected_scheduler();
-
-    // Step 4: Update all UI components
-    controller_update_all();
-
-    // Step 5: Increment the clock cycle
-    clockCycle++;
+    printf("clock_controller_increment: After scheduler, clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
     
-    // Step 6: Log the increment
-    console_model_log_output("[CLOCK] Cycle incremented to %d\n", clockCycle);
+    controller_update_all();
+    printf("clock_controller_increment: Before increment, clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
+    (*clockCycle)++;
+    printf("clock_controller_increment: After increment, clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
+    console_model_log_output("[CLOCK] Cycle incremented to %d\n", *clockCycle);
     return TRUE;
 }
 
