@@ -93,6 +93,5 @@ void runMLFQ() {
     else{
         printf("CPU is idle\n");
     }
-
     return;
 }

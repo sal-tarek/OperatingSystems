@@ -74,6 +74,14 @@ int main2() {
     displayQueue(job_pool);
     printf("\n");
 
+    //populate memory test
+    while(clockCycle < 5) {
+        printf("Time %d\n", clockCycle);
+        populateMemory();
+        printMemory();
+        clockCycle++;
+        }
+   
 
     // Schedulers
 
@@ -86,8 +94,9 @@ int main2() {
     // while((getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) && clockCycle<6) {
     //     populateMemory();
     //     printMemory();
+
     //     runMLFQ(); 
-    //     clockCycle++;
+    //     if (clockCycle++ == 30) break;
     // }
 
     // RR
@@ -102,16 +111,25 @@ int main2() {
             printf("Quantum must be a positive integer.\n");
         }
         
-        // clear the input buffer after using scanf
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF); 
-    } while (q <= 0);
-    while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
-        populateMemory();
-        printMemory();
-        runRR(q); 
-        clockCycle++; 
-    }
+
+    //     // clear the input buffer after using scanf
+    //     int c;
+    //     while ((c = getchar()) != '\n' && c != EOF); 
+    // } while (q <= 0);
+    // while(getProcessState(1) != TERMINATED|| getProcessState(2) != TERMINATED|| getProcessState(3) != TERMINATED) {
+    //     populateMemory();
+    //     runRR(q); 
+    //     clockCycle++; 
+    // }
+
+    //FCFS
+    // while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
+    //     populateMemory();
+    //     displayProcess(runningProcess);
+    //     runFCFS(); 
+    //     clockCycle++; 
+    // }
+
 
     // // FCFS
     // while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
@@ -123,10 +141,12 @@ int main2() {
 
 
     // Test 1: Populate memory at time 0
-    printf("Populating memory at time 0...\n");
-    printf("size: %d\n", getQueueSize(job_pool));
+    
+    // printf("Populating memory at time 0...\n");
+    // printf("size: %d\n", getQueueSize(job_pool));
     // populateMemory();
-    printMemory();
+    // printMemory();
+
     // displayMemoryRange(0); // Show all memory ranges
 
 
