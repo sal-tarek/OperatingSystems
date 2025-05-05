@@ -83,6 +83,7 @@ int main2() {
         }
    
 
+<<<<<<< HEAD
     // Schedulers
 
     // while(clockCycle<5){
@@ -95,21 +96,19 @@ int main2() {
     //     populateMemory();
     //     printMemory();
 
-    //     runMLFQ(); 
-    //     if (clockCycle++ == 30) break;
-    // }
+=======
 
     // RR
     // Get quantum from user
-    int q;
-    do {
-        printf("Enter quantum (positive integer): ");
-        if (scanf("%d", &q) != 1) { // Invalid input: not a number
-            printf("Invalid input. Please enter a number.\n");
-            q = -1; 
-        } else if (q <= 0) {
-            printf("Quantum must be a positive integer.\n");
-        }
+    // int q;
+    // do {
+    //     printf("Enter quantum (positive integer): ");
+    //     if (scanf("%d", &q) != 1) { // Invalid input: not a number
+    //         printf("Invalid input. Please enter a number.\n");
+    //         q = -1; 
+    //     } else if (q <= 0) {
+    //         printf("Quantum must be a positive integer.\n");
+    //     }
         
 
     //     // clear the input buffer after using scanf
@@ -131,6 +130,7 @@ int main2() {
     // }
 
 
+
     // // FCFS
     // while(getProcessState(1) != TERMINATED || getProcessState(2) != TERMINATED || getProcessState(3) != TERMINATED) {
     //     populateMemory();
@@ -138,6 +138,7 @@ int main2() {
     //     runFCFS(); 
     //     clockCycle++; 
     // }
+
 
 
     // Test 1: Populate memory at time 0
