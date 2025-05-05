@@ -10,7 +10,7 @@
 #include <string.h>
 
 extern Queue *job_pool;
-extern Queue *processes;
+extern Process *processes[MAX_PROCESSES];
 extern int clockCycle;      // This is now managed by clock_controller
 extern int numberOfProcesses;
 extern char *schedulingAlgorithm;
@@ -60,19 +60,17 @@ static gboolean update_gui(gpointer user_data) {
    
     // Loop through the processes queue and update the process display
     for (int i = 0; i < process_count; i++) {
-        Process *curr = dequeue(processes);
+        Process *curr = processes[i];
         int pid = curr->pid;
         DataType type;
         char varKey[15];
         snprintf(varKey, 15, "P%d_PCB", pid);
         PCB *pcb = (PCB *)fetchDataByIndex(varKey, &type);
         if (type != TYPE_PCB) {
-            enqueue(processes, curr);
             continue;
         }
         const char *state_str = process_state_to_string(pcb->state);
         dashboard_view_add_process(controller->dashboard_view, pcb->id, state_str, pcb->priority, pcb->memLowerBound, pcb->memUpperBound, pcb->programCounter);
-        enqueue(processes, curr);
     }
     
     return G_SOURCE_REMOVE; // Only update once per idle add

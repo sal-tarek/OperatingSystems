@@ -83,13 +83,3 @@ Output of program with process ID: 1
 [OUTPUT] Process 1 executed printFromTo from 5 to 5
 [UPDATE] Refreshed all displays at cycle 9
 [CLOCK] Cycle incremented to 10
-[STEP] Executing single step at cycle 10
-[SCHEDULER] Running MLFQ algorithm
-[INFO] Process 1 executing instruction at PC=6
-[EXEC] Process 1: Executing semSignal userOutput
-[MUTEX] Process 1 released userOutput resource
-[UPDATE] Refreshed all displays at cycle 10
-[CLOCK] Cycle incremented to 11
-[CLOCK] Clock reset to 0
-[RESET] Simulation reset to initial state
-[UPDATE] Refreshed all displays at cycle 0

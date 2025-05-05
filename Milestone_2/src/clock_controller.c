@@ -10,12 +10,13 @@
 extern void controller_update_all(void);
 extern void populateMemory(void);
 extern ProcessState getProcessState(int pid);
-extern int numOfProcesses;
+extern int numberOfProcesses;
 
 // Global clock cycle counter
 extern int clockCycle;
 
-void clock_controller_init(void) {
+void clock_controller_init(void)
+{
     clockCycle = 0;
     console_model_log_output("[CLOCK] Clock controller initialized\n");
 }
@@ -55,38 +56,36 @@ void clock_controller_init(void) {
 //     return TRUE;
 // }
 
-gboolean clock_controller_increment(int *clockCycle) {
-    int currentCycle = *clockCycle;
-    printf("clock_controller_increment: Starting with clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
+gboolean clock_controller_increment() {
     // Step 1: Check if any processes are still running
-    int any_running = 0;
-    for (int i = 1; i <= numOfProcesses; i++) {
-        if (getProcessState(i) != TERMINATED) {
-            any_running = 1;
-            break;
-        }
-    }
+    // int any_running = 0;
+    // for (int i = 1; i <= numberOfProcesses; i++)
+    // {
+    //     if (getProcessState(i) != TERMINATED)
+    //     {
+    //         any_running = 1;
+    //         break;
+    //     }
+    // }
+
+    // if (!any_running)
+    // {
+    //     console_model_log_output("[CLOCK] All processes terminated, stopping clock\n");
+    //     return FALSE;
+    // }
     
-    if (!any_running) {
-        console_model_log_output("[CLOCK] All processes terminated, stopping clock\n");
-        return FALSE;
-    }
-    
-    printf("clock_controller_increment: Before populateMemory, clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
     populateMemory();
-    printf("clock_controller_increment: After populateMemory, clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
     run_selected_scheduler();
-    printf("clock_controller_increment: After scheduler, clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
     
     controller_update_all();
-    printf("clock_controller_increment: Before increment, clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
-    (*clockCycle)++;
-    printf("clock_controller_increment: After increment, clockCycle = %d, currentCycle = %d\n", *clockCycle, currentCycle);
-    console_model_log_output("[CLOCK] Cycle incremented to %d\n", *clockCycle);
+    clockCycle++;
+
+    console_model_log_output("[CLOCK] Cycle incremented to %d\n", clockCycle);
     return TRUE;
 }
 
-void clock_controller_reset(void) {
+void clock_controller_reset(void)
+{
     clockCycle = 0;
     console_model_log_output("[CLOCK] Clock reset to 0\n");
 }

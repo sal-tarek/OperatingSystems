@@ -18,7 +18,7 @@ extern MemoryWord *memory;
 extern IndexEntry *index_table;
 extern Queue *readyQueues[MAX_NUM_QUEUES]; 
 extern int clockCycle;
-extern Queue *processes;
+extern Process *processes[MAX_PROCESSES];
 extern int numberOfProcesses;
 
 // Global array to store memory ranges for each process
@@ -134,7 +134,7 @@ void addInstVarsPCB(Process *process) {
     // Step 3: Allocate variables ranges after instructions
     ranges[ranges_count].var_start = ranges[ranges_count].inst_start + ranges[ranges_count].inst_count;
     ranges[ranges_count].var_count = var_count;
-
+ 
     // Create and store the PCB
     int lower_bound = ranges[ranges_count].pcb_start; // Start of PCB
     int upper_bound = ranges[ranges_count].var_start + ranges[ranges_count].var_count - 1; // End of variables
@@ -174,7 +174,7 @@ void addInstVarsPCB(Process *process) {
 
     // Store variables in memory
     for (int i = 0; i < var_count; i++) {
-        addMemoryData(&memory, ranges[ranges_count].var_start + i, variables[i], TYPE_STRING);
+        addMemoryData(&memory, ranges[ranges_count].var_start + i, "Variable Not Initialized", TYPE_STRING);
         char key[32];
         snprintf(key, sizeof(key), "P%d_Variable_%s", process->pid, variables[i]);
         addIndexEntry(&index_table, key, ranges[ranges_count].var_start + i);
@@ -187,10 +187,6 @@ void addInstVarsPCB(Process *process) {
 }
 
 void populateMemory() {
-    printf("Mem Before ");
-    for(int i = 0; i < 4; i++)
-        displayQueueSimplified(readyQueues[i]);
-
     DataType type;
     int size = getQueueSize(job_pool);
     for (int i = 0; i < size; i++) {
@@ -199,29 +195,25 @@ void populateMemory() {
         if (curr->arrival_time <= clockCycle) {
             addInstVarsPCB(curr); // This now handles PCB, instructions, and variables
             ranges_count++;       // Increment ranges_count
-
+            
             // Dequeue from job pool
             dequeue(job_pool);
+
             // Set the process state to READY
             curr->state = READY;
             curr->ready_time = clockCycle; // Set ready_time
-
-    
+      
             enqueue(readyQueues[0], curr); // Add to ready_queue
 
-    
-            enqueue(processes, curr); // Add to processes queue
+            processes[numberOfProcesses] = curr; // Store the process in the global array
             numberOfProcesses++;
+            printMemory();
         }
         else{
             enqueue(job_pool, dequeue(job_pool)); // Re-enqueue the process
         }
     }
 
-    printf("Mem After ");
-    for(int i = 0; i < 4; i++)
-        displayQueueSimplified(readyQueues[i]);
-        
 }
 
 void* fetchDataByIndex(const char *key, DataType *type_out) {
@@ -401,23 +393,23 @@ void freeMemoryRange(int inst_start, int inst_count, int var_start, int var_coun
 }
 
 void deleteProcessFromMemory(int pid) {
-    // Step 1: Find the process's memory range
-    int range_idx = -1;
-    for (int i = 0; i < ranges_count; i++) {
-        if (ranges[i].pid == pid) {
-            range_idx = i;
-            break;
-        }
-    }
-    if (range_idx == -1) {
-        fprintf(stderr, "No memory range found for PID: %d\n", pid);
-        return;
-    }
+    // // Step 1: Find the process's memory range
+    // int range_idx = -1;
+    // for (int i = 0; i < ranges_count; i++) {
+    //     if (ranges[i].pid == pid) {
+    //         range_idx = i;
+    //         break;
+    //     }
+    // }
+    // if (range_idx == -1) {
+    //     fprintf(stderr, "No memory range found for PID: %d\n", pid);
+    //     return;
+    // }
 
-    MemoryRange range = ranges[range_idx];
+    MemoryRange range = ranges[pid];
 
-    // Step 2: Free the memory range
-    freeMemoryRange(range.inst_start, range.inst_count, range.var_start, range.var_count, range.pcb_start);
+    // // Step 2: Free the memory range
+    // freeMemoryRange(range.inst_start, range.inst_count, range.var_start, range.var_count, range.pcb_start);
 
     // Step 3: Remove index entries for this process
     IndexEntry *entry, *tmp;
@@ -434,12 +426,6 @@ void deleteProcessFromMemory(int pid) {
     // Step 4: Update memory usage
     int total_words_freed = range.inst_count + range.var_count + range.pcb_count;
     current_memory_usage -= total_words_freed;
-
-    // Step 5: Remove the range entry by shifting subsequent entries
-    for (int i = range_idx; i < ranges_count - 1; i++) {
-        ranges[i] = ranges[i + 1];
-    }
-    ranges_count--;
 
     printf("Freed memory for P%d: %d words\n", pid, total_words_freed);
 }
