@@ -8,14 +8,6 @@
 [PROCESS] Created process PID 1 with arrival time 2
 [PROCESS] Created process PID 2 with arrival time 3
 [PROCESS] Created process PID 3 with arrival time 5
-[STEP] Executing single step at cycle 0
-[SCHEDULER] Running MLFQ algorithm
-[UPDATE] Refreshed all displays at cycle 0
-[CLOCK] Cycle incremented to 1
-[STEP] Executing single step at cycle 1
-[SCHEDULER] Running MLFQ algorithm
-[UPDATE] Refreshed all displays at cycle 1
-[CLOCK] Cycle incremented to 2
 [STEP] Executing single step at cycle 2
 [SCHEDULER] Running MLFQ algorithm
 [INFO] Process 1 executing instruction at PC=0
@@ -66,20 +58,3 @@
 [UNBLOCKED] Process 1 was unblocked from resource userInput
 [UPDATE] Refreshed all displays at cycle 7
 [CLOCK] Cycle incremented to 8
-[STEP] Executing single step at cycle 8
-[SCHEDULER] Running MLFQ algorithm
-[INFO] Process 1 executing instruction at PC=4
-[EXEC] Process 1: Executing semWait userOutput
-[MUTEX] Process 1 attempting to acquire userOutput resource
-[MUTEX] Process 1 successfully acquired resource: userOutput
-[UPDATE] Refreshed all displays at cycle 8
-[CLOCK] Cycle incremented to 9
-[STEP] Executing single step at cycle 9
-[SCHEDULER] Running MLFQ algorithm
-[INFO] Process 1 executing instruction at PC=5
-[EXEC] Process 1: Executing printFromTo a b
-Output of program with process ID: 1
-5
-[OUTPUT] Process 1 executed printFromTo from 5 to 5
-[UPDATE] Refreshed all displays at cycle 9
-[CLOCK] Cycle incremented to 10

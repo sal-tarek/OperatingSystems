@@ -6,24 +6,10 @@
 
 // runs one cycle of the FCFS scheduler
 void runFCFS() {
-    printf("\nTime %d: \n \n", clockCycle);
 
     // Fetch the next process from the ready queue & Handling Blocked processes
-    while (!isEmpty(readyQueues[0])) {
-        if(peek(readyQueues[0])->state == BLOCKED) 
-            dequeue(readyQueues[0]); 
-        else{
-            runningProcess = peek(readyQueues[0]);
-            exec_cycle(runningProcess); 
-
-            if(runningProcess->state == BLOCKED) {
-                dequeue(readyQueues[0]); 
-                runningProcess = NULL; // Clear runningProcess
-            }
-            else
-                break;
-        }
-    }
+    if(!isEmpty(readyQueues[0]))
+        runningProcess = peek(readyQueues[0]);
 
     // Update the timeInQueue for all processes in the ready queue
     Process *temp = readyQueues[0]->front;
@@ -35,8 +21,10 @@ void runFCFS() {
     // If a process is running, execute it
     if (runningProcess != NULL) {
         setProcessState(runningProcess->pid, RUNNING); 
-
         runningProcess->state = RUNNING;
+
+        exec_cycle(runningProcess); // Execution of the next instruction of the process
+
         runningProcess->remainingTime--;
         printf("Executed Process %d remaining time: %d time in queue: %d\n", runningProcess->pid, runningProcess->remainingTime, runningProcess->timeInQueue);
 
@@ -56,6 +44,14 @@ void runFCFS() {
         printf("CPU is idle\n");
     }
 
+    // Remove the blokced process from the ready queues because they've already been put in the blocked Queue, so they don't appear in the ready queues the next cycle
+    int size = getQueueSize(readyQueues[0]);
+    for(int j = 0; j < size; j++){
+        Process* curr = dequeue(readyQueues[0]);
+        if(curr->state != BLOCKED)
+            enqueue(readyQueues[0], curr); 
+    }
+    
     // Print ready queue
     printf("Ready ");
     displayQueueSimplified(readyQueues[0]);
