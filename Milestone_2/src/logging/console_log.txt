@@ -6,68 +6,51 @@
 [SYSTEM] Clock cycle: -1
 [SYSTEM] Processes loaded: 0
 [PROCESS] Created process PID 1 with arrival time 0
-[CONFIG] Scheduler set to FCFS
-[CONFIG] Scheduler set to Round Robin
+[PROCESS] Created process PID 2 with arrival time 0
+[PROCESS] Created process PID 3 with arrival time 0
 [STEP] Executing single step at cycle 0
-[SCHEDULER] Running Round Robin algorithm with quantum 2
+[SCHEDULER] Running MLFQ algorithm
 [EXEC] Process 1 executing instruction at PC=0
 [EXEC] Decoding instruction: semWait userInput
 [MUTEX] Process 1 attempting to acquire userInput resource
 [MUTEX] Process 1 successfully acquired resource: userInput
 [EXEC] Process 1 completed instruction at PC=0
-[STATE] Process 1 running instruction: assign a input
-[QUEUE] Queue 0: P1
+[QUEUE] Queue 0: P2 -> P3
+[QUEUE] Queue 1: P1
 [CLOCK] Cycle 0
 [STEP] Executing single step at cycle 1
-[SCHEDULER] Running Round Robin algorithm with quantum 2
-[EXEC] Process 1 executing instruction at PC=1
-[EXEC] Decoding instruction: assign a input
-[INPUT] User entered: "1"
-[MEMORY] Process 1: Variable 'a' assigned value '1'
-[EXEC] Process 1 completed instruction at PC=1
-[QUEUE] Queue 0: P1
+[SCHEDULER] Running MLFQ algorithm
+[EXEC] Process 2 executing instruction at PC=0
+[EXEC] Decoding instruction: semWait userInput
+[MUTEX] Process 2 attempting to acquire userInput resource
+[BLOCKED] Process 2 blocked waiting for resource: userInput
+[EXEC] Process 2 completed instruction at PC=0
+[STATE] Blocked processes: P2
+[QUEUE] Queue 1: P1
+[BLOCKED] Blocked Queue: P2
 [CLOCK] Cycle 1
 [STEP] Executing single step at cycle 2
-[SCHEDULER] Running Round Robin algorithm with quantum 2
-[EXEC] Process 1 executing instruction at PC=2
-[EXEC] Decoding instruction: assign b input
-[INPUT] User entered: "5"
-[MEMORY] Process 1: Variable 'b' assigned value '5'
-[EXEC] Process 1 completed instruction at PC=2
-[STATE] Process 1 running instruction: semSignal userInput
-[QUEUE] Queue 0: P1
-[CLOCK] Cycle 2
-[STEP] Executing single step at cycle 3
-[SCHEDULER] Running Round Robin algorithm with quantum 2
-[EXEC] Process 1 executing instruction at PC=3
-[EXEC] Decoding instruction: semSignal userInput
-[MUTEX] Process 1 released userInput resource
-[EXEC] Process 1 completed instruction at PC=3
-[QUEUE] Queue 0: P1
-[CLOCK] Cycle 3
-[STEP] Executing single step at cycle 4
-[SCHEDULER] Running Round Robin algorithm with quantum 2
-[EXEC] Process 1 executing instruction at PC=4
-[EXEC] Decoding instruction: semWait userOutput
-[MUTEX] Process 1 attempting to acquire userOutput resource
-[MUTEX] Process 1 successfully acquired resource: userOutput
-[EXEC] Process 1 completed instruction at PC=4
-[STATE] Process 1 running instruction: printFromTo a b
-[QUEUE] Queue 0: P1
-[CLOCK] Cycle 4
-[STEP] Executing single step at cycle 5
-[SCHEDULER] Running Round Robin algorithm with quantum 2
-[EXEC] Process 1 executing instruction at PC=5
-[EXEC] Decoding instruction: printFromTo a b
-1 2 3 4 5
-[OUTPUT] Process 1 executed printFromTo from 1 to 5
-[EXEC] Process 1 completed instruction at PC=5
-[QUEUE] Queue 0: P1
-[CLOCK] Cycle 5
-[STEP] Executing single step at cycle 6
-[SCHEDULER] Running Round Robin algorithm with quantum 2
-[EXEC] Process 1 executing instruction at PC=6
-[EXEC] Decoding instruction: semSignal userOutput
-[MUTEX] Process 1 released userOutput resource
-[EXEC] Process 1 completed instruction at PC=6
-[CLOCK] Cycle 6
+[SCHEDULER] Running MLFQ algorithm
+[EXEC] Process 1 executing instruction at PC=1
+[EXEC] Decoding instruction: assign a input
+[CLOCK] Clock reset to -1
+[RESET] Simulation reset to initial state
+[SYSTEM] OS Scheduler Simulation reset complete
+[SYSTEM] Clock cycle: 0
+[SYSTEM] Processes loaded: 0
+[DEBUG] ----------- RESET STATE VERIFICATION -----------
+[DEBUG] Scheduler algorithm: MLFQ
+[DEBUG] Controller running state: Stopped
+[DEBUG] Controller quantum: 2
+[DEBUG] Controller timer: Inactive
+[DEBUG] Ready Queue 0 size: 0
+[DEBUG] Ready Queue 1 size: 0
+[DEBUG] Ready Queue 2 size: 0
+[DEBUG] Ready Queue 3 size: 0
+[DEBUG] Blocked Queue size: 0
+[DEBUG] Job Pool size: 0
+[DEBUG] Running Process: None (Correct)
+[DEBUG] Memory properly initialized: No (ERROR!)
+[DEBUG] Clock cycle after reset: 0
+[DEBUG] ----------- END VERIFICATION -----------
+[PROCESS] Created process PID 4 with arrival time 0

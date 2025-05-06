@@ -67,7 +67,7 @@ void controller_update_queue_display(int queue_index)
     {
         GString *queue_str = g_string_new("");
         g_string_append_printf(queue_str, "Queue %d: ", queue_index);
-        
+
         GList *iter = pid_list;
         while (iter)
         {
@@ -76,7 +76,7 @@ void controller_update_queue_display(int queue_index)
             if (iter)
                 g_string_append(queue_str, " -> ");
         }
-        
+
         console_model_log_output("[QUEUE] %s\n", queue_str->str);
         g_string_free(queue_str, TRUE);
     }
@@ -101,7 +101,7 @@ void controller_update_blocked_queue_display(void)
     {
         GString *blocked_str = g_string_new("");
         g_string_append(blocked_str, "Blocked Queue: ");
-        
+
         GList *iter = pid_list;
         while (iter)
         {
@@ -110,7 +110,7 @@ void controller_update_blocked_queue_display(void)
             if (iter)
                 g_string_append(blocked_str, " -> ");
         }
-        
+
         console_model_log_output("[BLOCKED] %s\n", blocked_str->str);
         g_string_free(blocked_str, TRUE);
     }
@@ -424,9 +424,19 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     // Reset clock to 0
     clock_controller_reset();
 
+    numberOfProcesses = 0;
+
     runningProcess = NULL;
 
     freeMemoryWord();
+
+    while (!isEmpty(job_pool))
+    {
+        Process *process = dequeue(job_pool);
+        if (process)
+            freeProcess(process);
+    }
+    freeQueue(job_pool);
 
     for (int i = 0; i < MAX_NUM_QUEUES; i++)
     {
@@ -472,6 +482,64 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     console_controller_reset_view();
 
     console_model_log_output("[RESET] Simulation reset to initial state\n");
+
+    // Log completion of reset
+    console_model_log_output("[SYSTEM] OS Scheduler Simulation reset complete\n");
+    console_model_log_output("[SYSTEM] Clock cycle: %d\n", clockCycle);
+    console_model_log_output("[SYSTEM] Processes loaded: %d\n", numberOfProcesses);
+
+    // Add debugging output to verify reset state
+    console_model_log_output("[DEBUG] ----------- RESET STATE VERIFICATION -----------\n");
+
+    // Verify scheduler algorithm reset
+    console_model_log_output("[DEBUG] Scheduler algorithm: %s\n", schedulingAlgorithm);
+
+    // Verify controller state
+    console_model_log_output("[DEBUG] Controller running state: %s\n", controller->is_running ? "Running" : "Stopped");
+    console_model_log_output("[DEBUG] Controller quantum: %d\n", controller->quantum);
+    console_model_log_output("[DEBUG] Controller timer: %s\n", controller->automatic_timer_id ? "Active" : "Inactive");
+
+    // Verify process queues
+    for (int i = 0; i < MAX_NUM_QUEUES; i++)
+    {
+        console_model_log_output("[DEBUG] Ready Queue %d size: %d\n", i, getQueueSize(readyQueues[i]));
+        if (!isEmpty(readyQueues[i]))
+        {
+            console_model_log_output("[DEBUG] WARNING: Queue %d not empty after reset!\n", i);
+        }
+    }
+
+    // Verify blocked queue
+    console_model_log_output("[DEBUG] Blocked Queue size: %d\n", getQueueSize(global_blocked_queue));
+    if (!isEmpty(global_blocked_queue))
+    {
+        console_model_log_output("[DEBUG] WARNING: Blocked queue not empty after reset!\n");
+    }
+
+    // Verify job pool
+    console_model_log_output("[DEBUG] Job Pool size: %d\n", getQueueSize(job_pool));
+    if (!isEmpty(job_pool))
+    {
+        console_model_log_output("[DEBUG] WARNING: Job pool not empty after reset!\n");
+    }
+
+    // Verify running process
+    console_model_log_output("[DEBUG] Running Process: %s\n", runningProcess ? "Present (ERROR!)" : "None (Correct)");
+
+    // Verify process array
+   
+
+    // Log memory state
+    console_model_log_output("[DEBUG] Memory properly initialized: %s\n", memory ? "Yes" : "No (ERROR!)");
+
+    // Verify clock
+    console_model_log_output("[DEBUG] Clock cycle after reset: %d\n", clockCycle);
+    if (clockCycle != 0)
+    {
+        console_model_log_output("[DEBUG] WARNING: Clock cycle not reset to 0!\n");
+    }
+
+    console_model_log_output("[DEBUG] ----------- END VERIFICATION -----------\n");
 
     // Update all displays
     controller_update_all();
