@@ -12,7 +12,6 @@ typedef struct Queue
 
 Queue *createQueue();
 void enqueue(Queue *q, Process *newProcess);
-void enqueueWithoutClone(Queue *q, Process *process);
 void enqueueSortedByArrivalTime(Queue *q, Process *newProcess);
 Process *dequeue(Queue *q);
 Process *peek(Queue *q);

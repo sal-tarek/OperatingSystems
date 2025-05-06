@@ -7,7 +7,13 @@
 // runs one cycle of the FCFS scheduler
 void runFCFS()
 {
-
+    // Display the ready queues
+    printf("Before ");
+    for (int i = 0; i < 4; i++)
+        displayQueueSimplified(readyQueues[i]);
+    printf("Blocked ");
+    displayQueueSimplified(global_blocked_queue);
+    
     // Fetch the next process from the ready queue & Handling Blocked processes
     if (!isEmpty(readyQueues[0]))
         runningProcess = peek(readyQueues[0]);
@@ -20,7 +26,6 @@ void runFCFS()
         temp = temp->next;
     }
 
-    // If a process is running, execute it
     if (runningProcess != NULL)
     {
         setProcessState(runningProcess->pid, RUNNING);
@@ -31,34 +36,39 @@ void runFCFS()
         runningProcess->remainingTime--;
         printf("Executed Process %d remaining time: %d time in queue: %d\n", runningProcess->pid, runningProcess->remainingTime, runningProcess->timeInQueue);
 
-        // Check if the process has finished
-        if (runningProcess->remainingTime == 0)
+        if(runningProcess->state == BLOCKED)
         {
-            dequeue(readyQueues[0]); // Remove the process from the queue
-            setProcessState(runningProcess->pid, TERMINATED);
-            printf("Process %d finished execution at time %d\n", runningProcess->pid, clockCycle);
-            runningProcess = NULL; // Clear runningProcess
+            if (runningProcess->remainingTime == 0)
+            {
+                setProcessState(runningProcess->pid, TERMINATED);
+                runningProcess->state = TERMINATED;
+    
+                printf("Finished %d\n", runningProcess->pid);
+            }
+            runningProcess = NULL;
         }
         else
         {
-            setProcessState(runningProcess->pid, READY);
-            runningProcess->state = READY;
+            // Check if the process has finished
+            if (runningProcess->remainingTime == 0)
+            {
+                dequeue(readyQueues[0]); // Remove the process from the queue
+                setProcessState(runningProcess->pid, TERMINATED);
+                printf("Process %d finished execution at time %d\n", runningProcess->pid, clockCycle);
+                runningProcess = NULL; // Clear runningProcess
+            }
+            else
+            {
+                setProcessState(runningProcess->pid, READY);
+                runningProcess->state = READY;
+            }
         }
     }
     else
     {
         printf("CPU is idle\n");
     }
-
-    // Remove the blokced process from the ready queues because they've already been put in the blocked Queue, so they don't appear in the ready queues the next cycle
-    int size = getQueueSize(readyQueues[0]);
-    for (int j = 0; j < size; j++)
-    {
-        Process *curr = dequeue(readyQueues[0]);
-        if (curr->state != BLOCKED)
-            enqueueWithoutClone(readyQueues[0], curr);
-    }
-
+    
     // Print ready queue
     printf("Ready ");
     displayQueueSimplified(readyQueues[0]);

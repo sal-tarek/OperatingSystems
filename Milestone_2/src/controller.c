@@ -293,13 +293,17 @@ static void on_scheduler_changed(GtkWidget *combo, GParamSpec *pspec, gpointer u
 static void on_step_clicked(GtkWidget *button, gpointer user_data)
 {
 
+    console_model_log_output("[SYSTEM] Clock cycle: %d\n", clockCycle);
+
     populateMemory();
     if (numberOfProcesses <= 0)
     {
         clockCycle++;
         return;
     }
+    
     printf("\nTime %d: \n \n", clockCycle);
+
 
     // Check if any processes are still running
     int any_running = 0;

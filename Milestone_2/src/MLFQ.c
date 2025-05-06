@@ -8,7 +8,6 @@ int lastUsedLevel = -1; // -1 means no pending process
 // runs one cycle of the MLFQ scheduler
 void runMLFQ()
 {
-
     // Display the ready queues
     printf("Before ");
     for (int i = 0; i < 4; i++)
@@ -55,55 +54,70 @@ void runMLFQ()
 
         printf("Executed Process %d remaining time: %d time in queue: %d\n", runningProcess->pid, runningProcess->remainingTime, runningProcess->timeInQueue);
 
-        if (runningProcess->remainingTime == 0)
+        if(runningProcess->state == BLOCKED)
         {
-            dequeue(readyQueues[lastUsedLevel]); // Now we safely remove it from the queue
-            printf("Finished %d\n", runningProcess->pid);
-            setProcessState(runningProcess->pid, TERMINATED);
-            runningProcess->state = TERMINATED;
+            if (runningProcess->remainingTime == 0)
+            {
+                setProcessState(runningProcess->pid, TERMINATED);
+                runningProcess->state = TERMINATED;
+    
+                printf("Finished %d\n", runningProcess->pid);
+            }
+            else if (runningProcess->quantumUsed == timeQuantum)
+            {
+                if (lastUsedLevel != 3)
+                {
+                    setProcessPriority(runningProcess->pid, getProcessPriority(runningProcess->pid) + 1); // Increase priority
+                    printf("moving %d to Level %d next clock cycle\n", runningProcess->pid, lastUsedLevel + 2);
+                }
+                else
+                {
+                    printf("moving %d to Level %d\n next clock cycle", runningProcess->pid, lastUsedLevel + 1);
+                }
+            }
+
             runningProcess->quantumUsed = 0;
             runningProcess = NULL;
             lastUsedLevel = -1;
         }
-        else if (runningProcess->quantumUsed == timeQuantum)
-        {
-            dequeue(readyQueues[lastUsedLevel]);
-            if (lastUsedLevel != 3)
+        else{
+            if (runningProcess->remainingTime == 0)
             {
-                enqueueWithoutClone(readyQueues[lastUsedLevel + 1], runningProcess);                  // Move to next queue
-                setProcessPriority(runningProcess->pid, getProcessPriority(runningProcess->pid) + 1); // Increase priority
-                printf("moving %d to Level %d next clock cycle\n", runningProcess->pid, lastUsedLevel + 2);
+                dequeue(readyQueues[lastUsedLevel]); // Now we safely remove it from the queue
+                printf("Finished %d\n", runningProcess->pid);
+        
+                setProcessState(runningProcess->pid, TERMINATED);
+                runningProcess->state = TERMINATED;
+                runningProcess->quantumUsed = 0;
+                runningProcess = NULL;
+                lastUsedLevel = -1;
             }
-            else
+            else if (runningProcess->quantumUsed == timeQuantum)
             {
-                enqueueWithoutClone(readyQueues[lastUsedLevel], runningProcess); // Stay in the same queue (Last Queue - RR)
-                printf("moving %d to Level %d\n next clock cycle", runningProcess->pid, lastUsedLevel + 1);
+                dequeue(readyQueues[lastUsedLevel]);
+                if (lastUsedLevel != 3)
+                {
+                    enqueue(readyQueues[lastUsedLevel + 1], runningProcess);                  // Move to next queue
+                    setProcessPriority(runningProcess->pid, getProcessPriority(runningProcess->pid) + 1); // Increase priority
+                    printf("moving %d to Level %d next clock cycle\n", runningProcess->pid, lastUsedLevel + 2);
+                }
+                else
+                {
+                    enqueue(readyQueues[lastUsedLevel], runningProcess); // Stay in the same queue (Last Queue - RR)
+                    printf("moving %d to Level %d\n next clock cycle", runningProcess->pid, lastUsedLevel + 1);
+                }
+
+                runningProcess->quantumUsed = 0;
+                setProcessState(runningProcess->pid, READY);
+                runningProcess->state = READY;
+                runningProcess = NULL;
+                lastUsedLevel = -1;
             }
-            runningProcess->quantumUsed = 0;
-            runningProcess = NULL;
-            lastUsedLevel = -1;
-        }
-        else
-        {
-            setProcessState(runningProcess->pid, READY);
-            runningProcess->state = READY;
         }
     }
     else
     {
         printf("CPU is idle\n");
-    }
-
-    // Remove the blokced process from the ready queues because they've already been put in the blocked Queue, so they don't appear in the ready queues the next cycle
-    for (int i = 0; i < MAX_NUM_QUEUES; i++)
-    {
-        int size = getQueueSize(readyQueues[i]);
-        for (int j = 0; j < size; j++)
-        {
-            Process *curr = dequeue(readyQueues[i]);
-            if (curr->state != BLOCKED)
-                enqueueWithoutClone(readyQueues[i], curr);
-        }
     }
 
     // Display the ready queues

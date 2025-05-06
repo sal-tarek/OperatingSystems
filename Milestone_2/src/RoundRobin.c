@@ -40,7 +40,7 @@ void runRR(int quantum)
         else if (runningProcess->quantumUsed == quantum)
         {
             dequeue(readyQueues[0]);
-            enqueueWithoutClone(readyQueues[0], runningProcess);
+            enqueue(readyQueues[0], runningProcess);
             printf("moved %d to level 0\n", runningProcess->pid);
 
             runningProcess->quantumUsed = 0;
@@ -63,7 +63,7 @@ void runRR(int quantum)
     {
         Process *curr = dequeue(readyQueues[0]);
         if (curr->state != BLOCKED)
-            enqueueWithoutClone(readyQueues[0], curr);
+            enqueue(readyQueues[0], curr);
     }
 
     // Print ready queue

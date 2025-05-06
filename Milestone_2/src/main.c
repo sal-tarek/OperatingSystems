@@ -196,7 +196,6 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     // Welcome log messages
     console_model_log_output("[SYSTEM] OS Scheduler Simulation started\n");
-    console_model_log_output("[SYSTEM] Clock cycle: %d\n", clockCycle - 1);
     console_model_log_output("[SYSTEM] Processes loaded: %d\n", numberOfProcesses);
 
     // Show views and present window

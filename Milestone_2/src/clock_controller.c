@@ -52,8 +52,6 @@ gboolean clock_controller_increment()
     // Step 5: Increment the clock cycle
     clockCycle++;
 
-    // Step 6: Log the cycle increment
-    console_model_log_output("[CLOCK] Cycle %d\n", clockCycle-1);
     return TRUE;
 }
 

@@ -233,7 +233,7 @@ void populateMemory()
             curr->state = READY;
             curr->ready_time = clockCycle; // Set ready_time
 
-            enqueueWithoutClone(readyQueues[0], curr); // Add to ready_queue
+            enqueue(readyQueues[0], curr); // Add to ready_queue
 
             processes[numberOfProcesses] = curr; // Store the process in the global array
             numberOfProcesses++;
