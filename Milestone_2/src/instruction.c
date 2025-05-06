@@ -15,8 +15,6 @@ int safe_atoi(const char *str, int *out);
 
 char *input(const char *prompt)
 {
-    console_model_log_output("[INPUT] User input requested: %s\n", prompt);
-
     // Request input from the user via console model
     char *user_input = console_model_request_input(prompt);
 
@@ -54,13 +52,13 @@ void print(Process *process, char *printable)
 
     if (storedData != NULL)
     {
-        console_model_program_output("Output of program with process ID: %d\n%s\n", process->pid, storedData);
+        console_model_program_output("%s\n", storedData);
         console_model_log_output("[OUTPUT] Process %d printed variable '%s' with value '%s'\n",
                                  process->pid, printable, storedData);
     }
     else
     {
-        console_model_program_output("Output of program with process ID: %d\nVariable not found!\n", process->pid);
+        console_model_program_output("Variable not found!\n");
         console_model_log_output("[ERROR] Process %d tried to print non-existent variable '%s'\n",
                                  process->pid, printable);
     }
@@ -82,12 +80,36 @@ void writeToFile(Process *process, char *varfileName, char *varContent)
 {
     DataType type;
     char varKey[MAX_VAR_KEY_LEN];
+    
+    // Get the file name from the variable
     snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, varfileName);
     char *fileName = (char *)fetchDataByIndex(varKey, &type);
 
     if (type != TYPE_STRING)
     {
         console_model_log_output("[ERROR] Invalid data type for variable '%s'\n", varfileName);
+        return;
+    }
+
+    if (!fileName)
+    {
+        console_model_log_output("[ERROR] File name variable '%s' not found\n", varfileName);
+        return;
+    }
+
+    // Get the content from the variable
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, varContent);
+    char *content = (char *)fetchDataByIndex(varKey, &type);
+
+    if (type != TYPE_STRING)
+    {
+        console_model_log_output("[ERROR] Invalid data type for variable '%s'\n", varContent);
+        return;
+    }
+
+    if (!content)
+    {
+        console_model_log_output("[ERROR] Content variable '%s' not found\n", varContent);
         return;
     }
 
@@ -99,10 +121,10 @@ void writeToFile(Process *process, char *varfileName, char *varContent)
         return;
     }
 
-    console_model_program_output("Output of program with process ID: %d\nFile %s created successfully.\n", process->pid, fileName);
+    console_model_program_output("File '%s' created successfully.\n", fileName);
     console_model_log_output("[FILE] Process %d created file '%s' and wrote %lu bytes\n",
-                             process->pid, fileName, strlen(varContent));
-    fprintf(fptr, "%s", varContent);
+                             process->pid, fileName, strlen(content));
+    fprintf(fptr, "%s", content);
     fclose(fptr);
 }
 
@@ -183,7 +205,6 @@ void printFromTo(Process *process, char *arg1, char *arg2)
             console_model_log_output("[ERROR] printFromTo: first argument (%d) is greater than second argument (%d)\n", x, y);
             return;
         }
-        console_model_program_output("Output of program with process ID: %d\n", process->pid);
         for (int i = x; i <= y; i++)
         {
             console_model_program_output("%d", i);

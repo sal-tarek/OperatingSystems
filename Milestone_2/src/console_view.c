@@ -65,14 +65,16 @@ GtkWidget *console_view_new(GtkWidget **entry_out)
 
     // Program output scrolled window
     GtkWidget *output_scrolled = gtk_scrolled_window_new();
-    gtk_widget_set_vexpand(output_scrolled, TRUE);
+    gtk_widget_set_vexpand(output_scrolled, FALSE); // Changed to FALSE to prevent expansion
     gtk_widget_set_hexpand(output_scrolled, TRUE);
-    gtk_widget_set_size_request(output_scrolled, 300, 120); // Reduced from 200px
+    gtk_widget_set_size_request(output_scrolled, 300, 50);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(output_scrolled), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
     // Program output text view
     GtkWidget *output_view = gtk_text_view_new();
     gtk_text_view_set_editable(GTK_TEXT_VIEW(output_view), FALSE);
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(output_view), GTK_WRAP_WORD);
+    gtk_widget_set_size_request(output_view, 300, 50);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(output_scrolled), output_view);
 
     // Program output buffer and end mark
@@ -85,14 +87,16 @@ GtkWidget *console_view_new(GtkWidget **entry_out)
 
     // Execution log scrolled window
     GtkWidget *log_scrolled = gtk_scrolled_window_new();
-    gtk_widget_set_vexpand(log_scrolled, TRUE);
+    gtk_widget_set_vexpand(log_scrolled, FALSE); // Changed to FALSE to prevent expansion
     gtk_widget_set_hexpand(log_scrolled, TRUE);
-    gtk_widget_set_size_request(log_scrolled, 300, 120); // Reduced from 200px
+    gtk_widget_set_size_request(log_scrolled, 300, 50);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(log_scrolled), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
     // Execution log text view
     GtkWidget *log_view = gtk_text_view_new();
     gtk_text_view_set_editable(GTK_TEXT_VIEW(log_view), FALSE);
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(log_view), GTK_WRAP_WORD);
+    gtk_widget_set_size_request(log_view, 300, 50);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(log_scrolled), log_view);
 
     // Execution log buffer and end mark
@@ -239,10 +243,7 @@ char *console_get_input_text(void)
     {
         GtkEntryBuffer *buffer = gtk_entry_get_buffer(GTK_ENTRY(entry_widget));
         const char *text = gtk_entry_buffer_get_text(buffer);
-        char *text_copy = g_strdup(text);
-        gtk_entry_buffer_set_text(buffer, "", -1);
-        gtk_widget_set_sensitive(entry_widget, FALSE); // Disable after input
-        return text_copy;
+        return g_strdup(text);
     }
     return g_strdup("");
 }

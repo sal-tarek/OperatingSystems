@@ -3,6 +3,11 @@ project(OS_Simulator C)
 
 set(CMAKE_C_STANDARD 99)
 
+# Platform detection
+if(WIN32)
+    add_definitions(-D_WIN32)
+endif()
+
 # Find PkgConfig and GTK4
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK4 REQUIRED gtk4)

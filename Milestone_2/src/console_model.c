@@ -4,6 +4,13 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <sys/stat.h>
+#endif
 
 static FILE *log_file = NULL;
 
@@ -16,10 +23,30 @@ typedef struct
 
 void console_model_init(void)
 {
-    log_file = fopen("console_log.txt", "w");
+    // Create logging directory if it doesn't exist
+    #ifdef _WIN32
+        if (!CreateDirectory("logging", NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
+            g_warning("Failed to create logging directory");
+            return;
+        }
+    #else
+        if (mkdir("logging", 0755) != 0 && errno != EEXIST) {
+            g_warning("Failed to create logging directory");
+            return;
+        }
+    #endif
+    
+    // Open the log file
+    log_file = fopen("logging/console_log.txt", "w");
     if (!log_file)
     {
-        g_warning("Failed to open console log file");
+        g_warning("Failed to open console log file: logging/console_log.txt");
+    }
+    else
+    {
+        // Use fprintf directly since console_model_log_output might not be ready
+        fprintf(log_file, "[SYSTEM] Log file created: logging/console_log.txt\n");
+        fflush(log_file);
     }
 }
 

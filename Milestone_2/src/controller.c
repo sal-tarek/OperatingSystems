@@ -13,6 +13,7 @@
 #include "controller.h"
 #include "clock_controller.h"
 #include "console_model.h"
+#include "console_controller.h"
 
 extern int numberOfProcesses;
 extern Process *runningProcess;

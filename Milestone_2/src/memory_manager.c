@@ -26,6 +26,10 @@ MemoryRange ranges[MAX_PROCESSES];
 int ranges_count = 0;         // Number of processes with assigned ranges
 int current_memory_usage = 0; // Track total memory words used
 
+// Forward declarations
+void resetMemoryRanges(void);
+void resetProcessList(void);
+
 void readInstructionsOnly(Process *process)
 {
     // Temporary array to store variable names

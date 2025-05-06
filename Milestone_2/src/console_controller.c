@@ -152,10 +152,14 @@ void console_controller_on_entry_activate(GtkWidget *widget, gpointer user_data)
     {
         g_async_queue_push(input_queue, text);
         input_actually_requested = FALSE; // Reset after successfully accepting input
+        console_clear_input(); // Clear and disable input only after valid input
     }
     else
     {
         g_free(text);
+        // Don't clear input or disable the entry if input was empty
+        // This allows the user to try again
+        console_set_input_focus(); // Keep focus on the input field
     }
 }
 
