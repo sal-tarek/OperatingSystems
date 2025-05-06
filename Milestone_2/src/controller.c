@@ -156,7 +156,7 @@ void controller_update_running_process()
 
 void controller_update_all()
 {
-    // Only log significant state changes
+    // Log significant state changes
     if (runningProcess != NULL)
     {
         char pcb_key[32];
@@ -173,6 +173,22 @@ void controller_update_all()
         {
             console_model_log_output("[STATE] Process %d running instruction: %s\n", runningProcess->pid, instruction);
         }
+    }
+
+    // Log blocked processes
+    if (global_blocked_queue->front)
+    {
+        GString *blocked_str = g_string_new("Blocked processes: ");
+        Process *curr = global_blocked_queue->front;
+        while (curr)
+        {
+            g_string_append_printf(blocked_str, "P%d", curr->pid);
+            curr = curr->next;
+            if (curr)
+                g_string_append(blocked_str, ", ");
+        }
+        console_model_log_output("[STATE] %s\n", blocked_str->str);
+        g_string_free(blocked_str, TRUE);
     }
 
     for (int i = 0; i < MAX_NUM_QUEUES; i++)

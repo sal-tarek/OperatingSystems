@@ -52,34 +52,8 @@ gboolean clock_controller_increment()
     // Step 5: Increment the clock cycle
     clockCycle++;
 
-    // Step 6: Log the increment with process states
-    console_model_log_output("[CLOCK] Cycle %d: ", clockCycle-1);
-    
-    // Log running process
-    if (runningProcess)
-    {
-        console_model_log_output("Running: P%d", runningProcess->pid);
-    }
-    else
-    {
-        console_model_log_output("No process running");
-    }
-    
-    // Log blocked processes
-    if (global_blocked_queue->front)
-    {
-        console_model_log_output(", Blocked: ");
-        Process *curr = global_blocked_queue->front;
-        while (curr)
-        {
-            console_model_log_output("P%d", curr->pid);
-            curr = curr->next;
-            if (curr)
-                console_model_log_output(", ");
-        }
-    }
-    
-    console_model_log_output("\n");
+    // Step 6: Log the cycle increment
+    console_model_log_output("[CLOCK] Cycle %d\n", clockCycle-1);
     return TRUE;
 }
 
