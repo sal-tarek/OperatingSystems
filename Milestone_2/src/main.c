@@ -69,26 +69,33 @@ static void activate(GtkApplication *app, gpointer user_data)
     index_table = NULL;
     numberOfProcesses = 0;
 
-    // Create main window
+    // Create the main window
     GtkWidget *window = gtk_application_window_new(app);
-    gtk_window_set_title(GTK_WINDOW(window), "Operating System Simulator");
-    gtk_window_set_default_size(GTK_WINDOW(window), 1200, 800); // Reduced height to prevent cropping
+    gtk_window_set_title(GTK_WINDOW(window), "Process Scheduler Simulator");
+    gtk_window_set_default_size(GTK_WINDOW(window), 1200, 800);
 
-    // Create main container with proper spacing and margins
-    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    // Create a scrolled window for the main content
+    GtkWidget *scrolled_window = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window), 
+                                 GTK_POLICY_AUTOMATIC, 
+                                 GTK_POLICY_AUTOMATIC);
+    gtk_window_set_child(GTK_WINDOW(window), scrolled_window);
+
+    // Create the main vertical box
+    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
     gtk_widget_set_margin_start(main_box, 15);
     gtk_widget_set_margin_end(main_box, 15);
     gtk_widget_set_margin_top(main_box, 15);
     gtk_widget_set_margin_bottom(main_box, 15);
-    gtk_window_set_child(GTK_WINDOW(window), main_box);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolled_window), main_box);
 
     // ---- TOP SECTION: PROCESS LIST ----
     // Process list view (dashboard)
     DashboardView *dashboard_view = dashboard_view_new();
     dashboard_view_init(dashboard_view, app, main_box, GTK_WINDOW(window));
-    gtk_widget_set_size_request(dashboard_view->main_container, -1, 150); // Reduced from 180px
+    gtk_widget_set_size_request(dashboard_view->main_container, -1, 150);
     gtk_widget_set_hexpand(dashboard_view->main_container, TRUE);
-    gtk_widget_set_margin_bottom(dashboard_view->main_container, 5); // Reduced margin
+    gtk_widget_set_margin_bottom(dashboard_view->main_container, 5);
 
     // First separator
     GtkWidget *separator1 = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
@@ -120,7 +127,6 @@ static void activate(GtkApplication *app, gpointer user_data)
     // Right side: Controls section
     GtkWidget *controls_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
     gtk_widget_set_hexpand(controls_container, TRUE);
-
     gtk_box_append(GTK_BOX(middle_container), controls_container);
 
     // Initialize clock controller first
@@ -188,7 +194,6 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     // Welcome log messages
     console_model_log_output("[SYSTEM] OS Scheduler Simulation started\n");
-    console_model_log_output("[SYSTEM] Clock cycle: %d\n", clockCycle-1);
     console_model_log_output("[SYSTEM] Processes loaded: %d\n", numberOfProcesses);
 
     // Show views and present window

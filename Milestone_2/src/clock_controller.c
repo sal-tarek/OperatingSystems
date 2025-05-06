@@ -36,11 +36,9 @@ gboolean clock_controller_increment()
 
     if (!any_running)
     {
-        console_model_log_output("[CLOCK] All processes terminated, stopping clock\n");
+        console_model_log_output("[CLOCK] All processes terminated at cycle %d\n", clockCycle);
         return FALSE;
     }
-
-    printf("Clock cycle: %d\n", clockCycle);
 
     // Step 2: Update memory representation
     populateMemory();
@@ -54,8 +52,6 @@ gboolean clock_controller_increment()
     // Step 5: Increment the clock cycle
     clockCycle++;
 
-    // Step 6: Log the increment
-    console_model_log_output("[CLOCK] Cycle incremented to %d\n", (clockCycle-1));
     return TRUE;
 }
 

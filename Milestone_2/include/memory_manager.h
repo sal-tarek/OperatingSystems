@@ -42,5 +42,6 @@ MemoryRange getProcessMemoryRange(int pid);
 void displayMemoryRange(int pid);
 void freeMemoryRanges();
 void deleteProcessFromMemory(int pid);
+void resetMemory();
 
 #endif

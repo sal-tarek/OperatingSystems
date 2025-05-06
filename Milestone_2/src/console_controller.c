@@ -5,6 +5,7 @@
 static GAsyncQueue *input_queue = NULL;
 static char *pending_input = NULL;
 static gboolean input_request_active = FALSE;
+static gboolean input_actually_requested = FALSE; // Add a new global variable to track if input was explicitly requested
 
 // Forward declarations for callback functions
 static gboolean process_input_on_main_thread(gpointer data);
@@ -44,6 +45,12 @@ void console_controller_cleanup(void)
         pending_input = NULL;
     }
     input_request_active = FALSE;
+    input_actually_requested = FALSE; // Reset the new global variable during cleanup
+}
+
+void console_controller_reset_view(void)
+{
+    console_view_reset();
 }
 
 static gboolean process_input_on_main_thread(gpointer data)
@@ -91,6 +98,7 @@ static gboolean check_input_queue(gpointer user_data)
             cb_data->callback(cb_data->user_data, g_strdup(""));
         }
         g_free(cb_data);
+        input_actually_requested = FALSE; // Reset our flag if the input queue is gone
         return G_SOURCE_REMOVE;
     }
 
@@ -119,16 +127,20 @@ static gboolean check_input_queue(gpointer user_data)
         g_idle_add(clear_input_on_main_thread, NULL);
 
         input_request_active = FALSE;
+        input_actually_requested = FALSE; // Reset our flag when input is successfully processed
         g_free(cb_data);
         return G_SOURCE_REMOVE;
     }
 
+    // Don't cancel the timeout - keep waiting for input until it's received
+    // Even if input_request_active gets reset by something else
     return G_SOURCE_CONTINUE;
 }
 
 void console_controller_on_entry_activate(GtkWidget *widget, gpointer user_data)
 {
-    if (!input_request_active || !input_queue)
+    // Even if input_request_active got reset, we should still accept input if it was requested
+    if ((!input_request_active && !input_actually_requested) || !input_queue)
     {
         console_clear_input();
         return;
@@ -139,10 +151,15 @@ void console_controller_on_entry_activate(GtkWidget *widget, gpointer user_data)
     if (text && strlen(text) > 0 && input_queue)
     {
         g_async_queue_push(input_queue, text);
+        input_actually_requested = FALSE; // Reset after successfully accepting input
+        console_clear_input(); // Clear and disable input only after valid input
     }
     else
     {
         g_free(text);
+        // Don't clear input or disable the entry if input was empty
+        // This allows the user to try again
+        console_set_input_focus(); // Keep focus on the input field
     }
 }
 
@@ -162,6 +179,7 @@ void console_controller_request_input_with_callback(const char *prompt, void (*c
     g_idle_add(show_prompt_on_main_thread, g_strdup(prompt));
 
     input_request_active = TRUE;
+    input_actually_requested = TRUE; // Set the new global variable when input is requested
 
     // Set focus on the entry widget
     console_set_input_focus();
@@ -181,6 +199,7 @@ void console_controller_request_input_with_callback(const char *prompt, void (*c
         }
         console_clear_input();
         input_request_active = FALSE;
+        input_actually_requested = FALSE; // Reset the new global variable after processing input
     }
     else
     {

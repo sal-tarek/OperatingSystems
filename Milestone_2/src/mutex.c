@@ -46,10 +46,10 @@ void remove_from_global_blocked_queue(Process *process)
     printf("Before: Global Blocked ");
     displayQueueSimplified(global_blocked_queue);
 
-    if (process == global_blocked_queue->front)
+    if (process->pid == global_blocked_queue->front->pid )
     {
         Process *p = dequeue(global_blocked_queue);
-        if (p) {
+        if (p && process-> state != TERMINATED) {
             enqueue(readyQueues[getProcessPriority(p->pid)], p);
         }
         printf("After: Global Blocked ");
@@ -116,10 +116,8 @@ int mutex_lock(mutex_t *mutex, Process *process)
         process->state = BLOCKED;
         setProcessState(process->pid, BLOCKED);
 
-        if (!global_blocked_queue) {
-            global_blocked_queue = createQueue();
-        }
-        enqueue(global_blocked_queue, process);
+        dequeue(readyQueues[getProcessPriority(process->pid)]); // Remove from ready queues
+        enqueue(global_blocked_queue, process); // Add to global blocked queue
 
         printf("Process %d is blocked waiting for %s\n", process->pid, mutex->name);
     }
@@ -134,7 +132,7 @@ int mutex_unlock(mutex_t *mutex, Process *process)
         return 1;
     }
 
-    if (!mutex->available && mutex->holder == process)
+    if (!mutex->available && mutex->holder->pid == process->pid)
     {
         mutex->available = true;
         mutex->holder = NULL;

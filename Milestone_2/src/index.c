@@ -1,31 +1,39 @@
-// index.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "index.h"
+extern IndexEntry *index_table;
 
-void initIndex(IndexEntry **index) {
+void initIndex(IndexEntry **index)
+{
     *index = NULL;
 }
 
-void addIndexEntry(IndexEntry **index, const char *key, int address) {
-    if (address < 0 || address > 59) {
+void addIndexEntry(IndexEntry **index, const char *key, int address)
+{
+    if (address < 0 || address > 59)
+    {
         fprintf(stderr, "Invalid memory address: %d\n", address);
         return;
     }
 
     IndexEntry *entry;
     HASH_FIND_STR(*index, key, entry);
-    if (entry) {
+    if (entry)
+    {
         entry->address = address;
-    } else {
-        entry = (IndexEntry*)malloc(sizeof(IndexEntry));
-        if (!entry) {
+    }
+    else
+    {
+        entry = (IndexEntry *)malloc(sizeof(IndexEntry));
+        if (!entry)
+        {
             fprintf(stderr, "Memory allocation for IndexEntry failed\n");
             exit(EXIT_FAILURE);
         }
         entry->key = strdup(key);
-        if (!entry->key) {
+        if (!entry->key)
+        {
             fprintf(stderr, "Failed to allocate memory for key\n");
             free(entry);
             exit(EXIT_FAILURE);
@@ -35,15 +43,18 @@ void addIndexEntry(IndexEntry **index, const char *key, int address) {
     }
 }
 
-int getIndexAddress(IndexEntry *index, const char *key) {
+int getIndexAddress(IndexEntry *index, const char *key)
+{
     IndexEntry *entry;
     HASH_FIND_STR(index, key, entry);
     return entry ? entry->address : -1; // -1 for not found
 }
 
-void freeIndex(IndexEntry **index) {
+void freeIndex(IndexEntry **index)
+{
     IndexEntry *entry, *tmp;
-    HASH_ITER(hh, *index, entry, tmp) {
+    HASH_ITER(hh, *index, entry, tmp)
+    {
         HASH_DEL(*index, entry);
         free(entry->key);
         free(entry);

@@ -9,7 +9,7 @@
 static DecodeHashEntry decode_hashmap[DECODE_HASH_SIZE] = {
     {"print", PRINT},
     {"assign", ASSIGN},
-    {"writeToFile", WRITETOFILE},
+    {"writeFile", WRITETOFILE},  // Add alias for writeFile
     {"readFile", READFILE},
     {"printFromTo", PRINTFROMTO},
     {"semWait", SEMWAIT},
@@ -79,13 +79,17 @@ Instruction decode_instruction(Process *process, char *instruction_string)
         }
     }
 
+    // Log the instruction being decoded
+    console_model_log_output("[EXEC] Decoding instruction: %s\n", instruction_string);
+
     // Validate argument count based on instruction type
     if (result.type == PRINT || result.type == SEMWAIT || result.type == SEMSIGNAL || result.type == READFILE)
     {
         // Expect exactly 1 argument
         if (tokenCount != 2)
         {
-            console_model_log_output("[ERROR] %s expects exactly 1 argument, got %d\n", tokens[0], tokenCount - 1);
+            console_model_log_output("[ERROR] Invalid number of arguments for '%s': expected 1, got %d\n", 
+                                    tokens[0], tokenCount - 1);
             free(copy);
             return result;
         }
@@ -115,14 +119,29 @@ Instruction decode_instruction(Process *process, char *instruction_string)
         // Expect exactly 2 arguments
         if (tokenCount != 3)
         {
-            console_model_log_output("[ERROR] %s expects exactly 2 arguments, got %d\n", tokens[0], tokenCount - 1);
+            console_model_log_output("[ERROR] Invalid number of arguments for '%s': expected 2, got %d\n", 
+                                    tokens[0], tokenCount - 1);
             free(copy);
             return result;
         }
         // Handle arg1
         if (strcmp(tokens[1], "input") == 0)
         {
-            char *userInput = input("Enter value for arg1: ");
+            char prompt[256];
+            switch (result.type) {
+                case ASSIGN:
+                    snprintf(prompt, sizeof(prompt), "Process %d: Enter value to assign to variable '%s': \n", process->pid, tokens[2]);
+                    break;
+                case WRITETOFILE:
+                    snprintf(prompt, sizeof(prompt), "Process %d: Enter content to write to file '%s': \n", process->pid, tokens[2]);
+                    break;
+                case PRINTFROMTO:
+                    snprintf(prompt, sizeof(prompt), "Process %d: Enter start value for range: \n", process->pid);
+                    break;
+                default:
+                    snprintf(prompt, sizeof(prompt), "Process %d: Enter value for first argument: \n", process->pid);
+            }
+            char *userInput = input(prompt);
             if (!userInput)
             {
                 free(copy);
@@ -153,7 +172,21 @@ Instruction decode_instruction(Process *process, char *instruction_string)
         // Handle arg2
         if (strcmp(tokens[2], "input") == 0)
         {
-            char *userInput = input("Enter value for arg2: ");
+            char prompt[256];
+            switch (result.type) {
+                case ASSIGN:
+                    snprintf(prompt, sizeof(prompt), "Process %d: Enter value to assign to variable '%s': \n", process->pid, tokens[1]);
+                    break;
+                case WRITETOFILE:
+                    snprintf(prompt, sizeof(prompt), "Process %d: Enter content to write to file '%s': \n", process->pid, tokens[1]);
+                    break;
+                case PRINTFROMTO:
+                    snprintf(prompt, sizeof(prompt), "Process %d: Enter end value for range: \n", process->pid);
+                    break;
+                default:
+                    snprintf(prompt, sizeof(prompt), "Process %d: Enter value for second argument: \n", process->pid);
+            }
+            char *userInput = input(prompt);
             
             if (!userInput)
             {
@@ -186,7 +219,7 @@ Instruction decode_instruction(Process *process, char *instruction_string)
     }
     else
     {
-        console_model_log_output("[ERROR] Unknown instruction type: %s\n", tokens[0]);
+        console_model_log_output("[ERROR] Unknown instruction: '%s'\n", tokens[0]);
     }
 
     free(copy);
@@ -228,31 +261,24 @@ void execute_instruction(PCB *pcb, Process *process, Instruction *instruction)
     switch (instruction->type)
     {
     case PRINT:
-        console_model_log_output("[EXEC] Process %d: Executing print %s\n", process->pid, instruction->arg1);
         print(process, instruction->arg1);
         break;
     case ASSIGN:
-        console_model_log_output("[EXEC] Process %d: Executing assign %s %s\n", process->pid, instruction->arg1, instruction->arg2);
         assign(process, instruction->arg1, instruction->arg2);
         break;
     case WRITETOFILE:
-        console_model_log_output("[EXEC] Process %d: Executing writeToFile %s %s\n", process->pid, instruction->arg1, instruction->arg2);
         writeToFile(process, instruction->arg1, instruction->arg2);
         break;
     case READFILE:
-        console_model_log_output("[EXEC] Process %d: Executing readFile %s\n", process->pid, instruction->arg1);
         readFromFile(process, instruction->arg1);
         break;
     case PRINTFROMTO:
-        console_model_log_output("[EXEC] Process %d: Executing printFromTo %s %s\n", process->pid, instruction->arg1, instruction->arg2);
         printFromTo(process, instruction->arg1, instruction->arg2);
         break;
     case SEMWAIT:
-        console_model_log_output("[EXEC] Process %d: Executing semWait %s\n", process->pid, instruction->arg1);
         semWait(process, instruction->arg1);
         break;
     case SEMSIGNAL:
-        console_model_log_output("[EXEC] Process %d: Executing semSignal %s\n", process->pid, instruction->arg1);
         semSignal(process, instruction->arg1);
         break;
     default:
@@ -281,14 +307,15 @@ void exec_cycle(Process *process)
 
     PCB *pcb = (PCB *)data;
 
-    console_model_log_output("[INFO] Process %d executing instruction at PC=%d\n",
-                             process->pid, pcb->programCounter);
+    // Log the start of execution cycle
+    console_model_log_output("[EXEC] Process %d executing instruction at PC=%d\n", process->pid, pcb->programCounter);
 
     // Fetch instruction
     char *instruction_str = fetch_instruction(pcb, process->pid);
     if (!instruction_str)
     {
-        console_model_log_output("[ERROR] Failed to fetch instruction for process %d\n", process->pid);
+        console_model_log_output("[ERROR] Failed to fetch instruction for process %d at PC=%d\n", 
+                                process->pid, pcb->programCounter);
         return;
     }
 
@@ -296,11 +323,14 @@ void exec_cycle(Process *process)
     Instruction instruction = decode_instruction(process, instruction_str);
     if (instruction.type == 0 && instruction.arg1[0] == '\0' && instruction.arg2[0] == '\0')
     {
-        console_model_log_output("[ERROR] Failed to decode instruction for process %d: %s\n",
-                                 process->pid, instruction_str);
+        console_model_log_output("[ERROR] Failed to decode instruction for process %d: '%s'\n",
+                                process->pid, instruction_str);
         return;
     }
 
     // Execute instruction (PC will be incremented inside execute_instruction)
     execute_instruction(pcb, process, &instruction);
+
+    // Log the completion of execution cycle
+    console_model_log_output("[EXEC] Process %d completed instruction at PC=%d\n", process->pid, pcb->programCounter - 1);
 }
