@@ -8,7 +8,116 @@
 GtkWidget *console_widget = NULL;
 GtkWidget *entry_widget = NULL;
 
-// Internal function to update a text view
+// Log tag names for different message categories
+#define TAG_ERROR "error"
+#define TAG_WARNING "warning"
+#define TAG_INFO "info"
+#define TAG_SYSTEM "system"
+#define TAG_PROCESS "process"
+#define TAG_SCHEDULER "scheduler"
+#define TAG_MUTEX "mutex"
+#define TAG_EXEC "exec"
+#define TAG_INPUT "input"
+#define TAG_OUTPUT "output"
+#define TAG_CLOCK "clock"
+#define TAG_UPDATE "update"
+#define TAG_MEMORY "memory"
+#define TAG_UNBLOCKED "unblocked"
+#define TAG_STEP "step"
+#define TAG_CONTROLLER "controller"
+#define TAG_STATE "state"
+#define TAG_QUEUE "queue"
+#define TAG_FILE "file"
+#define TAG_CONFIG "config"
+#define TAG_DEFAULT "default"
+#define TAG_USER_INPUT "user_input"
+
+// Function to create all color tags in the buffer
+static void create_text_tags(GtkTextBuffer *buffer)
+{
+    // Create tags with specific colors
+    gtk_text_buffer_create_tag(buffer, TAG_ERROR, "foreground", "#FF0000", NULL);                             // Red
+    gtk_text_buffer_create_tag(buffer, TAG_WARNING, "foreground", "#FFA500", NULL);                           // Orange
+    gtk_text_buffer_create_tag(buffer, TAG_INFO, "foreground", "#008000", NULL);                              // Green
+    gtk_text_buffer_create_tag(buffer, TAG_SYSTEM, "foreground", "#00BFFF", NULL);                            // Sky Blue
+    gtk_text_buffer_create_tag(buffer, TAG_PROCESS, "foreground", "#0000FF", NULL);                           // Blue
+    gtk_text_buffer_create_tag(buffer, TAG_SCHEDULER, "foreground", "#800080", NULL);                         // Purple
+    gtk_text_buffer_create_tag(buffer, TAG_MUTEX, "foreground", "#008080", NULL);                             // Teal
+    gtk_text_buffer_create_tag(buffer, TAG_EXEC, "foreground", "#000000", "weight", PANGO_WEIGHT_BOLD, NULL); // Bold Black
+    gtk_text_buffer_create_tag(buffer, TAG_INPUT, "foreground", "#696969", NULL);                             // Gray
+    gtk_text_buffer_create_tag(buffer, TAG_OUTPUT, "foreground", "#008000", NULL);                            // Green
+    gtk_text_buffer_create_tag(buffer, TAG_CLOCK, "foreground", "#4682B4", NULL);                             // Steel Blue
+    gtk_text_buffer_create_tag(buffer, TAG_UPDATE, "foreground", "#00BFFF", NULL);                            // Sky Blue
+    gtk_text_buffer_create_tag(buffer, TAG_MEMORY, "foreground", "#9932CC", NULL);                            // Dark Orchid
+    gtk_text_buffer_create_tag(buffer, TAG_UNBLOCKED, "foreground", "#32CD32", NULL);                         // Lime Green
+    gtk_text_buffer_create_tag(buffer, TAG_STEP, "foreground", "#000000", "weight", PANGO_WEIGHT_BOLD, NULL); // Bold Black
+    gtk_text_buffer_create_tag(buffer, TAG_CONTROLLER, "foreground", "#00BFFF", NULL);                        // Sky Blue
+    gtk_text_buffer_create_tag(buffer, TAG_STATE, "foreground", "#0000FF", NULL);                             // Blue
+    gtk_text_buffer_create_tag(buffer, TAG_QUEUE, "foreground", "#800080", NULL);                             // Purple
+    gtk_text_buffer_create_tag(buffer, TAG_FILE, "foreground", "#008080", NULL);                              // Teal
+    gtk_text_buffer_create_tag(buffer, TAG_CONFIG, "foreground", "#4682B4", NULL);                            // Steel Blue
+    gtk_text_buffer_create_tag(buffer, TAG_DEFAULT, "foreground", "#000000", NULL);                           // Black
+
+    // tag for user input - Purple with bold
+    gtk_text_buffer_create_tag(buffer, TAG_USER_INPUT,
+                               "foreground", "#9900CC",
+                               "weight", PANGO_WEIGHT_BOLD,
+                               "style", PANGO_STYLE_ITALIC,
+                               NULL); // Bold Purple Italic
+}
+
+// Function to determine tag name from log message
+static const char *get_tag_for_message(const char *message)
+{
+    if (strstr(message, "[ERROR]"))
+        return TAG_ERROR;
+    if (strstr(message, "[WARN]") || strstr(message, "[WARNING]"))
+        return TAG_WARNING;
+    if (strstr(message, "[INFO]"))
+        return TAG_INFO;
+    if (strstr(message, "[SYSTEM]"))
+        return TAG_SYSTEM;
+    if (strstr(message, "[PROCESS]"))
+        return TAG_PROCESS;
+    if (strstr(message, "[SCHEDULER]"))
+        return TAG_SCHEDULER;
+    if (strstr(message, "[MUTEX]"))
+        return TAG_MUTEX;
+    // Special handling for input-related execution logs
+    if (strstr(message, "[EXEC]") && (strstr(message, "input") || strstr(message, "assign")))
+        return TAG_USER_INPUT;
+    // Normal execution logs
+    if (strstr(message, "[EXEC]"))
+        return TAG_EXEC;
+    if (strstr(message, "User entered:") || strstr(message, "[INPUT]"))
+        return TAG_USER_INPUT;
+    if (strstr(message, "[OUTPUT]"))
+        return TAG_OUTPUT;
+    if (strstr(message, "[CLOCK]"))
+        return TAG_CLOCK;
+    if (strstr(message, "[UPDATE]"))
+        return TAG_UPDATE;
+    if (strstr(message, "[MEMORY]"))
+        return TAG_MEMORY;
+    if (strstr(message, "[UNBLOCKED]"))
+        return TAG_UNBLOCKED;
+    if (strstr(message, "[STEP]"))
+        return TAG_STEP;
+    if (strstr(message, "[CONTROLLER]"))
+        return TAG_CONTROLLER;
+    if (strstr(message, "[STATE]"))
+        return TAG_STATE;
+    if (strstr(message, "[QUEUE]"))
+        return TAG_QUEUE;
+    if (strstr(message, "[FILE]"))
+        return TAG_FILE;
+    if (strstr(message, "[CONFIG]"))
+        return TAG_CONFIG;
+
+    return TAG_DEFAULT;
+}
+
+// Internal function to update a text view with colored text
 static gboolean update_text_view_idle(gpointer user_data)
 {
     struct
@@ -21,7 +130,12 @@ static gboolean update_text_view_idle(gpointer user_data)
     {
         GtkTextIter end;
         gtk_text_buffer_get_end_iter(data->buffer, &end);
-        gtk_text_buffer_insert(data->buffer, &end, data->text, -1);
+
+        // Apply a tag based on the message content
+        const char *tag_name = get_tag_for_message(data->text);
+        gtk_text_buffer_insert_with_tags_by_name(data->buffer, &end,
+                                                 data->text, -1,
+                                                 tag_name, NULL);
 
         // Update the end mark
         GtkTextMark *end_mark = gtk_text_buffer_get_mark(data->buffer, "end_mark");
@@ -65,14 +179,16 @@ GtkWidget *console_view_new(GtkWidget **entry_out)
 
     // Program output scrolled window
     GtkWidget *output_scrolled = gtk_scrolled_window_new();
-    gtk_widget_set_vexpand(output_scrolled, TRUE);
+    gtk_widget_set_vexpand(output_scrolled, FALSE); // Changed to FALSE to prevent expansion
     gtk_widget_set_hexpand(output_scrolled, TRUE);
-    gtk_widget_set_size_request(output_scrolled, 300, 120); // Reduced from 200px
+    gtk_widget_set_size_request(output_scrolled, 300, 50);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(output_scrolled), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
     // Program output text view
     GtkWidget *output_view = gtk_text_view_new();
     gtk_text_view_set_editable(GTK_TEXT_VIEW(output_view), FALSE);
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(output_view), GTK_WRAP_WORD);
+    gtk_widget_set_size_request(output_view, 300, 50);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(output_scrolled), output_view);
 
     // Program output buffer and end mark
@@ -83,16 +199,21 @@ GtkWidget *console_view_new(GtkWidget **entry_out)
     g_object_set_data(G_OBJECT(vbox), CONSOLE_BUFFER_KEY, output_buffer);
     g_object_set_data(G_OBJECT(output_buffer), "scrolled_window", output_scrolled);
 
+    // Create text tags for output buffer
+    create_text_tags(output_buffer);
+
     // Execution log scrolled window
     GtkWidget *log_scrolled = gtk_scrolled_window_new();
-    gtk_widget_set_vexpand(log_scrolled, TRUE);
+    gtk_widget_set_vexpand(log_scrolled, FALSE); // Changed to FALSE to prevent expansion
     gtk_widget_set_hexpand(log_scrolled, TRUE);
-    gtk_widget_set_size_request(log_scrolled, 300, 120); // Reduced from 200px
+    gtk_widget_set_size_request(log_scrolled, 300, 50);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(log_scrolled), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
     // Execution log text view
     GtkWidget *log_view = gtk_text_view_new();
     gtk_text_view_set_editable(GTK_TEXT_VIEW(log_view), FALSE);
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(log_view), GTK_WRAP_WORD);
+    gtk_widget_set_size_request(log_view, 300, 50);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(log_scrolled), log_view);
 
     // Execution log buffer and end mark
@@ -102,6 +223,9 @@ GtkWidget *console_view_new(GtkWidget **entry_out)
     gtk_text_buffer_create_mark(log_buffer, "end_mark", &log_end, FALSE);
     g_object_set_data(G_OBJECT(vbox), LOG_BUFFER_KEY, log_buffer);
     g_object_set_data(G_OBJECT(log_buffer), "scrolled_window", log_scrolled);
+
+    // Create text tags for log buffer
+    create_text_tags(log_buffer);
 
     // Add scrolled windows to horizontal box
     gtk_box_append(GTK_BOX(hbox), log_scrolled);
@@ -239,10 +363,7 @@ char *console_get_input_text(void)
     {
         GtkEntryBuffer *buffer = gtk_entry_get_buffer(GTK_ENTRY(entry_widget));
         const char *text = gtk_entry_buffer_get_text(buffer);
-        char *text_copy = g_strdup(text);
-        gtk_entry_buffer_set_text(buffer, "", -1);
-        gtk_widget_set_sensitive(entry_widget, FALSE); // Disable after input
-        return text_copy;
+        return g_strdup(text);
     }
     return g_strdup("");
 }
@@ -252,5 +373,22 @@ void console_set_entry_sensitive(gboolean sensitive)
     if (entry_widget)
     {
         gtk_widget_set_sensitive(entry_widget, sensitive);
+    }
+}
+
+void console_view_reset(void)
+{
+    if (console_widget)
+    {
+        GtkTextBuffer *log_buffer = g_object_get_data(G_OBJECT(console_widget), LOG_BUFFER_KEY);
+        GtkTextBuffer *console_buffer = g_object_get_data(G_OBJECT(console_widget), CONSOLE_BUFFER_KEY);
+        if (log_buffer)
+        {
+            gtk_text_buffer_set_text(log_buffer, "", -1);
+        }
+        if (console_buffer)
+        {
+            gtk_text_buffer_set_text(console_buffer, "", -1);
+        }
     }
 }

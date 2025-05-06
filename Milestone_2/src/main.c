@@ -26,13 +26,11 @@
 #define QUEUE_CAPACITY 10
 
 // Global variables
-Queue *readyQueues[MAX_NUM_QUEUES]; // Ready Queue holding processes waiting to run
 Process *runningProcess = NULL;     // Currently running process (or NULL if none)
 int clockCycle = 0;                 // Current clock cycle of the simulation (managed by clock_controller)
 Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
-Queue *global_blocked_queue = NULL;
 int numberOfProcesses = 0;
 Process *processes[MAX_PROCESSES] = {NULL};
 
