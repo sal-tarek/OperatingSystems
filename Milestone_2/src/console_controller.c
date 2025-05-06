@@ -48,6 +48,11 @@ void console_controller_cleanup(void)
     input_actually_requested = FALSE; // Reset the new global variable during cleanup
 }
 
+void console_controller_reset_view(void)
+{
+    console_view_reset();
+}
+
 static gboolean process_input_on_main_thread(gpointer data)
 {
     MainThreadCallbackData *cb_data = (MainThreadCallbackData *)data;

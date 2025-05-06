@@ -27,4 +27,7 @@ char* console_get_input_text(void);
 // Enables or disables the entry field
 void console_set_entry_sensitive(gboolean sensitive);
 
+// Resets both log and program output windows
+void console_view_reset(void);
+
 #endif // CONSOLE_VIEW_H

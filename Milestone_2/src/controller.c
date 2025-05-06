@@ -52,21 +52,34 @@ void controller_update_queue_display(int queue_index)
 {
     if (queue_index < 0 || queue_index >= MAX_NUM_QUEUES)
         return;
-    printf("Updating Queue %d: ", queue_index);
-    Process *curr = readyQueues[queue_index]->front;
-    while (curr != NULL)
-    {
-        printf("%d -> ", curr->pid);
-        curr = curr->next;
-    }
-    printf("NULL\n");
+
     GList *pid_list = NULL;
-    curr = readyQueues[queue_index]->front;
+    Process *curr = readyQueues[queue_index]->front;
     while (curr != NULL)
     {
         pid_list = g_list_append(pid_list, GINT_TO_POINTER(curr->pid));
         curr = curr->next;
     }
+
+    // Log queue changes
+    if (g_list_length(pid_list) > 0)
+    {
+        GString *queue_str = g_string_new("");
+        g_string_append_printf(queue_str, "Queue %d: ", queue_index);
+        
+        GList *iter = pid_list;
+        while (iter)
+        {
+            g_string_append_printf(queue_str, "P%d", GPOINTER_TO_INT(iter->data));
+            iter = iter->next;
+            if (iter)
+                g_string_append(queue_str, " -> ");
+        }
+        
+        console_model_log_output("[QUEUE] %s\n", queue_str->str);
+        g_string_free(queue_str, TRUE);
+    }
+
     int running_pid = (runningProcess != NULL) ? runningProcess->pid : -1;
     view_update_queue(queue_index, pid_list, running_pid);
     g_list_free(pid_list);
@@ -80,6 +93,25 @@ void controller_update_blocked_queue_display(void)
     {
         pid_list = g_list_append(pid_list, GINT_TO_POINTER(curr->pid));
         curr = curr->next;
+    }
+
+    // Log blocked queue changes
+    if (g_list_length(pid_list) > 0)
+    {
+        GString *blocked_str = g_string_new("");
+        g_string_append(blocked_str, "Blocked Queue: ");
+        
+        GList *iter = pid_list;
+        while (iter)
+        {
+            g_string_append_printf(blocked_str, "P%d", GPOINTER_TO_INT(iter->data));
+            iter = iter->next;
+            if (iter)
+                g_string_append(blocked_str, " -> ");
+        }
+        
+        console_model_log_output("[BLOCKED] %s\n", blocked_str->str);
+        g_string_free(blocked_str, TRUE);
     }
 
     int running_pid = (runningProcess != NULL) ? runningProcess->pid : -1;
@@ -124,9 +156,24 @@ void controller_update_running_process()
 
 void controller_update_all()
 {
-    printf("UI ");
-    for (int i = 0; i < 4; i++)
-        displayQueueSimplified(readyQueues[i]);
+    // Only log significant state changes
+    if (runningProcess != NULL)
+    {
+        char pcb_key[32];
+        snprintf(pcb_key, sizeof(pcb_key), "P%d_PCB", runningProcess->pid);
+        DataType type;
+        void *data = fetchDataByIndex(pcb_key, &type);
+        PCB *pcb = (type == TYPE_PCB && data) ? (PCB *)data : NULL;
+
+        char key[32];
+        snprintf(key, sizeof(key), "P%d_Instruction_%d", runningProcess->pid, pcb ? pcb->programCounter + 1 : 1);
+        char *instruction = fetchDataByIndex(key, &type);
+
+        if (instruction)
+        {
+            console_model_log_output("[STATE] Process %d running instruction: %s\n", runningProcess->pid, instruction);
+        }
+    }
 
     for (int i = 0; i < MAX_NUM_QUEUES; i++)
     {
@@ -135,9 +182,6 @@ void controller_update_all()
 
     controller_update_blocked_queue_display();
     controller_update_running_process();
-
-    // Log the current state to console
-    console_model_log_output("[UPDATE] Refreshed all displays at cycle %d\n", clockCycle);
 }
 
 // Run the selected scheduling algorithm
@@ -406,6 +450,9 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     gtk_widget_set_sensitive(controller->step_button, TRUE);
     gtk_widget_set_sensitive(controller->automatic_button, TRUE);
     gtk_widget_set_sensitive(controller->pause_button, FALSE);
+
+    // Reset console view
+    console_controller_reset_view();
 
     console_model_log_output("[RESET] Simulation reset to initial state\n");
 

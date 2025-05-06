@@ -254,3 +254,20 @@ void console_set_entry_sensitive(gboolean sensitive)
         gtk_widget_set_sensitive(entry_widget, sensitive);
     }
 }
+
+void console_view_reset(void)
+{
+    if (console_widget)
+    {
+        GtkTextBuffer *log_buffer = g_object_get_data(G_OBJECT(console_widget), LOG_BUFFER_KEY);
+        GtkTextBuffer *console_buffer = g_object_get_data(G_OBJECT(console_widget), CONSOLE_BUFFER_KEY);
+        if (log_buffer)
+        {
+            gtk_text_buffer_set_text(log_buffer, "", -1);
+        }
+        if (console_buffer)
+        {
+            gtk_text_buffer_set_text(console_buffer, "", -1);
+        }
+    }
+}

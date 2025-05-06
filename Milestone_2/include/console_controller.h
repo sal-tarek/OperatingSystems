@@ -21,6 +21,9 @@ void console_controller_init(void);
 // Clean up resources
 void console_controller_cleanup(void);
 
+// Reset the console view (clear both log and program output windows)
+void console_controller_reset_view(void);
+
 // Handle entry widget activation (Enter key)
 void console_controller_on_entry_activate(GtkWidget *widget, gpointer user_data);
 
