@@ -1,0 +1,73 @@
+[SYSTEM] Log file created: logging/console_log.txt
+[CLOCK] Clock controller initialized
+[CLOCK] Clock controller initialized
+[CONTROLLER] Unified controller started
+[SYSTEM] OS Scheduler Simulation started
+[SYSTEM] Clock cycle: -1
+[SYSTEM] Processes loaded: 0
+[PROCESS] Created process PID 1 with arrival time 0
+[CONFIG] Scheduler set to FCFS
+[CONFIG] Scheduler set to Round Robin
+[STEP] Executing single step at cycle 0
+[SCHEDULER] Running Round Robin algorithm with quantum 2
+[EXEC] Process 1 executing instruction at PC=0
+[EXEC] Decoding instruction: semWait userInput
+[MUTEX] Process 1 attempting to acquire userInput resource
+[MUTEX] Process 1 successfully acquired resource: userInput
+[EXEC] Process 1 completed instruction at PC=0
+[STATE] Process 1 running instruction: assign a input
+[QUEUE] Queue 0: P1
+[CLOCK] Cycle 0
+[STEP] Executing single step at cycle 1
+[SCHEDULER] Running Round Robin algorithm with quantum 2
+[EXEC] Process 1 executing instruction at PC=1
+[EXEC] Decoding instruction: assign a input
+[INPUT] User entered: "1"
+[MEMORY] Process 1: Variable 'a' assigned value '1'
+[EXEC] Process 1 completed instruction at PC=1
+[QUEUE] Queue 0: P1
+[CLOCK] Cycle 1
+[STEP] Executing single step at cycle 2
+[SCHEDULER] Running Round Robin algorithm with quantum 2
+[EXEC] Process 1 executing instruction at PC=2
+[EXEC] Decoding instruction: assign b input
+[INPUT] User entered: "5"
+[MEMORY] Process 1: Variable 'b' assigned value '5'
+[EXEC] Process 1 completed instruction at PC=2
+[STATE] Process 1 running instruction: semSignal userInput
+[QUEUE] Queue 0: P1
+[CLOCK] Cycle 2
+[STEP] Executing single step at cycle 3
+[SCHEDULER] Running Round Robin algorithm with quantum 2
+[EXEC] Process 1 executing instruction at PC=3
+[EXEC] Decoding instruction: semSignal userInput
+[MUTEX] Process 1 released userInput resource
+[EXEC] Process 1 completed instruction at PC=3
+[QUEUE] Queue 0: P1
+[CLOCK] Cycle 3
+[STEP] Executing single step at cycle 4
+[SCHEDULER] Running Round Robin algorithm with quantum 2
+[EXEC] Process 1 executing instruction at PC=4
+[EXEC] Decoding instruction: semWait userOutput
+[MUTEX] Process 1 attempting to acquire userOutput resource
+[MUTEX] Process 1 successfully acquired resource: userOutput
+[EXEC] Process 1 completed instruction at PC=4
+[STATE] Process 1 running instruction: printFromTo a b
+[QUEUE] Queue 0: P1
+[CLOCK] Cycle 4
+[STEP] Executing single step at cycle 5
+[SCHEDULER] Running Round Robin algorithm with quantum 2
+[EXEC] Process 1 executing instruction at PC=5
+[EXEC] Decoding instruction: printFromTo a b
+1 2 3 4 5
+[OUTPUT] Process 1 executed printFromTo from 1 to 5
+[EXEC] Process 1 completed instruction at PC=5
+[QUEUE] Queue 0: P1
+[CLOCK] Cycle 5
+[STEP] Executing single step at cycle 6
+[SCHEDULER] Running Round Robin algorithm with quantum 2
+[EXEC] Process 1 executing instruction at PC=6
+[EXEC] Decoding instruction: semSignal userOutput
+[MUTEX] Process 1 released userOutput resource
+[EXEC] Process 1 completed instruction at PC=6
+[CLOCK] Cycle 6
