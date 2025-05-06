@@ -162,7 +162,7 @@ void addInstVarsPCB(Process *process)
     addMemoryData(&memory, ranges[ranges_count].pcb_start, pcb, TYPE_PCB);
     char pcb_key[32];
     snprintf(pcb_key, sizeof(pcb_key), "P%d_PCB", process->pid);
-    addIndexEntry(pcb_key, ranges[ranges_count].pcb_start);
+    addIndexEntry(&index_table, pcb_key, ranges[ranges_count].pcb_start);
 
     // If we have stored instructions
     if (instruction_ptr)
@@ -189,7 +189,7 @@ void addInstVarsPCB(Process *process)
             // Create and add index entry
             char key[32];
             snprintf(key, sizeof(key), "P%d_Instruction_%d", process->pid, inst_idx + 1);
-            addIndexEntry(key, ranges[ranges_count].inst_start + inst_idx);
+            addIndexEntry(&index_table, key, ranges[ranges_count].inst_start + inst_idx);
             inst_idx++;
         }
     }
@@ -200,7 +200,7 @@ void addInstVarsPCB(Process *process)
         addMemoryData(&memory, ranges[ranges_count].var_start + i, "Variable Not Initialized", TYPE_STRING);
         char key[32];
         snprintf(key, sizeof(key), "P%d_Variable_%s", process->pid, variables[i]);
-        addIndexEntry(key, ranges[ranges_count].var_start + i);
+        addIndexEntry(&index_table, key, ranges[ranges_count].var_start + i);
         free(variables[i]);
     }
     free(variables);
@@ -244,7 +244,7 @@ void populateMemory()
 
 void *fetchDataByIndex(const char *key, DataType *type_out)
 {
-    int address = getIndexAddress(key);
+    int address = getIndexAddress(index_table, key);
     if (address == -1)
     {
         fprintf(stderr, "Key not found, it is not yet stored in memory: %s\n", key);
@@ -274,7 +274,7 @@ int updateDataByIndex(const char *key, void *new_data, DataType type)
         return -1;
     }
 
-    int address = getIndexAddress(key);
+    int address = getIndexAddress(index_table, key);
     if (address == -1)
     {
         fprintf(stderr, "Key not found: %s\n", key);
@@ -547,7 +547,7 @@ void resetMemory()
 {
     // Free all memory words
     freeMemoryWord();
-    freeIndex();
+    freeIndex(&index_table);
     resetMemoryRanges();
     resetProcessList();
     current_memory_usage = 0;
@@ -566,7 +566,7 @@ void resetProcessList()
     numberOfProcesses = 0;
 }
 
-voif resetMemoryRanges()
+void resetMemoryRanges()
 {
     for (int i = 0; i < MAX_PROCESSES; i++)
     {
