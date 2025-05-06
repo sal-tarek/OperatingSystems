@@ -33,6 +33,8 @@ MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 int numberOfProcesses = 0;
 Process *processes[MAX_PROCESSES] = {NULL};
+Queue *global_blocked_queue = NULL;
+Queue *readyQueues[MAX_NUM_QUEUES] = {NULL};
 
 // Forward declaration of cleanup function
 static void cleanup_resources(void);
