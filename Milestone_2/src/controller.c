@@ -15,6 +15,7 @@
 #include "console_model.h"
 #include "console_controller.h"
 
+
 extern int numberOfProcesses;
 extern Process *runningProcess;
 extern Queue *readyQueues[MAX_NUM_QUEUES];
@@ -38,6 +39,7 @@ typedef struct
     guint automatic_timer_id;
     gboolean is_running;
     int quantum;
+    UnifiedController* unified_controller;
 } Controller;
 
 static Controller *controller = NULL;
@@ -222,7 +224,7 @@ void run_selected_scheduler()
     }
 }
 
-void controller_init(GtkApplication *app, GtkWidget *window, GtkWidget *main_box)
+void controller_init(GtkApplication *app, GtkWidget *window, GtkWidget *main_box, UnifiedController *unified_controller)
 {
     controller = g_new0(Controller, 1);
     controller->view_window = window;
@@ -237,6 +239,7 @@ void controller_init(GtkApplication *app, GtkWidget *window, GtkWidget *main_box
     controller->quantum_label = view_get_quantum_label();
     controller->automatic_timer_id = 0;
     controller->is_running = FALSE;
+    controller->unified_controller = unified_controller;
     schedulingAlgorithm = g_strdup("MLFQ"); // Initialize with default algorithm
     controller->quantum = 2;
 
@@ -415,8 +418,8 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
         controller->automatic_timer_id = 0;
     }
 
-    controller->is_running = FALSE;
-    controller->quantum = 2;
+    //controller->is_running = FALSE;
+    //controller->quantum = 2;
 
     // Free previous algorithm and set default
     if (schedulingAlgorithm)
@@ -426,13 +429,14 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     schedulingAlgorithm = g_strdup("MLFQ");
 
     // Reset clock to 0
-    clock_controller_reset();
+    //clock_controller_reset();
 
-    numberOfProcesses = 0;
+    //numberOfProcesses = 0;
 
-    runningProcess = NULL;
+    //runningProcess = NULL;
 
     freeMemoryWord();
+    reset_processes_id(controller->unified_controller);
 
     while (!isEmpty(job_pool))
     {
@@ -440,37 +444,38 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
         if (process)
             freeProcess(process);
     }
-    freeQueue(job_pool);
+    resetMemory();
+    // freeQueue(job_pool);
 
-    for (int i = 0; i < MAX_NUM_QUEUES; i++)
-    {
-        while (readyQueues[i]->front != NULL)
-        {
-            Process *p = readyQueues[i]->front;
-            readyQueues[i]->front = p->next;
-            free(p);
-        }
-        readyQueues[i]->rear = NULL;
-    }
+    // for (int i = 0; i < MAX_NUM_QUEUES; i++)
+    // {
+    //     while (readyQueues[i]->front != NULL)
+    //     {
+    //         Process *p = readyQueues[i]->front;
+    //         readyQueues[i]->front = p->next;
+    //         free(p);
+    //     }
+    //     readyQueues[i]->rear = NULL;
+    // }
 
-    while (global_blocked_queue->front != NULL)
-    {
-        Process *p = global_blocked_queue->front;
-        global_blocked_queue->front = p->next;
-        free(p);
-    }
-    global_blocked_queue->rear = NULL;
+    // while (global_blocked_queue->front != NULL)
+    // {
+    //     Process *p = global_blocked_queue->front;
+    //     global_blocked_queue->front = p->next;
+    //     free(p);
+    // }
+    // global_blocked_queue->rear = NULL;
 
-    for (int i = 0; i < 5; i++)
-    {
-        g_list_free(view->queue_processes[i]);
-        view->queue_processes[i] = NULL;
-        g_list_free_full(queue_animations[i].animations, g_free);
-        queue_animations[i].animations = NULL;
-        gtk_widget_queue_draw(view->drawing_areas[i]);
-    }
+    // for (int i = 0; i < 5; i++)
+    // {
+    //     g_list_free(view->queue_processes[i]);
+    //     view->queue_processes[i] = NULL;
+    //     g_list_free_full(queue_animations[i].animations, g_free);
+    //     queue_animations[i].animations = NULL;
+    //     gtk_widget_queue_draw(view->drawing_areas[i]);
+    // }
 
-    view->running_pid = -1;
+    // view->running_pid = -1;
     gtk_label_set_text(GTK_LABEL(controller->running_process_label), "Running Process: None");
     gtk_drop_down_set_selected(GTK_DROP_DOWN(controller->scheduler_combo), 0);
     gtk_editable_set_text(GTK_EDITABLE(controller->quantum_entry), "2");

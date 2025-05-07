@@ -220,3 +220,9 @@ void unified_controller_free(UnifiedController *controller) {
     
     g_free(controller);
 }
+
+void reset_processes_id(UnifiedController *controller)
+{
+    controller->process_id_counter = 0;
+}
+

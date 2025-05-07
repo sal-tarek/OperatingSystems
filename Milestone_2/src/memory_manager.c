@@ -416,53 +416,53 @@ void freeMemoryRanges()
 }
 
 // Helper function to free a specific memory range for a process
-void freeMemoryRange(int inst_start, int inst_count, int var_start, int var_count, int pcb_start)
-{
-    // Free instructions
-    for (int i = inst_start; i < inst_start + inst_count; i++)
-    {
-        MemoryWord *word = NULL;
-        HASH_FIND_INT(memory, &i, word);
-        if (word)
-        {
-            if (word->type == TYPE_STRING)
-            {
-                free(word->data);
-            }
-            HASH_DEL(memory, word);
-            free(word);
-        }
-    }
+// void freeMemoryRange(int inst_start, int inst_count, int var_start, int var_count, int pcb_start)
+// {
+//     // Free instructions
+//     for (int i = inst_start; i < inst_start + inst_count; i++)
+//     {
+//         MemoryWord *word = NULL;
+//         HASH_FIND_INT(memory, &i, word);
+//         if (word)
+//         {
+//             if (word->type == TYPE_STRING)
+//             {
+//                 free(word->data);
+//             }
+//             HASH_DEL(memory, word);
+//             free(word);
+//         }
+//     }
 
-    // Free variables
-    for (int i = var_start; i < var_start + var_count; i++)
-    {
-        MemoryWord *word = NULL;
-        HASH_FIND_INT(memory, &i, word);
-        if (word)
-        {
-            if (word->type == TYPE_STRING)
-            {
-                free(word->data);
-            }
-            HASH_DEL(memory, word);
-            free(word);
-        }
-    }
+//     // Free variables
+//     for (int i = var_start; i < var_start + var_count; i++)
+//     {
+//         MemoryWord *word = NULL;
+//         HASH_FIND_INT(memory, &i, word);
+//         if (word)
+//         {
+//             if (word->type == TYPE_STRING)
+//             {
+//                 free(word->data);
+//             }
+//             HASH_DEL(memory, word);
+//             free(word);
+//         }
+//     }
 
-    // Free PCB
-    MemoryWord *pcb_word = NULL;
-    HASH_FIND_INT(memory, &pcb_start, pcb_word);
-    if (pcb_word)
-    {
-        if (pcb_word->type == TYPE_PCB)
-        {
-            freePCB((PCB *)pcb_word->data);
-        }
-        HASH_DEL(memory, pcb_word);
-        free(pcb_word);
-    }
-}
+//     // Free PCB
+//     MemoryWord *pcb_word = NULL;
+//     HASH_FIND_INT(memory, &pcb_start, pcb_word);
+//     if (pcb_word)
+//     {
+//         if (pcb_word->type == TYPE_PCB)
+//         {
+//             freePCB((PCB *)pcb_word->data);
+//         }
+//         HASH_DEL(memory, pcb_word);
+//         free(pcb_word);
+//     }
+// }
 
 void deleteProcessFromMemory(int pid)
 {
@@ -551,10 +551,10 @@ void resetMemory()
 {
     // Free all memory words
     freeMemoryWord();
-    freeIndex(&index_table);
-    resetMemoryRanges();
-    resetProcessList();
-    current_memory_usage = 0;
+    // freeIndex(&index_table);
+    // resetMemoryRanges();
+    // resetProcessList();
+    // current_memory_usage = 0;
 }
 
 void resetProcessList()

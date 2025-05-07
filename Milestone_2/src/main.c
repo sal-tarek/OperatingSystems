@@ -131,11 +131,20 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_widget_set_hexpand(controls_container, TRUE);
     gtk_box_append(GTK_BOX(middle_container), controls_container);
 
+    // Create unified controller
+    UnifiedController *controller = unified_controller_new(dashboard_view, simulator_view);
+    if (!controller)
+    {
+        fprintf(stderr, "Failed to create UnifiedController\n");
+        dashboard_view_free(dashboard_view);
+        simulator_view_free(simulator_view);
+        return;
+    }
     // Initialize clock controller first
     clock_controller_init();
 
     // Initialize controller with the controls container
-    controller_init(app, window, controls_container);
+    controller_init(app, window, controls_container, controller);
 
     // Second separator
     GtkWidget *separator2 = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
@@ -180,15 +189,7 @@ static void activate(GtkApplication *app, gpointer user_data)
         g_warning("Error: console entry widget is invalid");
     }
 
-    // Create unified controller
-    UnifiedController *controller = unified_controller_new(dashboard_view, simulator_view);
-    if (!controller)
-    {
-        fprintf(stderr, "Failed to create UnifiedController\n");
-        dashboard_view_free(dashboard_view);
-        simulator_view_free(simulator_view);
-        return;
-    }
+   
 
     // Connect signals
     simulator_view_connect_create_process(simulator_view, G_CALLBACK(unified_controller_create_process), controller);

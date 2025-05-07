@@ -19,5 +19,6 @@ UnifiedController *unified_controller_new(DashboardView *dashboard_view, Simulat
 void unified_controller_start(UnifiedController *controller);
 void unified_controller_create_process(GtkButton *button, gpointer user_data);
 void unified_controller_free(UnifiedController *controller);
+void reset_processes_id(UnifiedController *controller);
 
 #endif /* UNIFIED_CONTROLLER_H */

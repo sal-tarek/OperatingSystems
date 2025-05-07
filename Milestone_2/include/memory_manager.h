@@ -27,7 +27,7 @@ extern Queue *job_pool;
 extern Queue *readyQueues[4];
 extern MemoryWord *memory;
 extern IndexEntry *index_table;
-extern int clockCycle;
+extern int clockCycle; 
 extern MemoryRange ranges[MAX_PROCESSES];
 extern int ranges_count;
 extern int current_memory_usage;
