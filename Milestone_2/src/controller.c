@@ -21,6 +21,7 @@ extern Process *runningProcess;
 extern Queue *readyQueues[MAX_NUM_QUEUES];
 extern Queue *global_blocked_queue;
 extern int clockCycle;
+extern Process *processes[MAX_PROCESSES];
 
 // Define schedulingAlgorithm globally so it can be accessed from other files
 char *schedulingAlgorithm = NULL;
@@ -429,11 +430,11 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     schedulingAlgorithm = g_strdup("MLFQ");
 
     // Reset clock to 0
-    //clock_controller_reset();
+    clock_controller_reset();
 
-    //numberOfProcesses = 0;
+    numberOfProcesses = 0;
 
-    //runningProcess = NULL;
+    runningProcess = NULL;
 
     freeMemoryWord();
     reset_processes_id(controller->unified_controller);
@@ -447,35 +448,35 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     resetMemory();
     // freeQueue(job_pool);
 
-    // for (int i = 0; i < MAX_NUM_QUEUES; i++)
-    // {
-    //     while (readyQueues[i]->front != NULL)
-    //     {
-    //         Process *p = readyQueues[i]->front;
-    //         readyQueues[i]->front = p->next;
-    //         free(p);
-    //     }
-    //     readyQueues[i]->rear = NULL;
-    // }
+    for (int i = 0; i < MAX_NUM_QUEUES; i++)
+    {
+        while (readyQueues[i]->front != NULL)
+        {
+            Process *p = readyQueues[i]->front;
+            readyQueues[i]->front = p->next;
+            free(p);
+        }
+        readyQueues[i]->rear = NULL;
+    }
 
-    // while (global_blocked_queue->front != NULL)
-    // {
-    //     Process *p = global_blocked_queue->front;
-    //     global_blocked_queue->front = p->next;
-    //     free(p);
-    // }
-    // global_blocked_queue->rear = NULL;
+    while (global_blocked_queue->front != NULL)
+    {
+        Process *p = global_blocked_queue->front;
+        global_blocked_queue->front = p->next;
+        free(p);
+    }
+    global_blocked_queue->rear = NULL;
 
-    // for (int i = 0; i < 5; i++)
-    // {
-    //     g_list_free(view->queue_processes[i]);
-    //     view->queue_processes[i] = NULL;
-    //     g_list_free_full(queue_animations[i].animations, g_free);
-    //     queue_animations[i].animations = NULL;
-    //     gtk_widget_queue_draw(view->drawing_areas[i]);
-    // }
+    for (int i = 0; i < 5; i++)
+    {
+        g_list_free(view->queue_processes[i]);
+        view->queue_processes[i] = NULL;
+        g_list_free_full(queue_animations[i].animations, g_free);
+        queue_animations[i].animations = NULL;
+        gtk_widget_queue_draw(view->drawing_areas[i]);
+    }
 
-    // view->running_pid = -1;
+    view->running_pid = -1;
     gtk_label_set_text(GTK_LABEL(controller->running_process_label), "Running Process: None");
     gtk_drop_down_set_selected(GTK_DROP_DOWN(controller->scheduler_combo), 0);
     gtk_editable_set_text(GTK_EDITABLE(controller->quantum_entry), "2");
@@ -549,7 +550,12 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     }
 
     console_model_log_output("[DEBUG] ----------- END VERIFICATION -----------\n");
+    printMemory();
 
+    for (int i=0;i<MAX_PROCESSES;i++){
+        if(processes[i])
+        displayProcess(processes[i]);
+    }
     // Update all displays
     controller_update_all();
 }

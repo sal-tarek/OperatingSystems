@@ -52,7 +52,7 @@ gboolean clock_controller_increment()
     // Step 5: Increment the clock cycle
     clockCycle++;
 
-    printMemory();
+
     
     return TRUE;
 }
