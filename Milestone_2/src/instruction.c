@@ -33,6 +33,7 @@ char *input(const char *prompt)
     }
 
     console_model_log_output("[INPUT] User entered: \"%s\"\n", user_input);
+    console_model_program_output("User entered: \"%s\"\n", user_input);
     return user_input;
 }
 

@@ -296,6 +296,13 @@ static void on_scheduler_changed(GtkWidget *combo, GParamSpec *pspec, gpointer u
 // Handle step button click
 static void on_step_clicked(GtkWidget *button, gpointer user_data)
 {
+    // Check if we're waiting for input
+    if (console_controller_is_waiting_for_input())
+    {
+        console_model_log_output("[STEP] Waiting for user input\n");
+        console_model_program_output("Waiting for user input - please provide input before stepping\n");
+        return;
+    }
 
     console_model_log_output("[SYSTEM] Clock cycle: %d\n", clockCycle);
 
@@ -307,7 +314,6 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data)
     }
     
     printf("\nTime %d: \n \n", clockCycle);
-
 
     // Check if any processes are still running
     int any_running = 0;
@@ -563,17 +569,23 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
 // Timer callback for automatic execution called periodically to execute steps automatically
 static gboolean automatic_step(gpointer user_data)
 {
+    // Check if we're waiting for input
+    if (console_controller_is_waiting_for_input())
+    {
+        console_model_log_output("[AUTO] Waiting for user input - automatic execution paused\n");
+        return G_SOURCE_REMOVE;
+    }
+
     // Check if any processes are still running
     int any_running = 0;
     for (int i = 1; i <= numberOfProcesses; i++)
-        for (int i = 1; i <= numberOfProcesses; i++)
+    {
+        if (getProcessState(i) != TERMINATED)
         {
-            if (getProcessState(i) != TERMINATED)
-            {
-                any_running = 1;
-                break;
-            }
+            any_running = 1;
+            break;
         }
+    }
 
     if (any_running)
     {

@@ -161,7 +161,7 @@ static gboolean update_text_view_idle(gpointer user_data)
     return G_SOURCE_REMOVE;
 }
 
-GtkWidget *console_view_new(GtkWidget **entry_out)
+GtkWidget *console_create_view(GtkWidget **entry_out)
 {
     // Create vertical box for layout
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5); // Increased spacing to 5px
@@ -327,34 +327,36 @@ void console_update_log_output(const char *text)
     }
 }
 
+void console_set_input_focus(void)
+{
+    if (entry_widget)
+    {
+        gtk_widget_set_sensitive(entry_widget, TRUE);
+        gtk_widget_grab_focus(entry_widget);
+        
+        // Update status label
+        GtkWidget *status_label = g_object_get_data(G_OBJECT(entry_widget), "status_label");
+        if (status_label)
+        {
+            gtk_label_set_text(GTK_LABEL(status_label), "Input enabled - waiting for user input");
+        }
+    }
+}
+
 void console_clear_input(void)
 {
     if (entry_widget)
     {
-        GtkEntryBuffer *buffer = gtk_entry_get_buffer(GTK_ENTRY(entry_widget));
-        gtk_entry_buffer_set_text(buffer, "", -1);
-        gtk_widget_set_sensitive(entry_widget, FALSE); // Disable after clearing
+        gtk_editable_set_text(GTK_EDITABLE(entry_widget), "");
+        gtk_widget_set_sensitive(entry_widget, FALSE);
+        
+        // Update status label
+        GtkWidget *status_label = g_object_get_data(G_OBJECT(entry_widget), "status_label");
+        if (status_label)
+        {
+            gtk_label_set_text(GTK_LABEL(status_label), "Input disabled - waiting for program request");
+        }
     }
-}
-
-// Thread-safe version that runs on the main thread
-static gboolean set_input_focus_idle(gpointer user_data)
-{
-    if (entry_widget && GTK_IS_WIDGET(entry_widget) && gtk_widget_get_realized(entry_widget))
-    {
-        gtk_widget_set_sensitive(entry_widget, TRUE);
-        gtk_widget_grab_focus(entry_widget);
-        return G_SOURCE_REMOVE;
-    }
-
-    g_warning("Cannot set focus on input field - widget not available");
-    return G_SOURCE_REMOVE;
-}
-
-void console_set_input_focus(void)
-{
-    // Schedule the focus operation on the main thread to avoid threading issues
-    g_idle_add_full(G_PRIORITY_HIGH_IDLE, set_input_focus_idle, NULL, NULL);
 }
 
 char *console_get_input_text(void)
