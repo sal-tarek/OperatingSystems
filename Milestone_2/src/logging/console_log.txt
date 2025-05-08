@@ -3,22 +3,56 @@
 [CLOCK] Clock controller initialized
 [CONTROLLER] Unified controller started
 [SYSTEM] OS Scheduler Simulation started
-[SYSTEM] Clock cycle: -1
 [SYSTEM] Processes loaded: 0
-[PROCESS] Created process PID 1 with arrival time 0
-[PROCESS] Created process PID 2 with arrival time 0
+[PROCESS] Created process PID 1 with arrival time 1
+[PROCESS] Created process PID 2 with arrival time 3
 [PROCESS] Created process PID 3 with arrival time 0
+[SYSTEM] Clock cycle: 0
 [STEP] Executing single step at cycle 0
+[SCHEDULER] Running MLFQ algorithm
+[EXEC] Process 3 executing instruction at PC=0
+[EXEC] Decoding instruction: semWait userInput
+[MUTEX] Process 3 attempting to acquire userInput resource
+[MUTEX] Process 3 successfully acquired resource: userInput
+[EXEC] Process 3 completed instruction at PC=0
+[QUEUE] Queue 1: P3
+[SYSTEM] Clock cycle: 1
+[STEP] Executing single step at cycle 1
 [SCHEDULER] Running MLFQ algorithm
 [EXEC] Process 1 executing instruction at PC=0
 [EXEC] Decoding instruction: semWait userInput
 [MUTEX] Process 1 attempting to acquire userInput resource
-[MUTEX] Process 1 successfully acquired resource: userInput
+[BLOCKED] Process 1 blocked waiting for resource: userInput
 [EXEC] Process 1 completed instruction at PC=0
-[QUEUE] Queue 0: P2 -> P3
+[STATE] Blocked processes: P1
+[QUEUE] Queue 1: P3
+[BLOCKED] Blocked Queue: P1
+[SYSTEM] Clock cycle: 2
+[STEP] Executing single step at cycle 2
+[SCHEDULER] Running MLFQ algorithm
+[EXEC] Process 3 executing instruction at PC=1
+[EXEC] Decoding instruction: assign a input
+[INPUT] User entered: "1"
+User entered: "1"
+[MEMORY] Process 3: Variable 'a' assigned value '1'
+[EXEC] Process 3 completed instruction at PC=1
+[STATE] Process 3 running instruction: semSignal userInput
+[STATE] Blocked processes: P1
+[QUEUE] Queue 1: P3
+[BLOCKED] Blocked Queue: P1
+[SYSTEM] Clock cycle: 3
+[STEP] Executing single step at cycle 3
+[SCHEDULER] Running MLFQ algorithm
+[EXEC] Process 3 executing instruction at PC=2
+[EXEC] Decoding instruction: semSignal userInput
+[MUTEX] Process 3 released userInput resource
+[UNBLOCKED] Process 1 was unblocked from resource userInput
+[EXEC] Process 3 completed instruction at PC=2
+[QUEUE] Queue 0: P2
 [QUEUE] Queue 1: P1
-[CLOCK] Cycle 0
-[STEP] Executing single step at cycle 1
+[QUEUE] Queue 2: P3
+[SYSTEM] Clock cycle: 4
+[STEP] Executing single step at cycle 4
 [SCHEDULER] Running MLFQ algorithm
 [EXEC] Process 2 executing instruction at PC=0
 [EXEC] Decoding instruction: semWait userInput
@@ -27,30 +61,31 @@
 [EXEC] Process 2 completed instruction at PC=0
 [STATE] Blocked processes: P2
 [QUEUE] Queue 1: P1
+[QUEUE] Queue 2: P3
 [BLOCKED] Blocked Queue: P2
-[CLOCK] Cycle 1
-[STEP] Executing single step at cycle 2
+[SYSTEM] Clock cycle: 5
+[STEP] Executing single step at cycle 5
 [SCHEDULER] Running MLFQ algorithm
 [EXEC] Process 1 executing instruction at PC=1
 [EXEC] Decoding instruction: assign a input
-[CLOCK] Clock reset to -1
-[RESET] Simulation reset to initial state
-[SYSTEM] OS Scheduler Simulation reset complete
-[SYSTEM] Clock cycle: 0
-[SYSTEM] Processes loaded: 0
-[DEBUG] ----------- RESET STATE VERIFICATION -----------
-[DEBUG] Scheduler algorithm: MLFQ
-[DEBUG] Controller running state: Stopped
-[DEBUG] Controller quantum: 2
-[DEBUG] Controller timer: Inactive
-[DEBUG] Ready Queue 0 size: 0
-[DEBUG] Ready Queue 1 size: 0
-[DEBUG] Ready Queue 2 size: 0
-[DEBUG] Ready Queue 3 size: 0
-[DEBUG] Blocked Queue size: 0
-[DEBUG] Job Pool size: 0
-[DEBUG] Running Process: None (Correct)
-[DEBUG] Memory properly initialized: No (ERROR!)
-[DEBUG] Clock cycle after reset: 0
-[DEBUG] ----------- END VERIFICATION -----------
-[PROCESS] Created process PID 4 with arrival time 0
+[INPUT] User entered: "4"
+User entered: "4"
+[MEMORY] Process 1: Variable 'a' assigned value '4'
+[EXEC] Process 1 completed instruction at PC=1
+[STATE] Process 1 running instruction: assign b input
+[STATE] Blocked processes: P2
+[QUEUE] Queue 1: P1
+[QUEUE] Queue 2: P3
+[BLOCKED] Blocked Queue: P2
+[SYSTEM] Clock cycle: 6
+[STEP] Executing single step at cycle 6
+[SCHEDULER] Running MLFQ algorithm
+[EXEC] Process 1 executing instruction at PC=2
+[EXEC] Decoding instruction: assign b input
+[INPUT] User entered: "3"
+User entered: "3"
+[MEMORY] Process 1: Variable 'b' assigned value '3'
+[EXEC] Process 1 completed instruction at PC=2
+[STATE] Blocked processes: P2
+[QUEUE] Queue 2: P3 -> P1
+[BLOCKED] Blocked Queue: P2

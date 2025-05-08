@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <gtk/gtk.h>
 #include "instruction.h"
+#include"controller.h"
 
 // Static decoding hashmap
 static DecodeHashEntry decode_hashmap[DECODE_HASH_SIZE] = {
@@ -310,14 +311,15 @@ void exec_cycle(Process *process)
     // Log the start of execution cycle
     console_model_log_output("[EXEC] Process %d executing instruction at PC=%d\n", process->pid, pcb->programCounter);
 
-    // Fetch instruction
-    char *instruction_str = fetch_instruction(pcb, process->pid);
-    if (!instruction_str)
-    {
-        console_model_log_output("[ERROR] Failed to fetch instruction for process %d at PC=%d\n", 
-                                process->pid, pcb->programCounter);
-        return;
-    }
+        // Fetch instruction
+        char *instruction_str = fetch_instruction(pcb, process->pid);
+        controller_update_running_process(instruction_str);
+        if (!instruction_str)
+        {
+            console_model_log_output("[ERROR] Failed to fetch instruction for process %d at PC=%d\n",
+                                     process->pid, pcb->programCounter);
+            return;
+        }
 
     // Decode instruction
     Instruction instruction = decode_instruction(process, instruction_str);

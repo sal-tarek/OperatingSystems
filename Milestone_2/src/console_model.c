@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <glib.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -13,12 +14,13 @@
 #endif
 
 static FILE *log_file = NULL;
+static gboolean input_in_progress = FALSE;
 
 typedef struct
 {
     GMainLoop *loop;
-    char *input;
     gboolean completed;
+    char *input;
 } InputRequest;
 
 void console_model_init(void)
@@ -50,6 +52,7 @@ void console_model_init(void)
         fprintf(log_file, "[SYSTEM] Log file created: logging/console_log.txt\n");
         fflush(log_file);
     }
+    input_in_progress = FALSE;
 }
 
 void console_model_cleanup(void)
@@ -59,17 +62,30 @@ void console_model_cleanup(void)
         fclose(log_file);
         log_file = NULL;
     }
+    input_in_progress = FALSE;
 }
 
-static void on_input_received(InputRequest *req, char *input)
+static void on_input_received(void *user_data, char *input)
 {
-    req->input = input; // Store input (caller frees)
-    req->completed = TRUE;
-    g_main_loop_quit(req->loop); // Exit the loop
+    InputRequest *req = (InputRequest *)user_data;
+    if (req)
+    {
+        req->input = input;
+        req->completed = TRUE;
+        input_in_progress = FALSE;
+        g_main_loop_quit(req->loop);
+    }
 }
 
 char *console_model_request_input(const char *prompt)
 {
+    if (input_in_progress)
+    {
+        g_warning("Input request already in progress");
+        return g_strdup("");
+    }
+
+    input_in_progress = TRUE;
     InputRequest req = {0};
     req.loop = g_main_loop_new(NULL, FALSE);
     req.completed = FALSE;
@@ -87,6 +103,7 @@ char *console_model_request_input(const char *prompt)
     if (!req.completed || !req.input)
     {
         g_warning("Input request failed or was cancelled");
+        input_in_progress = FALSE;
         return g_strdup(""); // Return empty string on failure
     }
 

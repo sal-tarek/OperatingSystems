@@ -43,16 +43,14 @@ gboolean clock_controller_increment()
     // Step 2: Update memory representation
     populateMemory();
 
-    // Step 3: Run the selected scheduler
-    run_selected_scheduler();
-
-    // Step 4: Update all UI components
-    controller_update_all();
-
-    // Step 5: Increment the clock cycle
+    // Step 3: Increment the clock cycle
     clockCycle++;
 
+    // Step 4: Run the selected scheduler
+    run_selected_scheduler();
 
+    // Step 5: Update all UI components
+    controller_update_all();
     
     return TRUE;
 }

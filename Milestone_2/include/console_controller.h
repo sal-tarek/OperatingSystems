@@ -36,4 +36,7 @@ void console_controller_request_input(const char *prompt);
 // Process input by passing it to the model
 void console_controller_process_input(const char *input);
 
+// Check if the controller is currently waiting for input
+gboolean console_controller_is_waiting_for_input(void);
+
 #endif // CONSOLE_CONTROLLER_H

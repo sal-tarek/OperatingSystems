@@ -11,9 +11,6 @@ mutex_t userInput_mutex = {"userInput", true, NULL, {0}, 0};
 mutex_t userOutput_mutex = {"userOutput", true, NULL, {0}, 0};
 mutex_t file_mutex = {"file", true, NULL, {0}, 0};
 
-// Global queues
-
-
 Process *checkUnblocked(char *resource_name)
 {
     mutex_t *mutex = get_mutex_by_name(resource_name);
@@ -47,10 +44,17 @@ void remove_from_global_blocked_queue(Process *process)
 
     if (process->pid == global_blocked_queue->front->pid )
     {
-        Process *p = dequeue(global_blocked_queue);
-        if (p && process-> state != TERMINATED) {
-            enqueue(readyQueues[getProcessPriority(p->pid)], p);
+        dequeue(global_blocked_queue);
+
+        if (process->state != TERMINATED) {
+            enqueue(readyQueues[getProcessPriority(process->pid)], process);
         }
+        else{
+            setProcessState(process->pid, TERMINATED);
+            process->state = TERMINATED;
+            printf("Finished %d\n", process->pid);
+        }
+
         printf("After: Global Blocked ");
         displayQueueSimplified(global_blocked_queue);
         return;

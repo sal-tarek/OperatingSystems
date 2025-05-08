@@ -32,7 +32,7 @@ Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 int numberOfProcesses = 0;
-Process *processes[MAX_PROCESSES] = {NULL};
+Process *processes[MAX_NUM_PROCESSES] = {NULL};
 Queue *global_blocked_queue = NULL;
 Queue *readyQueues[MAX_NUM_QUEUES] = {NULL};
 
@@ -155,11 +155,11 @@ static void activate(GtkApplication *app, gpointer user_data)
     // ---- BOTTOM SECTION: CONSOLE ----
     // Console view with proper styling
     GtkWidget *entry = NULL;
-    GtkWidget *console = console_view_new(&entry);
+    GtkWidget *console = console_create_view(&entry);
 
     if (console == NULL || !GTK_IS_WIDGET(console))
     {
-        g_warning("Error: console_view_new returned invalid widget");
+        g_warning("Error: console_create_view returned invalid widget");
     }
     else
     {
@@ -182,14 +182,12 @@ static void activate(GtkApplication *app, gpointer user_data)
     if (entry && GTK_IS_WIDGET(entry))
     {
         g_signal_connect(entry, "activate", G_CALLBACK(console_controller_on_entry_activate), NULL);
-        console_set_entry_sensitive(FALSE);
+        gtk_widget_set_sensitive(entry, FALSE);
     }
     else
     {
         g_warning("Error: console entry widget is invalid");
     }
-
-   
 
     // Connect signals
     simulator_view_connect_create_process(simulator_view, G_CALLBACK(unified_controller_create_process), controller);
