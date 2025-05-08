@@ -4,6 +4,7 @@
 #include "console_model.h"
 #include "controller.h"
 #include "unified_controller.h"
+#include "Queue.h"
 #include <stdio.h>
 
 // Forward declarations for external components
@@ -11,6 +12,7 @@ extern void controller_update_all(void);
 extern void populateMemory(void);
 extern ProcessState getProcessState(int pid);
 extern int numberOfProcesses;
+extern Queue *job_pool;
 
 // Global clock cycle counter
 extern int clockCycle;
@@ -24,7 +26,12 @@ void clock_controller_init(void)
 gboolean clock_controller_increment()
 {
     // Step 1: Check if any processes are still running
+    // continue if there are processes in the job pool or there are non-terminated processes
     int any_running = 0;
+    if (!isEmpty(job_pool))
+        any_running = 1;
+    
+    // Check if any processes are still running
     for (int i = 1; i <= numberOfProcesses; i++)
     {
         if (getProcessState(i) != TERMINATED)
@@ -33,7 +40,7 @@ gboolean clock_controller_increment()
             break;
         }
     }
-
+    
     if (!any_running)
     {
         console_model_log_output("[CLOCK] All processes terminated at cycle %d\n", clockCycle);

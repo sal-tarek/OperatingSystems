@@ -82,6 +82,10 @@ void runMLFQ()
                 setProcessState(runningProcess->pid, TERMINATED);
                 runningProcess->state = TERMINATED;
                 runningProcess->quantumUsed = 0;
+
+                deleteProcessFromMemory(runningProcess->pid); // Free the memory allocated for the process
+                numberOfProcesses--;
+                
                 runningProcess = NULL;
                 lastUsedLevel = -1;
             }

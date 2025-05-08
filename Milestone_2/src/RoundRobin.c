@@ -51,8 +51,15 @@ void runRR(int quantum)
             if (runningProcess->remainingTime == 0)
             {
                 dequeue(readyQueues[0]); // Now we safely remove it from the queue
-                printf("Finished %d\n", runningProcess->pid);
                 setProcessState(runningProcess->pid, TERMINATED);
+                runningProcess->state = TERMINATED;
+                runningProcess->quantumUsed = 0;
+                printf("Process %d finished execution at time %d\n", runningProcess->pid, clockCycle);
+                
+                deleteProcessFromMemory(runningProcess->pid); // Free the memory allocated for the process
+                numberOfProcesses--;            
+
+                runningProcess = NULL;
             }
             else if (runningProcess->quantumUsed == quantum)
             {
