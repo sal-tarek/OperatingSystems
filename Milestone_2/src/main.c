@@ -26,8 +26,8 @@
 #define QUEUE_CAPACITY 10
 
 // Global variables
-Process *runningProcess = NULL;     // Currently running process (or NULL if none)
-int clockCycle = 0;                 // Current clock cycle of the simulation (managed by clock_controller)
+Process *runningProcess = NULL; // Currently running process (or NULL if none)
+int clockCycle = 0;             // Current clock cycle of the simulation (managed by clock_controller)
 Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
@@ -78,9 +78,9 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     // Create a scrolled window for the main content
     GtkWidget *scrolled_window = gtk_scrolled_window_new();
-    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window), 
-                                 GTK_POLICY_AUTOMATIC, 
-                                 GTK_POLICY_AUTOMATIC);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
+                                   GTK_POLICY_AUTOMATIC,
+                                   GTK_POLICY_AUTOMATIC);
     gtk_window_set_child(GTK_WINDOW(window), scrolled_window);
 
     // Create the main vertical box
@@ -111,24 +111,30 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_widget_set_vexpand(middle_container, TRUE);
     gtk_box_append(GTK_BOX(main_box), middle_container);
 
+    // Right side: Controls section - positioned on the right
+    GtkWidget *controls_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_widget_set_size_request(controls_container, 720, -1);
+    gtk_widget_set_hexpand(controls_container, FALSE);
+    gtk_widget_set_margin_end(controls_container, 50);
+    gtk_widget_set_halign(controls_container, GTK_ALIGN_END); // Align to the end (right side)
+
     // Left side: Memory view
     GtkWidget *memory_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    gtk_widget_set_hexpand(memory_container, FALSE);
+    gtk_widget_set_hexpand(memory_container, TRUE); // Allow memory container to expand
 
     // Memory simulator view
     SimulatorView *simulator_view = simulator_view_new(app, memory_container, GTK_WINDOW(window));
     gtk_widget_set_size_request(simulator_view->main_container, 280, -1);
     gtk_widget_set_vexpand(simulator_view->main_container, TRUE);
 
+    // Add memory container first, then separator, then controls container for right-to-left order
     gtk_box_append(GTK_BOX(middle_container), memory_container);
 
     // Vertical separator between memory and controls
     GtkWidget *vseparator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
     gtk_box_append(GTK_BOX(middle_container), vseparator);
 
-    // Right side: Controls section
-    GtkWidget *controls_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    gtk_widget_set_hexpand(controls_container, TRUE);
+    // Add the controls container last so it appears on the right
     gtk_box_append(GTK_BOX(middle_container), controls_container);
 
     // Create unified controller
