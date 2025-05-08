@@ -32,7 +32,7 @@ Queue *job_pool = NULL;
 MemoryWord *memory = NULL;
 IndexEntry *index_table = NULL;
 int numberOfProcesses = 0;
-Process *processes[MAX_NUM_PROCESSES] = {NULL};
+Process *processes[MAX_PROCESSES] = {NULL};
 Queue *global_blocked_queue = NULL;
 Queue *readyQueues[MAX_NUM_QUEUES] = {NULL};
 

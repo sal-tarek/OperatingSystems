@@ -9,7 +9,7 @@
 
 // Constants
 #define MAX_MEMORY_WORDS 60
-#define MAX_NUM_PROCESSES 10    // Maximum number of processes to support
+#define MAX_PROCESSES 3
 
 // Structure for memory ranges
 typedef struct {
@@ -28,7 +28,7 @@ extern Queue *readyQueues[4];
 extern MemoryWord *memory;
 extern IndexEntry *index_table;
 extern int clockCycle; 
-extern MemoryRange ranges[MAX_NUM_PROCESSES];
+extern MemoryRange ranges[MAX_PROCESSES];
 extern int ranges_count;
 extern int current_memory_usage;
 

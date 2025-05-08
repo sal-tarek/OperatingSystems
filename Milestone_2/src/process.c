@@ -7,6 +7,7 @@
 #include "memory.h"
 #include "index.h"
 
+
 Process* createProcess(int pid, const char *file_path, int arrival_time) {
     Process* newProcess = (Process*)malloc(sizeof(Process));
     if (!newProcess) {

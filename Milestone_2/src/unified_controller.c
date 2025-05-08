@@ -10,7 +10,7 @@
 #include <string.h>
 
 extern Queue *job_pool;
-extern Process *processes[MAX_NUM_PROCESSES];
+extern Process *processes[MAX_PROCESSES];
 extern int clockCycle;      // This is now managed by clock_controller
 extern int numberOfProcesses;
 extern char *schedulingAlgorithm;

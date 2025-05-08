@@ -11,6 +11,9 @@ mutex_t userInput_mutex = {"userInput", true, NULL, {0}, 0};
 mutex_t userOutput_mutex = {"userOutput", true, NULL, {0}, 0};
 mutex_t file_mutex = {"file", true, NULL, {0}, 0};
 
+// Global queues
+
+
 Process *checkUnblocked(char *resource_name)
 {
     mutex_t *mutex = get_mutex_by_name(resource_name);
