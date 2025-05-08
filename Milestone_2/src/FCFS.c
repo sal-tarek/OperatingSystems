@@ -36,18 +36,7 @@ void runFCFS()
         runningProcess->remainingTime--;
         printf("Executed Process %d remaining time: %d time in queue: %d\n", runningProcess->pid, runningProcess->remainingTime, runningProcess->timeInQueue);
 
-        if(runningProcess->state == BLOCKED)
-        {
-            if (runningProcess->remainingTime == 0)
-            {
-                setProcessState(runningProcess->pid, TERMINATED);
-                runningProcess->state = TERMINATED;
-    
-                printf("Finished %d\n", runningProcess->pid);
-            }
-            runningProcess = NULL;
-        }
-        else
+        if(runningProcess->state != BLOCKED)
         {
             // Check if the process has finished
             if (runningProcess->remainingTime == 0)
@@ -55,7 +44,7 @@ void runFCFS()
                 dequeue(readyQueues[0]); // Remove the process from the queue
                 setProcessState(runningProcess->pid, TERMINATED);
                 printf("Process %d finished execution at time %d\n", runningProcess->pid, clockCycle);
-                runningProcess = NULL; // Clear runningProcess
+                runningProcess = NULL; 
             }
             else
             {
@@ -69,7 +58,10 @@ void runFCFS()
         printf("CPU is idle\n");
     }
     
-    // Print ready queue
-    printf("Ready ");
-    displayQueueSimplified(readyQueues[0]);
+    // Display the ready queues
+    printf("After ");
+    for (int i = 0; i < 4; i++)
+        displayQueueSimplified(readyQueues[i]);
+    printf("Blocked ");
+    displayQueueSimplified(global_blocked_queue);
 }

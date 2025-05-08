@@ -6,6 +6,12 @@
 // runs one cycle of the RR scheduler
 void runRR(int quantum)
 {
+    // Display the ready queues
+    printf("Before ");
+    for (int i = 0; i < 4; i++)
+        displayQueueSimplified(readyQueues[i]);
+    printf("Blocked ");
+    displayQueueSimplified(global_blocked_queue);
 
     // Fetch the next process from the ready queue & Handling Blocked processes
     if (!isEmpty(readyQueues[0]))
@@ -31,25 +37,32 @@ void runRR(int quantum)
 
         printf("Executing %d\n", runningProcess->pid);
 
-        if (runningProcess->remainingTime == 0)
+        if(runningProcess->state == BLOCKED)
         {
-            dequeue(readyQueues[0]); // Now we safely remove it from the queue
-            printf("Finished %d\n", runningProcess->pid);
-            setProcessState(runningProcess->pid, TERMINATED);
-        }
-        else if (runningProcess->quantumUsed == quantum)
-        {
-            dequeue(readyQueues[0]);
-            enqueue(readyQueues[0], runningProcess);
-            printf("moved %d to level 0\n", runningProcess->pid);
+            if (runningProcess->quantumUsed == quantum)
+            {
+                printf("moved %d to level 0\n", runningProcess->pid);
+            }
 
             runningProcess->quantumUsed = 0;
             runningProcess = NULL;
         }
-        else
-        {
-            setProcessState(runningProcess->pid, READY);
-            runningProcess->state = READY;
+        else{
+            if (runningProcess->remainingTime == 0)
+            {
+                dequeue(readyQueues[0]); // Now we safely remove it from the queue
+                printf("Finished %d\n", runningProcess->pid);
+                setProcessState(runningProcess->pid, TERMINATED);
+            }
+            else if (runningProcess->quantumUsed == quantum)
+            {
+                dequeue(readyQueues[0]);
+                enqueue(readyQueues[0], runningProcess);
+                printf("moved %d to level 0\n", runningProcess->pid);
+
+                runningProcess->quantumUsed = 0;
+                runningProcess = NULL;
+            }
         }
     }
     else
@@ -57,16 +70,10 @@ void runRR(int quantum)
         printf("CPU is idle\n");
     }
 
-    // Remove the blokced process from the ready queues because they've already been put in the blocked Queue, so they don't appear in the ready queues the next cycle
-    int size = getQueueSize(readyQueues[0]);
-    for (int j = 0; j < size; j++)
-    {
-        Process *curr = dequeue(readyQueues[0]);
-        if (curr->state != BLOCKED)
-            enqueue(readyQueues[0], curr);
-    }
-
-    // Print ready queue
-    printf("Ready ");
-    displayQueueSimplified(readyQueues[0]);
+    // Display the ready queues
+    printf("After ");
+    for (int i = 0; i < 4; i++)
+        displayQueueSimplified(readyQueues[i]);
+    printf("Blocked ");
+    displayQueueSimplified(global_blocked_queue);
 }

@@ -56,14 +56,7 @@ void runMLFQ()
 
         if(runningProcess->state == BLOCKED)
         {
-            if (runningProcess->remainingTime == 0)
-            {
-                setProcessState(runningProcess->pid, TERMINATED);
-                runningProcess->state = TERMINATED;
-    
-                printf("Finished %d\n", runningProcess->pid);
-            }
-            else if (runningProcess->quantumUsed == timeQuantum)
+            if (runningProcess->quantumUsed == timeQuantum)
             {
                 if (lastUsedLevel != 3)
                 {
