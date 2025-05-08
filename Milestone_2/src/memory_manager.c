@@ -418,7 +418,6 @@ void freeMemoryRanges()
 
 void deleteProcessFromMemory(int pid)
 {
-    pid--;
     // Step 1: Find the process's memory range
     if (pid < 0 || pid >= ranges_count || ranges[pid].pid == -1)
     {

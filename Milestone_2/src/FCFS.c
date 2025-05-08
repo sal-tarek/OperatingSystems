@@ -41,15 +41,10 @@ void runFCFS()
             // Check if the process has finished
             if (runningProcess->remainingTime == 0)
             {
-                dequeue(readyQueues[0]); // Now we safely remove it from the queue
+                dequeue(readyQueues[0]); // Remove the process from the queue
                 setProcessState(runningProcess->pid, TERMINATED);
-                runningProcess->state = TERMINATED;
                 printf("Process %d finished execution at time %d\n", runningProcess->pid, clockCycle);
-
-                deleteProcessFromMemory(runningProcess->pid); // Free the memory allocated for the process
-                numberOfProcesses--;
-                
-                runningProcess = NULL;
+                runningProcess = NULL; 
             }
             else
             {
