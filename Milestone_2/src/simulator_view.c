@@ -90,16 +90,20 @@ static GtkWidget* create_status_label(const char *text) {
     gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
     return label;
 }
+
 void simulator_view_create_resource_panel(SimulatorView *view, GtkWidget *parent) {
     if (!view || !parent) return;
     
     view->resource_panel = g_new(ResourcePanel, 1);
     
     // Creating main container for all resource elements
-    GtkWidget *resource_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    GtkWidget *resource_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 20);
     gtk_widget_set_vexpand(resource_container, TRUE);
     gtk_box_append(GTK_BOX(parent), resource_container);
-    
+    gtk_widget_set_margin_end(resource_container, 80);
+    gtk_widget_set_size_request(resource_container, 450, -1);
+    gtk_widget_set_hexpand(resource_container, FALSE);
+
     // Resource Status frame
     GtkWidget *frame = gtk_frame_new(NULL);
     gtk_widget_add_css_class(frame, "simulator-frame");
@@ -324,39 +328,39 @@ SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_contain
 
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(provider,
-                                      ".simulator-frame { background-color: rgb(236, 236, 234); border: 1px solid #bbb; color: #333; }"
+                                      ".simulator-frame { background-color: rgb(236, 236, 234); border: 1px solid #bbb; color: white; }"
                                       ".simulator-frame > label { color: white; font-weight: bold; font-size: 14px; background-color: #33A19A; padding: 5px; border-radius: 3px 3px 0 0; }"
-                                      ".simulator-label { color: #333; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
+                                      ".simulator-label { color: white; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
                                       ".simulator-listbox { background-color: #D9D9D9; }"
                                       ".simulator-listbox row { padding: 5px; margin: 2px; }"
                                       ".simulator-listbox row:nth-child(even) { background-color: rgba(51, 161, 154, 0.1); }"
                                       ".simulator-listbox row:hover { background-color: rgba(51, 161, 154, 0.3); }"
-                                      ".simulator-button { background-color: #33A19A; color: #D9D9D9; border-radius: 5px; padding: 5px; }"
+                                      ".simulator-button { background-color: #33A19A; color: white; border-radius: 5px; padding: 5px; }"
                                       ".simulator-button:hover { background-color: #278f89; }"
-                                      ".simulator-entry { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
-                                      ".simulator-textview { background-color: white; color: #000; border: 1px solid #bbb; padding: 8px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; font-size: 13px; }"
+                                      ".simulator-entry { background-color: white; color: white; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
+                                      ".simulator-textview { background-color: white; color: white; border: 1px solid #bbb; padding: 8px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; font-size: 13px; }"
                                       ".simulator-memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); width: 30px; text-align: center; }"
-                                      ".simulator-memory-content { color: #333; padding: 2px; }"
-                                      ".simulator-memory-content:hover { color: #196761; }"
-                                      ".simulator-memory-empty { color: #777; font-style: italic; padding: 2px; }"
+                                      ".simulator-memory-content { color: white; padding: 2px; }"
+                                      ".simulator-memory-content:hover { color: white; }"
+                                      ".simulator-memory-empty { color: white; font-style: italic; padding: 2px; }"
                                       ".simulator-memory-pcb { background-color: #f5f5f5; border-radius: 0 0 5px 5px; padding: 0; border: 1px solid #33A19A; margin-bottom: 7px; margin-right:2px;}"
-                                      ".simulator-memory-pcb-row { padding: 2px 5px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); font-size: 12px; }"
+                                      ".simulator-memory-pcb-row { padding: 2px 5px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); font-size: 12px; color: white; }"
                                       ".simulator-memory-pcb-row:last-child { border-bottom: none; }"
                                       ".simulator-memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; padding: 2px; max-width: 250px; }"
-                                      ".simulator-memory-slot:hover .simulator-memory-content { color: #196761; }"
+                                      ".simulator-memory-slot:hover .simulator-memory-content { color: white; }"
                                       ".simulator-frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
                                       ".simulator-pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; margin-top:5px; margin-right:2px;}"
                                       ".simulator-process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; max-width:180px; }"
-                                      ".resource-label { margin: 2px 0; padding: 3px 5px; border-radius: 3px; }"
-                                      ".resource-held { background-color: #ffcccc; border-left: 3px solid #ff3333; }"
-                                      ".resource-available { background-color: #ccffcc; border-left: 3px solid #33cc33; }"
-                                      ".blocked-process { color: #cc3333; font-weight: bold; }"
+                                      ".resource-label { margin: 2px 0; padding: 3px 5px; border-radius: 3px; color: white; }"
+                                      ".resource-held { background-color: #ffcccc; border-left: 3px solid #ff3333; color: white; }"
+                                      ".resource-available { background-color: #ccffcc; border-left: 3px solid #33cc33; color: white; }"
+                                      ".blocked-process { color: white; font-weight: bold; }"
                                       /* Enhanced CSS styles for resource panel */
                                       ".resource-frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; font-weight: bold; font-size: 14px; }"
                                       ".resource-separator { margin: 8px 0; background-color:  #33A19A;; }"
-                                      ".resource-queue-container { margin-top: 5px; border-radius: 4px; padding: 2px; background-color: rgba(138, 43, 226, 0.05); }"
+                                      ".resource-queue-container { margin-top: 5px; color: white; border-radius: 4px; padding: 2px; background-color: rgba(138, 43, 226, 0.05); }"
                                       ".resource-queue-header { color: white; background-color: #33A19A;; padding: 3px 6px; border-radius: 3px 3px 0 0; font-size: 13px; font-weight: bold; width: 100%; }"
-                                      ".resource-queue-content { padding: 5px; background-color: #f9f6fc; border: 1px solid #e6d5f5; border-radius: 0 0 3px 3px; font-size: 12px; height: 100%; }");
+                                      ".resource-queue-content { padding: 5px; background-color: #f9f6fc; border: 1px solid #e6d5f5; border-radius: 0 0 3px 3px; font-size: 18px; height: 100%; color: white; }");
 
     gtk_style_context_add_provider_for_display(
         gdk_display_get_default(),

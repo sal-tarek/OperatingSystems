@@ -133,6 +133,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     // Vertical separator between memory and controls
     GtkWidget *vseparator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
     gtk_box_append(GTK_BOX(middle_container), vseparator);
+    gtk_widget_set_margin_end(vseparator, 10);
 
     // Add the controls container last so it appears on the right
     gtk_box_append(GTK_BOX(middle_container), controls_container);
