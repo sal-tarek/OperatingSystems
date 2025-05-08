@@ -4,29 +4,5 @@
 [CONTROLLER] Unified controller started
 [SYSTEM] OS Scheduler Simulation started
 [SYSTEM] Processes loaded: 0
-[PROCESS] Created process PID 1 with arrival time 2
-[SYSTEM] Clock cycle: 0
-[STEP] Executing single step at cycle 0
-[SCHEDULER] Running MLFQ algorithm
-[SYSTEM] Clock cycle: 1
-[STEP] Executing single step at cycle 1
-[SCHEDULER] Running MLFQ algorithm
-[SYSTEM] Clock cycle: 2
-[STEP] Executing single step at cycle 2
-[SCHEDULER] Running MLFQ algorithm
-[EXEC] Process 1 executing instruction at PC=0
-[EXEC] Decoding instruction: semWait userInput
-[MUTEX] Process 1 attempting to acquire userInput resource
-[MUTEX] Process 1 successfully acquired resource: userInput
-[EXEC] Process 1 completed instruction at PC=0
-[QUEUE] Queue 1: P1
-[SYSTEM] Clock cycle: 3
-[STEP] Executing single step at cycle 3
-[SCHEDULER] Running MLFQ algorithm
-[EXEC] Process 1 executing instruction at PC=1
-[EXEC] Decoding instruction: assign a input
-[MEMORY] Process 1: Variable 'a' assigned value 'input'
-[EXEC] Process 1 completed instruction at PC=1
-[STATE] Process 1 running instruction: assign b input
-[QUEUE] Queue 1: P1
+[PROCESS] Created process PID 1 with arrival time 0
 [CONTROLLER] Unified controller stopped

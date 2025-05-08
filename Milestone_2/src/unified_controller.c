@@ -198,7 +198,7 @@ void unified_controller_create_process(GtkButton *button, gpointer user_data) {
     
     // Update the dialog text area with success message
     snprintf(message, sizeof(message), 
-             "Added process p%d:\nInstructions: %s\nArrival Time: %d\n", 
+             "Added process p%d:\n\nInstructions:\n%s\n\nArrival Time: %d\n", 
              pid, process->instructions ? process->instructions : "None", arrival_time);
     simulator_view_append_dialog_text(controller->simulator_view, message);
         
