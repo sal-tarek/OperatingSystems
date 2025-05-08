@@ -590,7 +590,7 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
    
 
     // Log memory state
-    console_model_log_output("[DEBUG] Memory properly initialized: %s\n", memory ? "No (ERROR!)" : "Yes");
+    console_model_log_output("[DEBUG] Memory properly initialized: %s\n", memory ? "Yes" : "No (ERROR!)");
 
     // Verify clock
     console_model_log_output("[DEBUG] Clock cycle after reset: %d\n", clockCycle);

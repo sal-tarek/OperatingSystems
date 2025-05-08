@@ -20,7 +20,6 @@ extern Queue *readyQueues[MAX_NUM_QUEUES];
 extern int clockCycle;
 extern Process *processes[MAX_NUM_PROCESSES];
 extern int numberOfProcesses;
-extern int tempProcessesNumber;
 
 // Global array to store memory ranges for each process
 MemoryRange ranges[MAX_NUM_PROCESSES];
@@ -238,7 +237,6 @@ void populateMemory()
 
             processes[numberOfProcesses] = curr; // Store the process in the global array
             numberOfProcesses++;
-            tempProcessesNumber++; // Increment the temporary process number
             printMemory();
         }
         else
