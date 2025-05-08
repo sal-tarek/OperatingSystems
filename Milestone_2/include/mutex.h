@@ -27,7 +27,7 @@ extern Queue *global_blocked_queue;
 extern Queue *readyQueues[MAX_NUM_QUEUES];
 
 // Function prototypes
-void mutex_init_system(void);
+void reset_all_mutexes();
 int mutex_lock(mutex_t *mutex, Process *process);
 int mutex_unlock(mutex_t *mutex, Process *process);
 mutex_t *get_mutex_by_name(const char *name);

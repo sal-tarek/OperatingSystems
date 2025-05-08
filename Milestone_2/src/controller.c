@@ -14,6 +14,8 @@
 #include "clock_controller.h"
 #include "console_model.h"
 #include "console_controller.h"
+#include "mutex.h"
+#include "simulator_view.h"
 
 
 extern int numberOfProcesses;
@@ -466,6 +468,11 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
         free(p);
     }
     global_blocked_queue->rear = NULL;
+    //Lama Added this call to reset resource panel
+    
+    if (view && ((SimulatorView*)view)->resource_panel) {
+        simulator_view_reset_resource_panel((SimulatorView*)view);
+    }
 
     for (int i = 0; i < 5; i++)
     {

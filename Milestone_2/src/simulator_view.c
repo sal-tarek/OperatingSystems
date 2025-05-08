@@ -183,7 +183,28 @@ void simulator_view_update_resource_panel(SimulatorView *view) {
         gtk_label_set_text(GTK_LABEL(view->resource_panel->blocked_queue_labels[i]), text);
     }
 }
-
+void simulator_view_reset_resource_panel(SimulatorView *view) {
+    if (!view || !view->resource_panel) return;
+    
+    // Reset all mutexes in the backend
+    reset_all_mutexes();
+    
+    // Update the UI to reflect the reset state
+    // const char *mutex_names[] = {"userInput", "userOutput", "file"};
+    
+    // // Update mutex status labels to show all available
+    // for (int i = 0; i < 3; i++) {
+    //     char text[100];
+    //     snprintf(text, sizeof(text), "%s: Available", mutex_names[i]);
+    //     gtk_label_set_text(GTK_LABEL(view->resource_panel->mutex_labels[i]), text);
+        
+    //     // Update CSS classes to show available state
+    //     gtk_widget_remove_css_class(view->resource_panel->mutex_labels[i], "resource-held");
+    //     gtk_widget_add_css_class(view->resource_panel->mutex_labels[i], "resource-available");
+    // }
+    
+    
+}
 SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_container, GtkWindow *main_window) {
     SimulatorView *view = g_new(SimulatorView, 1);
     view->window = NULL;

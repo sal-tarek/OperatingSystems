@@ -35,5 +35,5 @@ void simulator_view_free(SimulatorView *view);
 // Lama New functions for resource management panel
 void simulator_view_update_resource_panel(SimulatorView *view);
 void simulator_view_create_resource_panel(SimulatorView *view, GtkWidget *parent);
-
+void simulator_view_reset_resource_panel(SimulatorView *view);
 #endif

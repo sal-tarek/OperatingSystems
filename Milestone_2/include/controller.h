@@ -3,6 +3,7 @@
 
 #include <gtk/gtk.h>
 #include "unified_controller.h"// Make schedulingAlgorithm accessible to other files
+
 extern char *schedulingAlgorithm;
 
 void controller_init(GtkApplication *app, GtkWidget *window, GtkWidget *main_box, UnifiedController* unified_controller);

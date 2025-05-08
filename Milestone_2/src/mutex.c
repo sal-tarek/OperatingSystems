@@ -74,21 +74,25 @@ void remove_from_global_blocked_queue(Process *process)
     free(temp_queue);
 }
 
-void mutex_init_system(void)
-{
+void reset_all_mutexes() {
+    // Reset the three global mutexes
     userInput_mutex.available = true;
     userInput_mutex.holder = NULL;
     userInput_mutex.blocked_count = 0;
+    memset(userInput_mutex.blocked_queue, 0, sizeof(userInput_mutex.blocked_queue));
 
     userOutput_mutex.available = true;
     userOutput_mutex.holder = NULL;
     userOutput_mutex.blocked_count = 0;
+    memset(userOutput_mutex.blocked_queue, 0, sizeof(userOutput_mutex.blocked_queue));
 
     file_mutex.available = true;
     file_mutex.holder = NULL;
     file_mutex.blocked_count = 0;
-}
+    memset(file_mutex.blocked_queue, 0, sizeof(file_mutex.blocked_queue));
 
+    printf("All mutexes have been reset\n");
+}
 int mutex_lock(mutex_t *mutex, Process *process)
 {
     if (mutex == NULL || process == NULL)
