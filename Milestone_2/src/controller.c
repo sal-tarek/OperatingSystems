@@ -558,65 +558,6 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     console_model_log_output("[SYSTEM] OS Scheduler Simulation reset complete\n");
     console_model_log_output("[SYSTEM] Clock cycle: %d\n", clockCycle);
     console_model_log_output("[SYSTEM] Processes loaded: %d\n", numberOfProcesses);
-
-    // Add debugging output to verify reset state
-    console_model_log_output("[DEBUG] ----------- RESET STATE VERIFICATION -----------\n");
-
-    // Verify scheduler algorithm reset
-    console_model_log_output("[DEBUG] Scheduler algorithm: %s\n", schedulingAlgorithm);
-
-    // Verify controller state
-    console_model_log_output("[DEBUG] Controller running state: %s\n", controller->is_running ? "Running" : "Stopped");
-    console_model_log_output("[DEBUG] Controller quantum: %d\n", controller->quantum);
-    console_model_log_output("[DEBUG] Controller timer: %s\n", controller->automatic_timer_id ? "Active" : "Inactive");
-
-    // Verify process queues
-    for (int i = 0; i < MAX_NUM_QUEUES; i++)
-    {
-        console_model_log_output("[DEBUG] Ready Queue %d size: %d\n", i, getQueueSize(readyQueues[i]));
-        if (!isEmpty(readyQueues[i]))
-        {
-            console_model_log_output("[DEBUG] WARNING: Queue %d not empty after reset!\n", i);
-        }
-    }
-
-    // Verify blocked queue
-    console_model_log_output("[DEBUG] Blocked Queue size: %d\n", getQueueSize(global_blocked_queue));
-    if (!isEmpty(global_blocked_queue))
-    {
-        console_model_log_output("[DEBUG] WARNING: Blocked queue not empty after reset!\n");
-    }
-
-    // Verify job pool
-    console_model_log_output("[DEBUG] Job Pool size: %d\n", getQueueSize(job_pool));
-    if (!isEmpty(job_pool))
-    {
-        console_model_log_output("[DEBUG] WARNING: Job pool not empty after reset!\n");
-    }
-
-    // Verify running process
-    console_model_log_output("[DEBUG] Running Process: %s\n", runningProcess ? "Present (ERROR!)" : "None (Correct)");
-
-    // Verify process array
-   
-
-    // Log memory state
-    console_model_log_output("[DEBUG] Memory properly initialized: %s\n", memory ? "Yes" : "No (ERROR!)");
-
-    // Verify clock
-    console_model_log_output("[DEBUG] Clock cycle after reset: %d\n", clockCycle);
-    if (clockCycle != 0)
-    {
-        console_model_log_output("[DEBUG] WARNING: Clock cycle not reset to 0!\n");
-    }
-
-    console_model_log_output("[DEBUG] ----------- END VERIFICATION -----------\n");
-    printMemory();
-
-    for (int i = 0; i < MAX_NUM_PROCESSES; i++){
-        if(processes[i])
-        displayProcess(processes[i]);
-    }
     // Update all displays
     controller_update_all();
 }
