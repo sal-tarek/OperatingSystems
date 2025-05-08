@@ -4,57 +4,76 @@
 #include "RoundRobin.h"
 
 // runs one cycle of the RR scheduler
-void runRR(int quantum) {     
-    printf("\nTime %d: \n \n", clockCycle);
+void runRR(int quantum)
+{
+    // Display the ready queues
+    printf("Before ");
+    for (int i = 0; i < 4; i++)
+        displayQueueSimplified(readyQueues[i]);
+    printf("Blocked ");
+    displayQueueSimplified(global_blocked_queue);
 
     // Fetch the next process from the ready queue & Handling Blocked processes
-    while (!isEmpty(readyQueues[0])) {
-        if(peek(readyQueues[0])->state == BLOCKED) 
-            dequeue(readyQueues[0]); 
-        else{
-            runningProcess = peek(readyQueues[0]);
-            exec_cycle(runningProcess); // Execution of the next instruction of the process
+    if (!isEmpty(readyQueues[0]))
+        runningProcess = peek(readyQueues[0]);
 
-            if(runningProcess->state == BLOCKED) {
-                dequeue(readyQueues[0]); // Remove the process from the queue
-                runningProcess = NULL; // Clear runningProcess
-            }
-            else
-                break;
-        }
+    // Update the timeInQueue for all processes in the ready queue
+    Process *temp = readyQueues[0]->front;
+    while (temp != NULL)
+    {
+        temp->timeInQueue++;
+        temp = temp->next;
     }
-        
-    // Print ready queue
-    printf("Ready ");
-    displayQueueSimplified(readyQueues[0]); 
 
-    if(runningProcess != NULL){
+    if (runningProcess != NULL)
+    {
         setProcessState(runningProcess->pid, RUNNING);
         runningProcess->state = RUNNING;
+
+        exec_cycle(runningProcess); // Execution of the next instruction of the process
 
         runningProcess->quantumUsed++;
         runningProcess->remainingTime--;
 
         printf("Executing %d\n", runningProcess->pid);
 
-        if(runningProcess->remainingTime == 0) {
-            dequeue(readyQueues[0]);  // Now we safely remove it from the queue
-            printf("Finished %d\n", runningProcess->pid);
-            setProcessState(runningProcess->pid, TERMINATED);
-        }else if(runningProcess->quantumUsed == quantum){
-            dequeue(readyQueues[0]);  
-            enqueue(readyQueues[0], runningProcess); 
-            printf("moved %d to level 0\n", runningProcess->pid);
-            
-            runningProcess->quantumUsed = 0; 
-            runningProcess = NULL; 
+        if(runningProcess->state == BLOCKED)
+        {
+            if (runningProcess->quantumUsed == quantum)
+            {
+                printf("moved %d to level 0\n", runningProcess->pid);
+            }
+
+            runningProcess->quantumUsed = 0;
+            runningProcess = NULL;
         }
-        else{ 
-            setProcessState(runningProcess->pid, READY);
-            runningProcess->state = READY;
+        else{
+            if (runningProcess->remainingTime == 0)
+            {
+                dequeue(readyQueues[0]); // Now we safely remove it from the queue
+                printf("Finished %d\n", runningProcess->pid);
+                setProcessState(runningProcess->pid, TERMINATED);
+            }
+            else if (runningProcess->quantumUsed == quantum)
+            {
+                dequeue(readyQueues[0]);
+                enqueue(readyQueues[0], runningProcess);
+                printf("moved %d to level 0\n", runningProcess->pid);
+
+                runningProcess->quantumUsed = 0;
+                runningProcess = NULL;
+            }
         }
     }
-    else{
+    else
+    {
         printf("CPU is idle\n");
-    }                     
+    }
+
+    // Display the ready queues
+    printf("After ");
+    for (int i = 0; i < 4; i++)
+        displayQueueSimplified(readyQueues[i]);
+    printf("Blocked ");
+    displayQueueSimplified(global_blocked_queue);
 }

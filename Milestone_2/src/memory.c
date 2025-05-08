@@ -58,19 +58,24 @@ int updateMemoryData(MemoryWord **memory, int address, void *new_data, DataType 
     }
     return 0;
 }
-
-void freeMemoryWord() {
+void freeMemoryWord() { 
     MemoryWord *current, *tmp;
-    HASH_ITER(hh, memory, current, tmp) {
-        HASH_DEL(memory, current);
-        if (current->type == TYPE_STRING) {
-            free(current->data);
-        } else if (current->type == TYPE_PCB) {
-            free(( PCB*)current->data);
+     HASH_ITER(hh, memory, current, tmp) {
+      HASH_DEL(memory, current);
+     // Remove from hash first
+      if (current->data) {
+         switch (current->type)
+          {
+            case TYPE_STRING: free(current->data); break; 
+            case TYPE_PCB: free((PCB *)current->data); 
+            // Correct casting break;
+            // Add other types if needed (e.g., TYPE_INT)
+             default: break; // Ignore or handle other types as needed 
+             } 
+              } 
+             free(current); // Free the MemoryWord struct 
+        } memory = NULL; // Reset the hash table head to avoid dangling pointer
         }
-        free(current);
-    }
-}
 
 void printMemory() {
     MemoryWord *curr, *tmp;

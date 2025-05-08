@@ -1,7 +1,8 @@
 #include <string.h>
 #include <errno.h>
 #include <limits.h>
-#include "../include/instruction.h"
+#include <gtk/gtk.h> // Add GTK/GLib headers
+#include "instruction.h"
 #include "mutex.h"
 
 #define MAX_VAR_KEY_LEN 15
@@ -9,64 +10,145 @@
 
 // Helper function signatures
 int safe_atoi(const char *str, int *out);
-char *input(char *functionality);
 
 // Main Functions
 
+char *input(const char *prompt)
+{
+    // Request input from the user via console model
+    char *user_input = console_model_request_input(prompt);
+
+    // Check if input is NULL to avoid segmentation fault
+    if (!user_input)
+    {
+        console_model_log_output("[ERROR] Input request failed\n");
+        return g_strdup(""); // Return empty string instead of NULL
+    }
+
+    // Remove newline character if present
+    size_t len = strlen(user_input);
+    if (len > 0 && user_input[len - 1] == '\n')
+    {
+        user_input[len - 1] = '\0';
+    }
+
+    console_model_log_output("[INPUT] User entered: \"%s\"\n", user_input);
+    console_model_program_output("User entered: \"%s\"\n", user_input);
+    return user_input;
+}
+
 // Print "printStatement" to terminal
-void print(int processId, char *printable)
+void print(Process *process, char *printable)
 {
     DataType type;
     char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, printable);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, printable);
     char *storedData = (char *)fetchDataByIndex(varKey, &type);
 
-    if (type != TYPE_STRING) {
-        perror("Erroneous fetch\n");
+    if (type != TYPE_STRING)
+    {
+        console_model_log_output("[ERROR] Invalid data type for variable '%s'\n", printable);
         return;
     }
 
-    if (storedData != NULL) {
-        printf("%s", storedData);
-    } else {
-        perror("Variable not found!\n");
+    if (storedData != NULL)
+    {
+        console_model_program_output("%s\n", storedData);
+        console_model_log_output("[OUTPUT] Process %d printed variable '%s' with value '%s'\n",
+                                 process->pid, printable, storedData);
+    }
+    else
+    {
+        console_model_program_output("Variable not found!\n");
+        console_model_log_output("[ERROR] Process %d tried to print non-existent variable '%s'\n",
+                                 process->pid, printable);
     }
 }
 
-#define MAX_TOKENS 4
-
 // Assigns value to a variable
-void assign(int processId, char *arg1, char *arg2) {
+void assign(Process *process, char *arg1, char *arg2)
+{
     char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, arg1);
 
     updateDataByIndex(varKey, arg2, TYPE_STRING);
+    console_model_log_output("[MEMORY] Process %d: Variable '%s' assigned value '%s'\n",
+                             process->pid, arg1, arg2);
 }
 
 // Write string to file
-void writeToFile(char *filename, char *content)
+void writeToFile(Process *process, char *varfileName, char *varContent)
 {
-    FILE *fptr = fopen(filename, "w");
+    DataType type;
+    char varKey[MAX_VAR_KEY_LEN];
+    
+    // Get the file name from the variable
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, varfileName);
+    char *fileName = (char *)fetchDataByIndex(varKey, &type);
 
-    if (fptr == NULL)
+    if (type != TYPE_STRING)
     {
-        perror("Failed to create the file");
+        console_model_log_output("[ERROR] Invalid data type for variable '%s'\n", varfileName);
         return;
     }
 
-    printf("File created successfully.\n");
+    if (!fileName)
+    {
+        console_model_log_output("[ERROR] File name variable '%s' not found\n", varfileName);
+        return;
+    }
+
+    // Get the content from the variable
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, varContent);
+    char *content = (char *)fetchDataByIndex(varKey, &type);
+
+    if (type != TYPE_STRING)
+    {
+        console_model_log_output("[ERROR] Invalid data type for variable '%s'\n", varContent);
+        return;
+    }
+
+    if (!content)
+    {
+        console_model_log_output("[ERROR] Content variable '%s' not found\n", varContent);
+        return;
+    }
+
+    FILE *fptr = fopen(fileName, "w");
+
+    if (fptr == NULL)
+    {
+        console_model_log_output("[ERROR] Process %d failed to create file '%s'\n", process->pid, fileName);
+        return;
+    }
+
+    console_model_program_output("File '%s' created successfully.\n", fileName);
+    console_model_log_output("[FILE] Process %d created file '%s' and wrote %lu bytes\n",
+                             process->pid, fileName, strlen(content));
     fprintf(fptr, "%s", content);
     fclose(fptr);
 }
 
 // Read file content and return as string
-char *readFromFile(char *fileName)
+char *readFromFile(Process *process, char *varfileName)
 {
+    DataType type;
+    char varKey[MAX_VAR_KEY_LEN];
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, varfileName);
+    char *fileName = (char *)fetchDataByIndex(varKey, &type);
+
+    if (type != TYPE_STRING)
+    {
+        console_model_log_output("[ERROR] Invalid data type for variable '%s'\n", varfileName);
+        return NULL;
+    }
+
     FILE *fptr = fopen(fileName, "r");
 
     if (fptr == NULL)
     {
-        perror("Error opening file");
+        console_model_log_output("[ERROR] Process %d failed to open file '%s' for reading\n",
+                                 process->pid, fileName);
         return NULL;
     }
 
@@ -77,7 +159,8 @@ char *readFromFile(char *fileName)
     char *buffer = (char *)malloc(file_size + 1);
     if (!buffer)
     {
-        perror("Failed to allocate memory");
+        console_model_log_output("[ERROR] Process %d failed to allocate memory for file '%s' content\n",
+                                 process->pid, fileName);
         fclose(fptr);
         return NULL;
     }
@@ -85,95 +168,134 @@ char *readFromFile(char *fileName)
     size_t bytes_read = fread(buffer, 1, file_size, fptr);
     buffer[bytes_read] = '\0';
 
+    console_model_log_output("[FILE] Process %d read %lu bytes from file '%s'\n",
+                             process->pid, bytes_read, fileName);
     fclose(fptr);
     return buffer;
 }
 
 // parses the input to get 2 integers and print the numbers between them (inclusive)
-void printFromTo(int processId, char *arg1, char *arg2)
+void printFromTo(Process *process, char *arg1, char *arg2)
 {
     DataType type;
     char varKey[MAX_VAR_KEY_LEN];
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg1);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, arg1);
     char *storedData1 = (char *)fetchDataByIndex(varKey, &type);
 
-    if (type != TYPE_STRING) {
-        perror("Erroneous fetch\n");
+    if (type != TYPE_STRING)
+    {
+        console_model_log_output("[ERROR] Invalid data type for variable '%s'\n", arg1);
         return;
     }
 
-    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", processId, arg2);
+    snprintf(varKey, MAX_VAR_KEY_LEN, "P%d_Variable_%s", process->pid, arg2);
     char *storedData2 = (char *)fetchDataByIndex(varKey, &type);
 
-    if (type != TYPE_STRING) {
-        perror("Erroneous fetch\n");
+    if (type != TYPE_STRING)
+    {
+        console_model_log_output("[ERROR] Invalid data type for variable '%s'\n", arg2);
         return;
     }
 
     int x, y, errCode1 = safe_atoi(storedData1, &x), errCode2 = safe_atoi(storedData2, &y);
 
-    if (errCode1 == 0 && errCode2 == 0) {
-        if (x > y) {
-            printf("second argument is smaller than first argument");
+    if (errCode1 == 0 && errCode2 == 0)
+    {
+        if (x > y)
+        {
+            console_model_log_output("[ERROR] printFromTo: first argument (%d) is greater than second argument (%d)\n", x, y);
             return;
         }
-        
         for (int i = x; i <= y; i++)
         {
-            printf("%d", i);
-            if (i != y) printf(" ");
+            console_model_program_output("%d", i);
+            if (i != y)
+                console_model_program_output(" ");
         }
-        printf("\n");
-    } else if (errCode1 == 1 || errCode2 == 1) {
-        perror("either values are invalid inputs (not a number)");
-    } else {
-        perror("either values is out of int range");
+        console_model_program_output("\n");
+        console_model_log_output("[OUTPUT] Process %d executed printFromTo from %d to %d\n", process->pid, x, y);
+    }
+    else if (errCode1 == 1 || errCode2 == 1)
+    {
+        console_model_log_output("[ERROR] printFromTo: invalid numeric input (not a number): '%s' or '%s'\n",
+                                 storedData1, storedData2);
+    }
+    else
+    {
+        console_model_log_output("[ERROR] printFromTo: value out of int range: '%s' or '%s'\n",
+                                 storedData1, storedData2);
     }
 }
 
 // Semaphore wait function (locks a mutex)
-void semWait(Process* process, char *x)
+void semWait(Process *process, char *x)
 {
     int result = 0;
-    if (strcmp(x, "file") == 0) {
+    if (strcmp(x, "file") == 0)
+    {
         // Lock the file mutex
         result = mutex_lock(&file_mutex, process);
-        printf("semWait called on file\n");
-    } else if (strcmp(x, "userInput") == 0) {
-        result = mutex_lock(&userInput_mutex, process);  // Lock the input mutex
-        printf("semWait called on user input\n");
-    } else if (strcmp(x, "userOutput") == 0) {
-        result = mutex_lock(&userOutput_mutex, process);  // Lock the output mutex
-        printf("semWait called on user output\n");
-    } else {
-        perror("invalid resource\n");
+        console_model_log_output("[MUTEX] Process %d attempting to acquire file resource\n", process->pid);
+    }
+    else if (strcmp(x, "userInput") == 0)
+    {
+        result = mutex_lock(&userInput_mutex, process); // Lock the input mutex
+        console_model_log_output("[MUTEX] Process %d attempting to acquire userInput resource\n", process->pid);
+    }
+    else if (strcmp(x, "userOutput") == 0)
+    {
+        result = mutex_lock(&userOutput_mutex, process); // Lock the output mutex
+        console_model_log_output("[MUTEX] Process %d attempting to acquire userOutput resource\n", process->pid);
+    }
+    else
+    {
+        console_model_log_output("[ERROR] Process %d tried to acquire an invalid resource: %s\n", process->pid, x);
         return;
     }
 
-    // if (result == 0) {
-    //     // Mutex was successfully locked (it wasn't locked before)
-    //     printf("Mutex was not locked, now locked.\n");
-    // } else {
-    //     // Mutex was already locked by another thread
-    //     printf("Mutex is already locked by another process.\n");
-    // }
+    if (result != 0)
+    {
+        // Process was blocked
+        console_model_log_output("[BLOCKED] Process %d blocked waiting for resource: %s\n", process->pid, x);
+    }
+    else
+    {
+        console_model_log_output("[MUTEX] Process %d successfully acquired resource: %s\n", process->pid, x);
+    }
 }
 
 // Semaphore signal function (unlocks a mutex)
-void semSignal(Process* process, char *x) {
-    if (strcmp(x, "file") == 0) {
-        // Lock the file mutex
+void semSignal(Process *process, char *x)
+{
+    if (strcmp(x, "file") == 0)
+    {
+        // Unlock the file mutex
         mutex_unlock(&file_mutex, process);
-        printf("semSignal called on file\n");
-    } else if (strcmp(x, "userInput") == 0) {
-        mutex_unlock(&userInput_mutex, process);  // Unlock the input mutex
-        printf("semSignal called on user input\n");
-    } else if (strcmp(x, "userOutput") == 0) {
-        mutex_unlock(&userOutput_mutex, process);  // Unlock the output mutex
-        printf("semSignal called on user output\n");
-    } else {
-        perror("invalid resource\n");
+        console_model_log_output("[MUTEX] Process %d released file resource\n", process->pid);
+    }
+    else if (strcmp(x, "userInput") == 0)
+    {
+        mutex_unlock(&userInput_mutex, process); // Unlock the input mutex
+        console_model_log_output("[MUTEX] Process %d released userInput resource\n", process->pid);
+    }
+    else if (strcmp(x, "userOutput") == 0)
+    {
+        mutex_unlock(&userOutput_mutex, process); // Unlock the output mutex
+        console_model_log_output("[MUTEX] Process %d released userOutput resource\n", process->pid);
+    }
+    else
+    {
+        console_model_log_output("[ERROR] Process %d tried to release an invalid resource: %s\n",
+                                 process->pid, x);
         return;
+    }
+
+    // Check if any process was unblocked
+    Process *unblocked = checkUnblocked(x);
+    if (unblocked)
+    {
+        console_model_log_output("[UNBLOCKED] Process %d was unblocked from resource %s\n",
+                                 unblocked->pid, x);
     }
 }
 
@@ -181,8 +303,10 @@ void semSignal(Process* process, char *x) {
 
 // parses a string to an int
 // returns 0 on success, 1 on invalid input (not a number), and 2 if out of int range
-int safe_atoi(const char *str, int *out) {
-    if (str == NULL || *str == '\0') {
+int safe_atoi(const char *str, int *out)
+{
+    if (str == NULL || *str == '\0')
+    {
         // Invalid string input
         return 1;
     }
@@ -192,17 +316,20 @@ int safe_atoi(const char *str, int *out) {
 
     long value = strtol(str, &end, 10);
 
-    if (end == str || *end != '\0') {
+    if (end == str || *end != '\0')
+    {
         // No digits found, or extra characters after the number
         return 1;
     }
 
-    if ((value == LONG_MAX || value == LONG_MIN) && errno == ERANGE) {
+    if ((value == LONG_MAX || value == LONG_MIN) && errno == ERANGE)
+    {
         // Overflow or underflow
         return 2;
     }
 
-    if (value > INT_MAX || value < INT_MIN) {
+    if (value > INT_MAX || value < INT_MIN)
+    {
         // Out of int range
         return 2;
     }
@@ -223,7 +350,7 @@ int safe_atoi(const char *str, int *out) {
         if (isReadFile(token)) {
             char *next = strtok(NULL, " ");
             if (!next) {
-                fprintf(stderr, "Error: readFile command missing filename.\n");
+                fprintf(stderr, "Error: readFile command missing fileName.\n");
                 return;
             }
             tokens[tokenCount++] = mergeReadFileToken(token, next);
@@ -266,7 +393,7 @@ int safe_atoi(const char *str, int *out) {
         goto cleanup;
     }
 
-    
+
 cleanup:
     for (int i = 0; i < tokenCount; i++) free(tokens[i]);
 */

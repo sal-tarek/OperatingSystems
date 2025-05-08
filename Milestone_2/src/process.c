@@ -7,7 +7,6 @@
 #include "memory.h"
 #include "index.h"
 
-
 Process* createProcess(int pid, const char *file_path, int arrival_time) {
     Process* newProcess = (Process*)malloc(sizeof(Process));
     if (!newProcess) {
@@ -44,6 +43,7 @@ Process* createProcess(int pid, const char *file_path, int arrival_time) {
     newProcess->remainingTime = 0;
     newProcess->next = NULL;
     newProcess->quantumUsed = 0;
+    newProcess->timeInQueue = 0;
     newProcess->instruction_count = 0;
     newProcess->instructions = NULL; // Initialize to NULL
     newProcess->variable_count = 0;
@@ -85,10 +85,17 @@ void displayProcess(Process *p) {
 }
 
 void freeProcess(Process *p) {
-    if (p != NULL) {
-        free(p->file_path);
-        free(p);
+    if (p == NULL) return;
+
+    free(p->file_path);
+    free(p->instructions);
+    if (p->variables) {
+        for (int i = 0; i < p->variable_count; i++) {
+            free(p->variables[i]);
+        }
+        free(p->variables);
     }
+    free(p);
 }
 
 void setProcessState(int pid, ProcessState newState) {
@@ -103,6 +110,7 @@ void setProcessState(int pid, ProcessState newState) {
         fprintf(stderr, "Failed to update PCB state for PID %d\n", pid);
     }
 }
+
 
 ProcessState getProcessState(int pid) {
     char key[20];
