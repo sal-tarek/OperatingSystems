@@ -236,7 +236,7 @@ void populateMemory()
 
             enqueue(readyQueues[0], curr); // Add to ready_queue
 
-            processes[tempProcessesNumber] = curr; // Store the process in the global array
+            processes[numberOfProcesses] = curr; // Store the process in the global array
             numberOfProcesses++;
             tempProcessesNumber++; // Increment the temporary process number
             printMemory();
@@ -420,32 +420,14 @@ void freeMemoryRanges()
 
 void deleteProcessFromMemory(int pid)
 {
-    // pid--;
-    // // Step 1: Find the process's memory range
-    // if (pid < 0 || pid >= ranges_count || ranges[pid].pid == -1)
-    // {
-    //     fprintf(stderr, "No memory range found for PID: %d\n", pid);
-    //     return;
-    // }
-    // MemoryRange range = ranges[pid];
-
-    int range_index = -1;
-    for (int i = 0; i < ranges_count; i++)
-    {
-        if (ranges[i].pid == pid)
-        {
-            range_index = i;
-            break;
-        }
-    }
-
-    if (range_index == -1 || ranges[range_index].pid == -1)
+    pid--;
+    // Step 1: Find the process's memory range
+    if (pid < 0 || pid >= ranges_count || ranges[pid].pid == -1)
     {
         fprintf(stderr, "No memory range found for PID: %d\n", pid);
         return;
     }
-
-    MemoryRange range = ranges[range_index];
+    MemoryRange range = ranges[pid];
 
     // Step 2: Free the memory range from the memory hash
     for (int i = range.pcb_start; i < range.pcb_start + range.pcb_count; i++)
