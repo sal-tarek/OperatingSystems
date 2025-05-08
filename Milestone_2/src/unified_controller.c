@@ -14,6 +14,7 @@ extern Process *processes[MAX_NUM_PROCESSES];
 extern int clockCycle;      // This is now managed by clock_controller
 extern int numberOfProcesses;
 extern char *schedulingAlgorithm;
+extern int tempProcessesNumber;
 
 const char *process_state_to_string(ProcessState state) {
     switch (state) {
@@ -38,8 +39,8 @@ static gboolean update_gui(gpointer user_data) {
     simulator_view_update_memory(controller->simulator_view);
     
     // Update dashboard view (overview and process list)
-    int process_count = numberOfProcesses;
-    dashboard_view_set_process_count(controller->dashboard_view, process_count);
+    
+    dashboard_view_set_process_count(controller->dashboard_view, numberOfProcesses);
     dashboard_view_set_clock_cycle(controller->dashboard_view, clockCycle);
     dashboard_view_set_algorithm(controller->dashboard_view, schedulingAlgorithm);
     
@@ -57,11 +58,13 @@ static gboolean update_gui(gpointer user_data) {
         gtk_box_remove(GTK_BOX(process_list_box), child);
         child = next;
     }
-   
     // Loop through the processes queue and update the process display
-    for (int i = 0; i < process_count; i++) {
+    for (int i = 0; i < tempProcessesNumber; i++) {
         Process *curr = processes[i];
         int pid = curr->pid;
+        if (curr->state == TERMINATED) {
+            continue; // Skip terminated processes
+        }
         DataType type;
         char varKey[15];
         snprintf(varKey, 15, "P%d_PCB", pid);

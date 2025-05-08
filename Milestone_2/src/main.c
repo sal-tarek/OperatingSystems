@@ -35,6 +35,7 @@ int numberOfProcesses = 0;
 Process *processes[MAX_NUM_PROCESSES] = {NULL};
 Queue *global_blocked_queue = NULL;
 Queue *readyQueues[MAX_NUM_QUEUES] = {NULL};
+int tempProcessesNumber = 0; // Number of processes in the system
 
 // Forward declaration of cleanup function
 static void cleanup_resources(void);
