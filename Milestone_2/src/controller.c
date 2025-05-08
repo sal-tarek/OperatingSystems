@@ -295,6 +295,7 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data)
     console_model_log_output("[SYSTEM] Clock cycle: %d\n", clockCycle);
 
     populateMemory();
+
     if (numberOfProcesses <= 0)
     {
         clockCycle++;
@@ -305,7 +306,6 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data)
 
     // Check if any processes are still running
     int any_running = 0;
-
     for (int i = 1; i <= numberOfProcesses; i++)
     {
         if (getProcessState(i) != TERMINATED)
@@ -314,9 +314,6 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data)
             break;
         }
     }
-
-    if (!isEmpty(job_pool))
-        any_running = 1;
 
     if (any_running)
     {
@@ -361,11 +358,6 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data)
 static void on_automatic_clicked(GtkWidget *button, gpointer user_data)
 {
     populateMemory();
-    if (numberOfProcesses <= 0)
-    {
-        clockCycle++;
-        return;
-    }
     if (controller->automatic_timer_id == 0)
     {
         controller->is_running = TRUE;
@@ -386,6 +378,73 @@ static void on_automatic_clicked(GtkWidget *button, gpointer user_data)
         gtk_widget_set_sensitive(controller->automatic_button, FALSE);
         gtk_widget_set_sensitive(controller->pause_button, TRUE);
         gtk_widget_set_sensitive(controller->step_button, FALSE);
+    }
+}
+
+// Timer callback for automatic execution called periodically to execute steps automatically
+static gboolean automatic_step(gpointer user_data)
+{
+    // Check if we're waiting for input
+    if (console_controller_is_waiting_for_input())
+    {
+        console_model_log_output("[AUTO] Waiting for user input - automatic execution paused\n");
+        return G_SOURCE_REMOVE;
+    }
+
+    console_model_log_output("[SYSTEM] Clock cycle: %d\n", clockCycle);
+
+    populateMemory();
+    if (numberOfProcesses <= 0)
+    {
+        clockCycle++;
+        return G_SOURCE_CONTINUE;
+    }
+    
+    printf("\nTime %d: \n \n", clockCycle);
+
+    // Check if any processes are still running
+    int any_running = 0;
+    for (int i = 1; i <= numberOfProcesses; i++)
+    {
+        if (getProcessState(i) != TERMINATED)
+        {
+            any_running = 1;
+            break;
+        }
+    }
+
+    if (any_running)
+    {
+        console_model_log_output("[AUTO] Executing automatic step at cycle %d\n", clockCycle);
+
+        // Update clock cycle which also updates all UI components
+        if (!clock_controller_increment())
+        {
+            // All processes terminated - stop automatic execution
+            controller->automatic_timer_id = 0;
+            controller->is_running = FALSE;
+            gtk_widget_set_sensitive(controller->scheduler_combo, TRUE);
+            gtk_widget_set_sensitive(controller->quantum_entry, TRUE);
+            gtk_widget_set_sensitive(controller->automatic_button, FALSE);
+            gtk_widget_set_sensitive(controller->pause_button, FALSE);
+            gtk_widget_set_sensitive(controller->step_button, FALSE);
+            console_model_log_output("[AUTO] All processes terminated, automatic execution stopped\n");
+            return G_SOURCE_REMOVE;
+        }
+
+        return G_SOURCE_CONTINUE;
+    }
+    else
+    {
+        controller->automatic_timer_id = 0;
+        controller->is_running = FALSE;
+        gtk_widget_set_sensitive(controller->scheduler_combo, TRUE);
+        gtk_widget_set_sensitive(controller->quantum_entry, TRUE);
+        gtk_widget_set_sensitive(controller->automatic_button, FALSE);
+        gtk_widget_set_sensitive(controller->pause_button, FALSE);
+        gtk_widget_set_sensitive(controller->step_button, FALSE);
+        console_model_log_output("[AUTO] No processes to run, automatic execution stopped\n");
+        return G_SOURCE_REMOVE;
     }
 }
 
@@ -552,64 +611,6 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     }
     // Update all displays
     controller_update_all();
-}
-
-// Timer callback for automatic execution called periodically to execute steps automatically
-static gboolean automatic_step(gpointer user_data)
-{
-    // Check if we're waiting for input
-    if (console_controller_is_waiting_for_input())
-    {
-        console_model_log_output("[AUTO] Waiting for user input - automatic execution paused\n");
-        return G_SOURCE_REMOVE;
-    }
-
-    // Check if any processes are still running
-    int any_running = 0;
-    for (int i = 1; i <= numberOfProcesses; i++)
-    {
-        if (getProcessState(i) != TERMINATED)
-        {
-            any_running = 1;
-            break;
-        }
-    }
-
-    if (any_running)
-    {
-        console_model_log_output("[AUTO] Executing automatic step at cycle %d\n", clockCycle);
-
-        run_selected_scheduler();
-
-        // Update clock cycle which also updates all UI components
-        if (!clock_controller_increment())
-        {
-            // All processes terminated - stop automatic execution
-            controller->automatic_timer_id = 0;
-            controller->is_running = FALSE;
-            gtk_widget_set_sensitive(controller->scheduler_combo, TRUE);
-            gtk_widget_set_sensitive(controller->quantum_entry, TRUE);
-            gtk_widget_set_sensitive(controller->automatic_button, FALSE);
-            gtk_widget_set_sensitive(controller->pause_button, FALSE);
-            gtk_widget_set_sensitive(controller->step_button, FALSE);
-            console_model_log_output("[AUTO] All processes terminated, automatic execution stopped\n");
-            return G_SOURCE_REMOVE;
-        }
-
-        return G_SOURCE_CONTINUE;
-    }
-    else
-    {
-        controller->automatic_timer_id = 0;
-        controller->is_running = FALSE;
-        gtk_widget_set_sensitive(controller->scheduler_combo, TRUE);
-        gtk_widget_set_sensitive(controller->quantum_entry, TRUE);
-        gtk_widget_set_sensitive(controller->automatic_button, FALSE);
-        gtk_widget_set_sensitive(controller->pause_button, FALSE);
-        gtk_widget_set_sensitive(controller->step_button, FALSE);
-        console_model_log_output("[AUTO] No processes to run, automatic execution stopped\n");
-        return G_SOURCE_REMOVE;
-    }
 }
 
 void controller_cleanup()
