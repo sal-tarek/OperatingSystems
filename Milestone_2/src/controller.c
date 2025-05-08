@@ -298,17 +298,15 @@ static void on_step_clicked(GtkWidget *button, gpointer user_data)
     console_model_log_output("[SYSTEM] Clock cycle: %d\n", clockCycle);
 
     populateMemory();
-
-    if (numberOfProcesses <= 0)
-    {
-        clockCycle++;
-        return;
-    }
     
     printf("\nTime %d: \n \n", clockCycle);
 
-    // Check if any processes are still running
+    // continue if there are processes in the job pool or there are non-terminated processes
     int any_running = 0;
+    if (!isEmpty(job_pool))
+        any_running = 1;
+    
+    // Check if any processes are still running
     for (int i = 1; i <= numberOfProcesses; i++)
     {
         if (getProcessState(i) != TERMINATED)
@@ -397,16 +395,15 @@ static gboolean automatic_step(gpointer user_data)
     console_model_log_output("[SYSTEM] Clock cycle: %d\n", clockCycle);
 
     populateMemory();
-    if (numberOfProcesses <= 0)
-    {
-        clockCycle++;
-        return G_SOURCE_CONTINUE;
-    }
-    
+
     printf("\nTime %d: \n \n", clockCycle);
 
-    // Check if any processes are still running
+    // continue if there are processes in the job pool or there are non-terminated processes
     int any_running = 0;
+    if (!isEmpty(job_pool))
+        any_running = 1;
+
+    // Check if any processes are still running
     for (int i = 1; i <= numberOfProcesses; i++)
     {
         if (getProcessState(i) != TERMINATED)
