@@ -21,7 +21,7 @@ extern Process *runningProcess;
 extern Queue *readyQueues[MAX_NUM_QUEUES];
 extern Queue *global_blocked_queue;
 extern int clockCycle;
-extern Process *processes[MAX_PROCESSES];
+extern Process *processes[MAX_NUM_PROCESSES];
 extern Queue *job_pool;
 
 // Define schedulingAlgorithm globally so it can be accessed from other files
@@ -602,7 +602,7 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     console_model_log_output("[DEBUG] ----------- END VERIFICATION -----------\n");
     printMemory();
 
-    for (int i=0;i<MAX_PROCESSES;i++){
+    for (int i = 0; i < MAX_NUM_PROCESSES; i++){
         if(processes[i])
         displayProcess(processes[i]);
     }

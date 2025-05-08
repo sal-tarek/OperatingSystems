@@ -18,11 +18,11 @@ extern MemoryWord *memory;
 extern IndexEntry *index_table;
 extern Queue *readyQueues[MAX_NUM_QUEUES];
 extern int clockCycle;
-extern Process *processes[MAX_PROCESSES];
+extern Process *processes[MAX_NUM_PROCESSES];
 extern int numberOfProcesses;
 
 // Global array to store memory ranges for each process
-MemoryRange ranges[MAX_PROCESSES];
+MemoryRange ranges[MAX_NUM_PROCESSES];
 int ranges_count = 0;         // Number of processes with assigned ranges
 int current_memory_usage = 0; // Track total memory words used
 
@@ -511,7 +511,7 @@ void resetMemory()
 
 void resetMemoryRanges()
 {
-    for (int i = 0; i < MAX_PROCESSES; i++)
+    for (int i = 0; i < MAX_NUM_PROCESSES; i++)
     {
         ranges[i].pid = -1;
         ranges[i].pcb_count = 0;
