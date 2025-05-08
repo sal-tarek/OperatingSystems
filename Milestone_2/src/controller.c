@@ -123,30 +123,18 @@ void controller_update_blocked_queue_display(void)
     g_list_free(pid_list);
 }
 
-void controller_update_running_process()
+void controller_update_running_process(char* instruction)
 {
     GString *process_str = g_string_new("");
-
     if (runningProcess != NULL)
     {
-        char pcb_key[32];
-        snprintf(pcb_key, sizeof(pcb_key), "P%d_PCB", runningProcess->pid);
-        DataType type;
-        void *data = fetchDataByIndex(pcb_key, &type);
-        PCB *pcb = (type == TYPE_PCB && data) ? (PCB *)data : NULL;
-
-        char key[32];
-        snprintf(key, sizeof(key), "P%d_Instruction_%d", runningProcess->pid, pcb ? pcb->programCounter + 1 : 1);
-        char *instruction = fetchDataByIndex(key, &type);
-
-        if (!instruction)
+        if (instruction)
         {
-            g_string_append_printf(process_str, "Running Process: PID=%d, Instruction=N/A, Time in Queue=%d", (int)runningProcess->pid, runningProcess->timeInQueue);
-            fprintf(stderr, "Failed to fetch instruction for key: %s\n", key);
+            g_string_append_printf(process_str, "Process Info: PID=%d, Last Instruction=%s, Time in Queue=%d", (int)runningProcess->pid, instruction, runningProcess->timeInQueue);
         }
         else
         {
-            g_string_append_printf(process_str, "Running Process: PID=%d, Instruction=%s, Time in Queue=%d", (int)runningProcess->pid, instruction, runningProcess->timeInQueue);
+            g_string_append_printf(process_str, "Process Info: PID=%d, Instruction=N/A, Time in Queue=%d", (int)runningProcess->pid, runningProcess->timeInQueue);
         }
     }
     else
@@ -201,7 +189,7 @@ void controller_update_all()
     }
 
     controller_update_blocked_queue_display();
-    controller_update_running_process();
+    //controller_update_running_process();
 }
 
 // Run the selected scheduling algorithm
@@ -425,8 +413,8 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
         controller->automatic_timer_id = 0;
     }
 
-    //controller->is_running = FALSE;
-    //controller->quantum = 2;
+    controller->is_running = FALSE;
+    controller->quantum = 2; // Reset quantum to default value
 
     // Free previous algorithm and set default
     if (schedulingAlgorithm)

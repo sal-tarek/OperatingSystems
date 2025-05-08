@@ -336,7 +336,7 @@ void view_init(GtkWidget *window, GtkWidget *main_box)
     gtk_widget_add_css_class(legend_area, "queue-area");
     gtk_grid_attach(GTK_GRID(grid), legend_area, 0, 4, 2, 1);
 
-    view->running_process_label = gtk_label_new("Running Process: None");
+    view->running_process_label = gtk_label_new("Process Info: None");
     gtk_widget_add_css_class(view->running_process_label, "running-process");
     gtk_label_set_xalign(GTK_LABEL(view->running_process_label), 0.0);
     gtk_widget_set_margin_top(view->running_process_label, 10);
