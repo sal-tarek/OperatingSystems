@@ -25,6 +25,7 @@ extern Queue *global_blocked_queue;
 extern int clockCycle;
 extern Process *processes[MAX_NUM_PROCESSES];
 extern Queue *job_pool;
+extern int lastUsedLevel;
 
 // Define schedulingAlgorithm globally so it can be accessed from other files
 char *schedulingAlgorithm = NULL;
@@ -525,6 +526,7 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
         simulator_view_reset_resource_panel((SimulatorView*)view);
     }
 
+
     for (int i = 0; i < 5; i++)
     {
         g_list_free(view->queue_processes[i]);
@@ -535,6 +537,7 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
     }
 
     view->running_pid = -1;
+    lastUsedLevel = -1;
     gtk_label_set_text(GTK_LABEL(controller->running_process_label), "Running Process: None");
     gtk_drop_down_set_selected(GTK_DROP_DOWN(controller->scheduler_combo), 0);
     gtk_editable_set_text(GTK_EDITABLE(controller->quantum_entry), "2");
