@@ -228,9 +228,6 @@ void simulator_view_reset_resource_panel(SimulatorView *view) {
     
     // Reset all mutexes in the backend
     reset_all_mutexes();
-    
-    // Update the UI to reflect the reset state
-    simulator_view_update_resource_panel(view);
 }
 
 SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_container, GtkWindow *main_window) {
@@ -327,40 +324,39 @@ SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_contain
 
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(provider,
-        ".simulator-frame { background-color: rgb(236, 236, 234); border: 1px solid #bbb; color: #333; }"
-        ".simulator-frame > label { color: white; font-weight: bold; font-size: 14px; background-color: #33A19A; padding: 5px; border-radius: 3px 3px 0 0; }"
-        ".simulator-label { color: #333; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
-        ".simulator-listbox { background-color: #D9D9D9; }"
-        ".simulator-listbox row { padding: 5px; margin: 2px; }"
-        ".simulator-listbox row:nth-child(even) { background-color: rgba(51, 161, 154, 0.1); }"
-        ".simulator-listbox row:hover { background-color: rgba(51, 161, 154, 0.3); }"
-        ".simulator-button { background-color: #33A19A; color: #D9D9D9; border-radius: 5px; padding: 5px; }"
-        ".simulator-button:hover { background-color: #278f89; }"
-        ".simulator-entry { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
-        ".simulator-textview { background-color: white; color: #000; border: 1px solid #bbb; padding: 8px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; font-size: 13px; }"
-        ".simulator-memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); width: 30px; text-align: center; }"
-        ".simulator-memory-content { color: #333; padding: 2px; }"
-        ".simulator-memory-content:hover { color: #196761; }"
-        ".simulator-memory-empty { color: #777; font-style: italic; padding: 2px; }"
-        ".simulator-memory-pcb { background-color: #f5f5f5; border-radius: 0 0 5px 5px; padding: 0; border: 1px solid #33A19A; margin-bottom: 7px; margin-right:2px;}"
-        ".simulator-memory-pcb-row { padding: 2px 5px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); font-size: 12px; }"
-        ".simulator-memory-pcb-row:last-child { border-bottom: none; }"
-        ".simulator-memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; padding: 2px; max-width: 250px; }"
-        ".simulator-memory-slot:hover .simulator-memory-content { color: #196761; }"
-        ".simulator-frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
-        ".simulator-pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; margin-top:5px; margin-right:2px;}"
-        ".simulator-process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; max-width:180px; }"
-        ".resource-label { margin: 2px 0; padding: 3px 5px; border-radius: 3px; }"
-        ".resource-held { background-color: #ffcccc; border-left: 3px solid #ff3333; }"
-        ".resource-available { background-color: #ccffcc; border-left: 3px solid #33cc33; }"
-        ".blocked-process { color: #cc3333; font-weight: bold; }"
-        /* Enhanced CSS styles for resource panel */
-        ".resource-frame-title { background-color: #8A2BE2; color: white; padding: 5px; border-radius: 3px 3px 0 0; font-weight: bold; font-size: 14px; }"
-        ".resource-separator { margin: 8px 0; background-color: rgba(138, 43, 226, 0.3); }"
-        ".resource-queue-container { margin-top: 5px; border-radius: 4px; padding: 2px; background-color: rgba(138, 43, 226, 0.05); }"
-        ".resource-queue-header { color: white; background-color: #9932CC; padding: 3px 6px; border-radius: 3px 3px 0 0; font-size: 13px; font-weight: bold; width: 100%; }"
-        ".resource-queue-content { padding: 5px; background-color: #f9f6fc; border: 1px solid #e6d5f5; border-radius: 0 0 3px 3px; font-size: 12px; height: 100%; }"
-    );
+                                      ".simulator-frame { background-color: rgb(236, 236, 234); border: 1px solid #bbb; color: #333; }"
+                                      ".simulator-frame > label { color: white; font-weight: bold; font-size: 14px; background-color: #33A19A; padding: 5px; border-radius: 3px 3px 0 0; }"
+                                      ".simulator-label { color: #333; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
+                                      ".simulator-listbox { background-color: #D9D9D9; }"
+                                      ".simulator-listbox row { padding: 5px; margin: 2px; }"
+                                      ".simulator-listbox row:nth-child(even) { background-color: rgba(51, 161, 154, 0.1); }"
+                                      ".simulator-listbox row:hover { background-color: rgba(51, 161, 154, 0.3); }"
+                                      ".simulator-button { background-color: #33A19A; color: #D9D9D9; border-radius: 5px; padding: 5px; }"
+                                      ".simulator-button:hover { background-color: #278f89; }"
+                                      ".simulator-entry { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
+                                      ".simulator-textview { background-color: white; color: #000; border: 1px solid #bbb; padding: 8px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; font-size: 13px; }"
+                                      ".simulator-memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); width: 30px; text-align: center; }"
+                                      ".simulator-memory-content { color: #333; padding: 2px; }"
+                                      ".simulator-memory-content:hover { color: #196761; }"
+                                      ".simulator-memory-empty { color: #777; font-style: italic; padding: 2px; }"
+                                      ".simulator-memory-pcb { background-color: #f5f5f5; border-radius: 0 0 5px 5px; padding: 0; border: 1px solid #33A19A; margin-bottom: 7px; margin-right:2px;}"
+                                      ".simulator-memory-pcb-row { padding: 2px 5px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); font-size: 12px; }"
+                                      ".simulator-memory-pcb-row:last-child { border-bottom: none; }"
+                                      ".simulator-memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; padding: 2px; max-width: 250px; }"
+                                      ".simulator-memory-slot:hover .simulator-memory-content { color: #196761; }"
+                                      ".simulator-frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
+                                      ".simulator-pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; margin-top:5px; margin-right:2px;}"
+                                      ".simulator-process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; max-width:180px; }"
+                                      ".resource-label { margin: 2px 0; padding: 3px 5px; border-radius: 3px; }"
+                                      ".resource-held { background-color: #ffcccc; border-left: 3px solid #ff3333; }"
+                                      ".resource-available { background-color: #ccffcc; border-left: 3px solid #33cc33; }"
+                                      ".blocked-process { color: #cc3333; font-weight: bold; }"
+                                      /* Enhanced CSS styles for resource panel */
+                                      ".resource-frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; font-weight: bold; font-size: 14px; }"
+                                      ".resource-separator { margin: 8px 0; background-color:  #33A19A;; }"
+                                      ".resource-queue-container { margin-top: 5px; border-radius: 4px; padding: 2px; background-color: rgba(138, 43, 226, 0.05); }"
+                                      ".resource-queue-header { color: white; background-color: #33A19A;; padding: 3px 6px; border-radius: 3px 3px 0 0; font-size: 13px; font-weight: bold; width: 100%; }"
+                                      ".resource-queue-content { padding: 5px; background-color: #f9f6fc; border: 1px solid #e6d5f5; border-radius: 0 0 3px 3px; font-size: 12px; height: 100%; }");
 
     gtk_style_context_add_provider_for_display(
         gdk_display_get_default(),
@@ -370,288 +366,6 @@ SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_contain
 
     return view;
 }
-// Create the resource management panel
-// void simulator_view_create_resource_panel(SimulatorView *view, GtkWidget *parent) {
-//     if (!view || !parent) return;
-    
-//     view->resource_panel = g_new(ResourcePanel, 1);
-    
-//     GtkWidget *frame = gtk_frame_new(NULL);
-//     gtk_widget_add_css_class(frame, "simulator-frame");
-//     gtk_box_append(GTK_BOX(parent), frame);
-    
-//     // Add title with purple background
-//     GtkWidget *resource_title = gtk_label_new("Resource Status");
-//     gtk_widget_add_css_class(resource_title, "resource-frame-title");
-    
-//     GtkWidget *content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-//     gtk_widget_set_margin_start(content_box, 5);
-//     gtk_widget_set_margin_end(content_box, 5);
-//     gtk_widget_set_margin_top(content_box, 5);
-//     gtk_widget_set_margin_bottom(content_box, 5);
-    
-//     GtkWidget *resource_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-//     gtk_box_append(GTK_BOX(resource_box), resource_title);
-//     gtk_box_append(GTK_BOX(resource_box), content_box);
-//     gtk_frame_set_child(GTK_FRAME(frame), resource_box);
-    
-//     // Create labels for mutex status with enhanced styling
-//     const char *mutex_names[] = {"userInput", "userOutput", "file"};
-//     for (int i = 0; i < 3; i++) {
-//         GtkWidget *label = create_status_label("");
-//         gtk_widget_add_css_class(label, "resource-label");
-//         view->resource_panel->mutex_labels[i] = label;
-//         gtk_box_append(GTK_BOX(content_box), label);
-//     }
-    
-//     // Separator with enhanced styling
-//     GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-//     gtk_widget_add_css_class(separator, "resource-separator");
-//     gtk_box_append(GTK_BOX(content_box), separator);
-    
-//     // Create labels for blocked queues with improved styling
-//     for (int i = 0; i < 3; i++) {
-//         GtkWidget *queue_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
-//         gtk_widget_add_css_class(queue_container, "resource-queue-container");
-        
-//         // Queue header
-//         GtkWidget *queue_header = gtk_label_new("");
-//         gtk_widget_add_css_class(queue_header, "resource-queue-header");
-//         gtk_label_set_xalign(GTK_LABEL(queue_header), 0);
-//         gtk_box_append(GTK_BOX(queue_container), queue_header);
-        
-//         // Queue content
-//         GtkWidget *label = create_status_label("");
-//         gtk_widget_add_css_class(label, "resource-queue-content");
-//         view->resource_panel->blocked_queue_labels[i] = label;
-//         gtk_box_append(GTK_BOX(queue_container), label);
-        
-//         gtk_box_append(GTK_BOX(content_box), queue_container);
-//     }
-// }
-
-// // Update the resource management panel
-// void simulator_view_update_resource_panel(SimulatorView *view) {
-//     if (!view || !view->resource_panel) return;
-    
-//     // Get the mutex status
-//     const char *mutex_names[] = {"userInput", "userOutput", "file"};
-//     int i;
-    
-//     // Update mutex status labels
-//     for (i = 0; i < 3; i++) {
-//         mutex_t *mutex = get_mutex_by_name(mutex_names[i]);
-//         char text[100];
-        
-//         if (mutex_is_available(mutex)) {
-//             snprintf(text, sizeof(text), "%s: Available", mutex_names[i]);
-//             gtk_widget_remove_css_class(view->resource_panel->mutex_labels[i], "resource-held");
-//             gtk_widget_add_css_class(view->resource_panel->mutex_labels[i], "resource-available");
-//         } else {
-//             Process *holder = mutex_get_holder(mutex);
-//             snprintf(text, sizeof(text), "%s: Held by Process %d", 
-//                     mutex_names[i], holder ? holder->pid : -1);
-//             gtk_widget_remove_css_class(view->resource_panel->mutex_labels[i], "resource-available");
-//             gtk_widget_add_css_class(view->resource_panel->mutex_labels[i], "resource-held");
-//         }
-//         gtk_label_set_text(GTK_LABEL(view->resource_panel->mutex_labels[i]), text);
-//     }
-    
-//     // Update blocked queue labels
-//     for (i = 0; i < 3; i++) {
-//         mutex_t *mutex = get_mutex_by_name(mutex_names[i]);
-//         char text[200] = {0};
-//         char temp[50] = {0};
-        
-//         // Set the header for the parent container
-//         GtkWidget *parent = gtk_widget_get_parent(GTK_WIDGET(view->resource_panel->blocked_queue_labels[i]));
-//         if (parent) {
-//             GtkWidget *header = gtk_widget_get_first_child(parent);
-//             if (GTK_IS_LABEL(header)) {
-//                 char header_text[50];
-//                 snprintf(header_text, sizeof(header_text), "%s Queue", mutex_names[i]);
-//                 gtk_label_set_text(GTK_LABEL(header), header_text);
-//             }
-//         }
-        
-//         // Set the queue content
-//         int blocked_count = mutex_get_blocked_count(mutex);
-//         if (blocked_count == 0) {
-//             strcat(text, "Empty");
-//         } else {
-//             int j;
-//             for (j = 0; j < blocked_count; j++) {
-//                 Process *p = mutex_get_blocked_process(mutex, j);
-//                 if (p) {
-//                     snprintf(temp, sizeof(temp), "P%d (Pri:%d)", p->pid, getProcessPriority(p->pid));
-//                     strcat(text, temp);
-//                     if (j < blocked_count - 1) {
-//                         strcat(text, ", ");
-//                     }
-//                 }
-//             }
-//         }
-        
-//         gtk_label_set_text(GTK_LABEL(view->resource_panel->blocked_queue_labels[i]), text);
-//     }
-// }
-
-// void simulator_view_reset_resource_panel(SimulatorView *view) {
-//     if (!view || !view->resource_panel) return;
-    
-//     // Reset all mutexes in the backend
-//     reset_all_mutexes();
-    
-//     // Update the UI to reflect the reset state
-//     // const char *mutex_names[] = {"userInput", "userOutput", "file"};
-    
-//     // // Update mutex status labels to show all available
-//     // for (int i = 0; i < 3; i++) {
-//     //     char text[100];
-//     //     snprintf(text, sizeof(text), "%s: Available", mutex_names[i]);
-//     //     gtk_label_set_text(GTK_LABEL(view->resource_panel->mutex_labels[i]), text);
-        
-//     //     // Update CSS classes to show available state
-//     //     gtk_widget_remove_css_class(view->resource_panel->mutex_labels[i], "resource-held");
-//     //     gtk_widget_add_css_class(view->resource_panel->mutex_labels[i], "resource-available");
-//     // }
-    
-    
-// }
-// SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_container, GtkWindow *main_window) {
-//     SimulatorView *view = g_new(SimulatorView, 1);
-//     view->window = NULL;
-//     view->job_pool_display = NULL;
-//     view->memory_list = NULL;
-//     view->dialog = NULL;
-//     view->file_entry = NULL;
-//     view->arrival_entry = NULL;
-//     view->dialog_text_view = NULL;
-//     view->main_window = main_window;
-//     view->resource_panel = NULL;
-
-//     // Create main horizontal box to contain both simulator sections side by side
-//     GtkWidget *horizontal_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-//     gtk_widget_set_margin_start(horizontal_container, 10);
-//     gtk_widget_set_margin_end(horizontal_container, 10);
-//     gtk_widget_set_margin_top(horizontal_container, 10);
-//     gtk_widget_set_margin_bottom(horizontal_container, 10);
-//     gtk_box_append(GTK_BOX(parent_container), horizontal_container);
-    
-//     // Left side container for memory and job pool - reduce width
-//     view->main_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-//     gtk_widget_set_size_request(view->main_container, 160, -1);
-//     gtk_widget_set_hexpand(view->main_container, FALSE);
-//     gtk_box_append(GTK_BOX(horizontal_container), view->main_container);
-    
-//     // Middle container for ready queues (assuming this exists in your code)
-//     // This is just a placeholder - you would need to modify this according to your actual code structure
-//     GtkWidget *middle_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-//     gtk_widget_set_hexpand(middle_container, TRUE);
-//     gtk_box_append(GTK_BOX(horizontal_container), middle_container);
-    
-//     // Right side container for resource panel
-//     GtkWidget *right_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-//     gtk_widget_set_hexpand(right_container, FALSE);
-//     gtk_widget_set_size_request(right_container, 200, -1);
-//     gtk_box_append(GTK_BOX(horizontal_container), right_container);
-
-//     // Create the resource panel
-//     simulator_view_create_resource_panel(view, right_container);
-
-//     // Job pool setup
-//     GtkWidget *job_pool_frame = gtk_frame_new(NULL);
-//     gtk_box_append(GTK_BOX(view->main_container), job_pool_frame);
-
-//     GtkWidget *job_pool_title = gtk_label_new("Job Pool");
-//     gtk_widget_add_css_class(job_pool_title, "simulator-frame-title");
-
-//     GtkWidget *job_pool_content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-//     GtkWidget *job_pool_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-//     gtk_box_append(GTK_BOX(job_pool_box), job_pool_title);
-//     gtk_box_append(GTK_BOX(job_pool_box), job_pool_content);
-//     gtk_frame_set_child(GTK_FRAME(job_pool_frame), job_pool_box);
-
-//     GtkWidget *job_pool_display = gtk_list_box_new();
-//     gtk_list_box_set_selection_mode(GTK_LIST_BOX(job_pool_display), GTK_SELECTION_NONE);
-//     gtk_box_append(GTK_BOX(job_pool_content), job_pool_display);
-//     view->job_pool_display = GTK_LIST_BOX(job_pool_display);
-
-//     GtkWidget *create_button = gtk_button_new_with_label("+");
-//     gtk_box_append(GTK_BOX(job_pool_content), create_button);
-//     g_signal_connect(create_button, "clicked", G_CALLBACK((ButtonSignalHandler)show_process_dialog), view);
-
-//     // Memory section setup
-//     GtkWidget *memory_frame = gtk_frame_new(NULL);
-//     gtk_widget_set_vexpand(memory_frame, TRUE);
-//     gtk_widget_set_hexpand(memory_frame, FALSE);
-//     gtk_widget_set_size_request(memory_frame, 250, -1);
-//     gtk_box_append(GTK_BOX(view->main_container), memory_frame);
-
-//     GtkWidget *memory_title = gtk_label_new("Memory");
-//     gtk_widget_add_css_class(memory_title, "simulator-frame-title");
-
-//     GtkWidget *memory_scrolled = gtk_scrolled_window_new();
-//     gtk_widget_set_vexpand(memory_scrolled, TRUE);
-//     gtk_widget_set_hexpand(memory_scrolled, FALSE);
-//     gtk_widget_set_size_request(memory_scrolled, 250, -1);
-
-//     GtkWidget *memory_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-//     gtk_box_append(GTK_BOX(memory_box), memory_title);
-//     gtk_box_append(GTK_BOX(memory_box), memory_scrolled);
-//     gtk_frame_set_child(GTK_FRAME(memory_frame), memory_box);
-
-//     GtkWidget *memory_list = gtk_list_box_new();
-//     gtk_list_box_set_selection_mode(GTK_LIST_BOX(memory_list), GTK_SELECTION_NONE);
-//     gtk_widget_set_size_request(memory_list, 250, -1);
-//     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(memory_scrolled), memory_list);
-//     view->memory_list = GTK_LIST_BOX(memory_list);
-
-//     GtkCssProvider *provider = gtk_css_provider_new();
-//     gtk_css_provider_load_from_string(provider,
-//         ".simulator-frame { background-color: rgb(236, 236, 234); border: 1px solid #bbb; color: #333; }"
-//         ".simulator-frame > label { color: white; font-weight: bold; font-size: 14px; background-color: #33A19A; padding: 5px; border-radius: 3px 3px 0 0; }"
-//         ".simulator-label { color: #333; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
-//         ".simulator-listbox { background-color: #D9D9D9; }"
-//         ".simulator-listbox row { padding: 5px; margin: 2px; }"
-//         ".simulator-listbox row:nth-child(even) { background-color: rgba(51, 161, 154, 0.1); }"
-//         ".simulator-listbox row:hover { background-color: rgba(51, 161, 154, 0.3); }"
-//         ".simulator-button { background-color: #33A19A; color: #D9D9D9; border-radius: 5px; padding: 5px; }"
-//         ".simulator-button:hover { background-color: #278f89; }"
-//         ".simulator-entry { background-color: white; color: #333; border: 1px solid #bbb; border-radius: 5px; padding: 5px; }"
-//         ".simulator-textview { background-color: white; color: #000; border: 1px solid #bbb; padding: 8px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; font-size: 13px; }"
-//         ".simulator-memory-tag { background-color: #33A19A; color: white; border-radius: 3px 0 0 3px; padding: 5px; font-weight: bold; margin-left: -10px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); width: 30px; text-align: center; }"
-//         ".simulator-memory-content { color: #333; padding: 2px; }"
-//         ".simulator-memory-content:hover { color: #196761; }"
-//         ".simulator-memory-empty { color: #777; font-style: italic; padding: 2px; }"
-//         ".simulator-memory-pcb { background-color: #f5f5f5; border-radius: 0 0 5px 5px; padding: 0; border: 1px solid #33A19A; margin-bottom: 7px; margin-right:2px;}"
-//         ".simulator-memory-pcb-row { padding: 2px 5px; border-bottom: 1px solid rgba(51, 161, 154, 0.2); font-size: 12px; }"
-//         ".simulator-memory-pcb-row:last-child { border-bottom: none; }"
-//         ".simulator-memory-slot { border-bottom: 1px solid #ccc; background-color: #f5f5f5; padding: 2px; max-width: 250px; }"
-//         ".simulator-memory-slot:hover .simulator-memory-content { color: #196761; }"
-//         ".simulator-frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
-//         ".simulator-pcb-tab { background-color: #33A19A; color: white; padding: 6px 12px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; margin-top:5px; margin-right:2px;}"
-//         ".simulator-process-title { background-color: #196761; color: white; padding: 4px 10px; border-radius: 5px 5px 0 0; font-weight: bold; margin-bottom: 0; font-size: 13px; max-width:180px; }"
-//         ".resource-label { margin: 2px 0; padding: 3px 5px; border-radius: 3px; }"
-//         ".resource-held { background-color: #ffcccc; border-left: 3px solid #ff3333; }"
-//         ".resource-available { background-color: #ccffcc; border-left: 3px solid #33cc33; }"
-//         ".blocked-process { color: #cc3333; font-weight: bold; }"
-//         /* New CSS styles for enhanced resource panel */
-//         ".resource-frame-title { background-color: #8A2BE2; color: white; padding: 5px; border-radius: 3px 3px 0 0; font-weight: bold; font-size: 14px; }"
-//         ".resource-separator { margin: 8px 0; background-color: rgba(138, 43, 226, 0.3); }"
-//         ".resource-queue-container { margin-top: 5px; border-radius: 4px; padding: 2px; background-color: rgba(138, 43, 226, 0.05); }"
-//         ".resource-queue-header { color: white; background-color: #9932CC; padding: 3px 6px; border-radius: 3px 3px 0 0; font-size: 13px; font-weight: bold; }"
-//         ".resource-queue-content { padding: 5px; background-color: #f9f6fc; border: 1px solid #e6d5f5; border-radius: 0 0 3px 3px; font-size: 12px; }"
-//     );
-
-//     gtk_style_context_add_provider_for_display(
-//         gdk_display_get_default(),
-//         GTK_STYLE_PROVIDER(provider),
-//         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-//     g_object_unref(provider);
-
-//     return view;
-// }
 
 void simulator_view_show(SimulatorView *view) {
     if (!view || !view->main_container) {
