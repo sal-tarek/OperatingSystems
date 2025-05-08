@@ -486,7 +486,7 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
 
     runningProcess = NULL;
 
-    freeMemoryWord();
+    //freeMemoryWord();
     reset_processes_id(controller->unified_controller);
 
     while (!isEmpty(job_pool))

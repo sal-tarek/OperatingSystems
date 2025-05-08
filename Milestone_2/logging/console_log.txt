@@ -1,0 +1,198 @@
+[SYSTEM] Log file created: logging/console_log.txt
+[CLOCK] Clock controller initialized
+[CLOCK] Clock controller initialized
+[CONTROLLER] Unified controller started
+[SYSTEM] OS Scheduler Simulation started
+[SYSTEM] Processes loaded: 0
+[PROCESS] Created process PID 1 with arrival time 1
+[PROCESS] Created process PID 2 with arrival time 0
+[PROCESS] Created process PID 3 with arrival time 3
+[CONFIG] Scheduler set to FCFS
+[SYSTEM] Clock cycle: 0
+[STEP] Executing single step at cycle 0
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 2 executing instruction at PC=0
+[EXEC] Decoding instruction: semWait userInput
+[MUTEX] Process 2 attempting to acquire userInput resource
+[MUTEX] Process 2 successfully acquired resource: userInput
+[EXEC] Process 2 completed instruction at PC=0
+[STATE] Process 2 running instruction: assign a input
+[QUEUE] Queue 0: P2
+[SYSTEM] Clock cycle: 1
+[STEP] Executing single step at cycle 1
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 2 executing instruction at PC=1
+[EXEC] Decoding instruction: assign a input
+[INPUT] User entered: "2"
+User entered: "2"
+[MEMORY] Process 2: Variable 'a' assigned value '2'
+[EXEC] Process 2 completed instruction at PC=1
+[STATE] Process 2 running instruction: assign b input
+[QUEUE] Queue 0: P2 -> P1
+[SYSTEM] Clock cycle: 2
+[STEP] Executing single step at cycle 2
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 2 executing instruction at PC=2
+[EXEC] Decoding instruction: assign b input
+[INPUT] User entered: "4"
+User entered: "4"
+[MEMORY] Process 2: Variable 'b' assigned value '4'
+[EXEC] Process 2 completed instruction at PC=2
+[STATE] Process 2 running instruction: semSignal userInput
+[QUEUE] Queue 0: P2 -> P1
+[SYSTEM] Clock cycle: 3
+[STEP] Executing single step at cycle 3
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 2 executing instruction at PC=3
+[EXEC] Decoding instruction: semSignal userInput
+[MUTEX] Process 2 released userInput resource
+[EXEC] Process 2 completed instruction at PC=3
+[STATE] Process 2 running instruction: semWait file
+[QUEUE] Queue 0: P2 -> P1 -> P3
+[SYSTEM] Clock cycle: 4
+[STEP] Executing single step at cycle 4
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 2 executing instruction at PC=4
+[EXEC] Decoding instruction: semWait file
+[MUTEX] Process 2 attempting to acquire file resource
+[MUTEX] Process 2 successfully acquired resource: file
+[EXEC] Process 2 completed instruction at PC=4
+[STATE] Process 2 running instruction: writeFile a b
+[QUEUE] Queue 0: P2 -> P1 -> P3
+[SYSTEM] Clock cycle: 5
+[STEP] Executing single step at cycle 5
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 2 executing instruction at PC=5
+[EXEC] Decoding instruction: writeFile a b
+File '2' created successfully.
+[FILE] Process 2 created file '2' and wrote 1 bytes
+[EXEC] Process 2 completed instruction at PC=5
+[STATE] Process 2 running instruction: semSignal file
+[QUEUE] Queue 0: P2 -> P1 -> P3
+[SYSTEM] Clock cycle: 6
+[STEP] Executing single step at cycle 6
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 2 executing instruction at PC=6
+[EXEC] Decoding instruction: semSignal file
+[MUTEX] Process 2 released file resource
+[EXEC] Process 2 completed instruction at PC=6
+[QUEUE] Queue 0: P1 -> P3
+[SYSTEM] Clock cycle: 7
+[STEP] Executing single step at cycle 7
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 1 executing instruction at PC=0
+[EXEC] Decoding instruction: semWait userInput
+[MUTEX] Process 1 attempting to acquire userInput resource
+[MUTEX] Process 1 successfully acquired resource: userInput
+[EXEC] Process 1 completed instruction at PC=0
+[STATE] Process 1 running instruction: assign a input
+[QUEUE] Queue 0: P1 -> P3
+[SYSTEM] Clock cycle: 8
+[STEP] Executing single step at cycle 8
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 1 executing instruction at PC=1
+[EXEC] Decoding instruction: assign a input
+[INPUT] User entered: "3"
+User entered: "3"
+[MEMORY] Process 1: Variable 'a' assigned value '3'
+[EXEC] Process 1 completed instruction at PC=1
+[STATE] Process 1 running instruction: assign b input
+[QUEUE] Queue 0: P1 -> P3
+[SYSTEM] Clock cycle: 9
+[STEP] Executing single step at cycle 9
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 1 executing instruction at PC=2
+[EXEC] Decoding instruction: assign b input
+[INPUT] User entered: "5"
+User entered: "5"
+[MEMORY] Process 1: Variable 'b' assigned value '5'
+[EXEC] Process 1 completed instruction at PC=2
+[STATE] Process 1 running instruction: semSignal userInput
+[QUEUE] Queue 0: P1 -> P3
+[SYSTEM] Clock cycle: 10
+[STEP] Executing single step at cycle 10
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 1 executing instruction at PC=3
+[EXEC] Decoding instruction: semSignal userInput
+[MUTEX] Process 1 released userInput resource
+[EXEC] Process 1 completed instruction at PC=3
+[STATE] Process 1 running instruction: semWait userOutput
+[QUEUE] Queue 0: P1 -> P3
+[SYSTEM] Clock cycle: 11
+[STEP] Executing single step at cycle 11
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 1 executing instruction at PC=4
+[EXEC] Decoding instruction: semWait userOutput
+[MUTEX] Process 1 attempting to acquire userOutput resource
+[MUTEX] Process 1 successfully acquired resource: userOutput
+[EXEC] Process 1 completed instruction at PC=4
+[STATE] Process 1 running instruction: printFromTo a b
+[QUEUE] Queue 0: P1 -> P3
+[SYSTEM] Clock cycle: 12
+[STEP] Executing single step at cycle 12
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 1 executing instruction at PC=5
+[EXEC] Decoding instruction: printFromTo a b
+3 4 5
+[OUTPUT] Process 1 executed printFromTo from 3 to 5
+[EXEC] Process 1 completed instruction at PC=5
+[STATE] Process 1 running instruction: semSignal userOutput
+[QUEUE] Queue 0: P1 -> P3
+[SYSTEM] Clock cycle: 13
+[STEP] Executing single step at cycle 13
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 1 executing instruction at PC=6
+[EXEC] Decoding instruction: semSignal userOutput
+[MUTEX] Process 1 released userOutput resource
+[EXEC] Process 1 completed instruction at PC=6
+[QUEUE] Queue 0: P3
+[SYSTEM] Clock cycle: 14
+[STEP] Executing single step at cycle 14
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 3 executing instruction at PC=0
+[EXEC] Decoding instruction: semWait userInput
+[MUTEX] Process 3 attempting to acquire userInput resource
+[MUTEX] Process 3 successfully acquired resource: userInput
+[EXEC] Process 3 completed instruction at PC=0
+[STATE] Process 3 running instruction: assign a input
+[QUEUE] Queue 0: P3
+[SYSTEM] Clock cycle: 15
+[STEP] Executing single step at cycle 15
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 3 executing instruction at PC=1
+[EXEC] Decoding instruction: assign a input
+[INPUT] User entered: "1"
+User entered: "1"
+[MEMORY] Process 3: Variable 'a' assigned value '1'
+[EXEC] Process 3 completed instruction at PC=1
+[STATE] Process 3 running instruction: semSignal userInput
+[QUEUE] Queue 0: P3
+[SYSTEM] Clock cycle: 16
+[STEP] Executing single step at cycle 16
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 3 executing instruction at PC=2
+[EXEC] Decoding instruction: semSignal userInput
+[MUTEX] Process 3 released userInput resource
+[EXEC] Process 3 completed instruction at PC=2
+[STATE] Process 3 running instruction: semWait file
+[QUEUE] Queue 0: P3
+[SYSTEM] Clock cycle: 17
+[STEP] Executing single step at cycle 17
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 3 executing instruction at PC=3
+[EXEC] Decoding instruction: semWait file
+[MUTEX] Process 3 attempting to acquire file resource
+[MUTEX] Process 3 successfully acquired resource: file
+[EXEC] Process 3 completed instruction at PC=3
+[STATE] Process 3 running instruction: assign b readFile a
+[QUEUE] Queue 0: P3
+[SYSTEM] Clock cycle: 18
+[STEP] Executing single step at cycle 18
+[SCHEDULER] Running FCFS algorithm
+[EXEC] Process 3 executing instruction at PC=4
+[EXEC] Decoding instruction: assign b readFile a
+[ERROR] Process 3 failed to open file '1' for reading
+[MEMORY] Process 3: Variable 'b' assigned value ''
+[EXEC] Process 3 completed instruction at PC=4
+[STATE] Process 3 running instruction: semSignal file
+[QUEUE] Queue 0: P3
