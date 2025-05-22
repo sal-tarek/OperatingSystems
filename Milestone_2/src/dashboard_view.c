@@ -83,7 +83,7 @@ void dashboard_view_init(DashboardView *view, GtkApplication *app, GtkWidget *pa
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolled_window), process_list_box);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
     gtk_widget_set_hexpand(scrolled_window, TRUE);
-    gtk_widget_set_size_request(scrolled_window, -1, 150);
+    gtk_widget_set_size_request(scrolled_window, -1, 165);
     gtk_box_append(GTK_BOX(process_list_content), scrolled_window);
 
     view->process_list_widgets = g_new(ProcessListWidgets, 1);

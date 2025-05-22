@@ -1,0 +1,49 @@
+/* Direct override for text colors */
+.simulator-frame-title,
+.simulator-frame-title * {
+    color: white !important;
+    -gtk-text-shadow: none !important;
+    text-shadow: none !important;
+    font-weight: bold !important;
+}
+
+.resource-frame-title,
+.resource-frame-title * {
+    color: white !important;
+    -gtk-text-shadow: none !important;
+    text-shadow: none !important;
+    font-weight: bold !important;
+}
+
+.resource-queue-header {
+    color: white !important;
+    -gtk-text-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Force white text on all header labels */
+label.simulator-frame-title,
+label.resource-frame-title,
+label.resource-queue-header {
+    color: white !important;
+    -gtk-text-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Entry and textview should have black text on white background */
+.simulator-entry {
+    background-color: white;
+    color: black !important;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.simulator-textview {
+    background-color: white;
+    color: black !important;
+    border: 1px solid #bbb;
+    padding: 8px;
+    font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif;
+    font-size: 13px;
+}
