@@ -99,43 +99,58 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_widget_set_hexpand(dashboard_view->main_container, TRUE);
     gtk_widget_set_margin_bottom(dashboard_view->main_container, 5);
 
-    // First separator
+    // First Horizontal separator
     GtkWidget *separator1 = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_widget_set_margin_top(separator1, 5);
     gtk_widget_set_margin_bottom(separator1, 5);
-    gtk_box_append(GTK_BOX(main_box), separator1);
+    gtk_box_append(GTK_BOX(main_box), separator1);    
+    
+    // ---- MIDDLE SECTION: MEMORY, RESOURCES, AND CONTROLS ----
 
-    // ---- MIDDLE SECTION: MEMORY VIEW & CONTROLS ----
-    // Middle container for memory and controls
+    // Middle container organized horizontally
     GtkWidget *middle_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
     gtk_widget_set_vexpand(middle_container, TRUE);
     gtk_box_append(GTK_BOX(main_box), middle_container);
 
-    // Right side: Controls section - positioned on the right
-    GtkWidget *controls_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    gtk_widget_set_size_request(controls_container, 720, -1);
-    gtk_widget_set_hexpand(controls_container, FALSE);
-    gtk_widget_set_margin_end(controls_container, 50);
-    gtk_widget_set_halign(controls_container, GTK_ALIGN_END); // Align to the end (right side)
-
-    // Left side: Memory view
+    // Left side: Memory view 
     GtkWidget *memory_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    gtk_widget_set_hexpand(memory_container, TRUE); // Allow memory container to expand
+    gtk_widget_set_hexpand(memory_container, FALSE); 
+    gtk_widget_set_size_request(memory_container, 280, -1);
 
     // Memory simulator view
     SimulatorView *simulator_view = simulator_view_new(app, memory_container, GTK_WINDOW(window));
     gtk_widget_set_size_request(simulator_view->main_container, 280, -1);
-    gtk_widget_set_vexpand(simulator_view->main_container, TRUE);
-
-    // Add memory container first, then separator, then controls container for right-to-left order
+    gtk_widget_set_vexpand(simulator_view->main_container, TRUE);    
     gtk_box_append(GTK_BOX(middle_container), memory_container);
 
-    // Vertical separator between memory and controls
-    GtkWidget *vseparator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
-    gtk_box_append(GTK_BOX(middle_container), vseparator);
-    gtk_widget_set_margin_end(vseparator, 10);
+    // First vertical separator (between memory and resource panel)
+    GtkWidget *vseparator1 = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
+    gtk_widget_set_margin_start(vseparator1, 5);
+    gtk_widget_set_margin_end(vseparator1, 5);    
+    gtk_box_append(GTK_BOX(middle_container), vseparator1);
 
-    // Add the controls container last so it appears on the right
+    // Middle section: Resource panel container
+    GtkWidget *resource_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_widget_set_hexpand(resource_container, TRUE); // allow it to expand
+    gtk_widget_set_halign(resource_container, GTK_ALIGN_CENTER); // center in the middle
+    gtk_widget_set_size_request(resource_container, 220, -1);
+    gtk_box_append(GTK_BOX(middle_container), resource_container);
+
+    // Second vertical separator (between resource panel and controls)
+    GtkWidget *vseparator2 = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
+    gtk_widget_set_margin_start(vseparator2, 5);
+    gtk_widget_set_margin_end(vseparator2, 5);  
+    gtk_box_append(GTK_BOX(middle_container), vseparator2);    
+
+    // Right side: Controls section (queues)
+    GtkWidget *controls_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_widget_set_size_request(controls_container, 730, -1);
+    gtk_widget_set_hexpand(controls_container, FALSE);
+    gtk_widget_set_halign(controls_container, GTK_ALIGN_END); // Fix to the right
+    gtk_widget_set_valign(controls_container, GTK_ALIGN_FILL);
+    gtk_widget_set_margin_end(controls_container, 40); 
+    gtk_widget_set_margin_start(controls_container, 10); 
+    gtk_widget_set_margin_top(controls_container, 10); 
     gtk_box_append(GTK_BOX(middle_container), controls_container);
 
     // Create unified controller
@@ -147,11 +162,15 @@ static void activate(GtkApplication *app, gpointer user_data)
         simulator_view_free(simulator_view);
         return;
     }
-    // Initialize clock controller first
-    clock_controller_init();
 
+    // Initialize clock controller first
+    clock_controller_init();    
+    
     // Initialize controller with the controls container
     controller_init(app, window, controls_container, controller);
+    
+    // Create the resource panel in the middle section AFTER initializing the view
+    view_create_resource_panel(view, resource_container);
 
     // Second separator
     GtkWidget *separator2 = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);

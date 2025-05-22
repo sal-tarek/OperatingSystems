@@ -185,7 +185,7 @@ void controller_update_all()
         }
         console_model_log_output("[STATE] %s\n", blocked_str->str);
         g_string_free(blocked_str, TRUE);
-    }
+    }   
 
     for (int i = 0; i < MAX_NUM_QUEUES; i++)
     {
@@ -194,6 +194,9 @@ void controller_update_all()
 
     controller_update_blocked_queue_display();
     //controller_update_running_process();
+    
+    // Update the resource panel
+    controller_update_resource_panel();
 }
 
 // Run the selected scheduling algorithm
@@ -518,13 +521,10 @@ static void on_reset_clicked(GtkWidget *button, gpointer user_data)
         Process *p = global_blocked_queue->front;
         global_blocked_queue->front = p->next;
         free(p);
-    }
-    global_blocked_queue->rear = NULL;
-    //Lama Added this call to reset resource panel
+    }    global_blocked_queue->rear = NULL;
     
-    if (view && ((SimulatorView*)view)->resource_panel) {
-        simulator_view_reset_resource_panel((SimulatorView*)view);
-    }
+    // Reset the resource panel
+    view_reset_resource_panel();
 
 
     for (int i = 0; i < 5; i++)
@@ -575,4 +575,11 @@ void controller_cleanup()
         g_free(controller);
         controller = NULL;
     }
+}
+
+// Update the resource panel with current mutex status
+void controller_update_resource_panel(void) 
+{
+    // Call the view function to update the resource panel UI
+    view_update_resource_panel();
 }

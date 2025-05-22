@@ -1,5 +1,8 @@
 #include <gtk/gtk.h>
 #include "view.h"
+#include "mutex.h"
+#include "process.h"
+#include "PCB.h"
 
 View *view = NULL; // Global, non-static
 static GtkCssProvider *css_provider = NULL;
@@ -35,7 +38,15 @@ static const char *css_data =
     ".scheduler-view .queue-area { background-color: #D9D9D9; border: 1px solid #bbb; border-radius: 5px; }"
     ".scheduler-view .running-process { background-color: #196761; color: white; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; padding: 8px; border-radius: 5px; margin-top: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }"
     ".scheduler-view .blocked-queue-header { background-color: #FF0000; color: white; padding: 5px; border-radius: 3px 3px 0 0; }"
-    ".scheduler-view .blocked-process { background-color: #FF0000; color: white; border-radius: 5px; }";
+    ".simulator-label { color: #333; font-size: 14px; font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif; }"
+    ".simulator-frame { background-color: rgb(236, 236, 234); border: 1px solid #bbb; color: #333; }"
+    ".resource-label { margin: 2px 0; padding: 3px 5px; border-radius: 3px; color: #333; }"    ".resource-held { background-color: #ffcccc; border-left: 3px solid #ff3333; color: #333; }"
+    ".resource-available { background-color: #ccffcc; border-left: 3px solid #33cc33; color: #333; }"
+    ".resource-frame-title { background-color: #33A19A; color: white; padding: 5px; border-radius: 3px 3px 0 0; font-weight: bold; font-size: 14px; }"    ".resource-queue-header { color: white; background-color: #FF0000; padding: 5px; border-radius: 3px 3px 0 0; font-size: 14px; font-weight: bold; width: 100%; }" 
+    ".resource-queue-content { background-color: #D9D9D9; border: 1px solid #bbb; border-radius: 5px; }"
+    ".resource-process-item { margin: 3px; padding: 5px 8px; background-color: #FF0000; color: white; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }"
+    ".resource-queue-empty { font-style: italic; color: #777; padding: 10px; }"
+    ".blocked-queue-frame { border: 1px solid #FF0000; margin-bottom: 8px; }";
 
 static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer data)
 {
@@ -196,6 +207,102 @@ static void draw_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, in
                 cairo_line_to(cr, x - 25, y + 5);
                 cairo_stroke(cr);
             }
+        }        process_count++;
+    }
+}
+
+static void draw_mutex_queue_callback(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer data)
+{
+    int mutex_index = GPOINTER_TO_INT(data);
+    const char *mutex_names[] = {"userInput", "userOutput", "file"};
+    
+    if (!view || mutex_index < 0 || mutex_index >= 3) return;
+    
+    GList *processes = view->mutex_queue_processes[mutex_index];
+
+    cairo_set_source_rgba(cr, 0, 0, 0, 0);
+    cairo_paint(cr);
+
+    // Draw header with red background (same as blocked queue)
+    cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+    cairo_rectangle(cr, 0, 0, width, 25);
+    cairo_fill(cr);
+
+    // Draw header text
+    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+    cairo_select_font_face(cr, "Roboto", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr, 14);
+    cairo_move_to(cr, 10, 18);
+    char queue_label[32];
+    snprintf(queue_label, sizeof(queue_label), "%s Queue", mutex_names[mutex_index]);
+    cairo_show_text(cr, queue_label);    GList *proc_iter;
+    int process_count = 0;
+
+    for (proc_iter = processes; proc_iter != NULL; proc_iter = proc_iter->next)
+    {
+        int pid = GPOINTER_TO_INT(proc_iter->data);
+        
+        float x, y;
+        float alpha = 1.0;
+
+        // Position processes horizontally instead of vertically
+        x = 50 + process_count * 60;  // Horizontal spacing
+        y = height / 2 + 10;  // Center vertically with slight offset for header
+
+        // Create gradient for blocked process (red like blocked queue)
+        cairo_pattern_t *box_gradient = cairo_pattern_create_linear(x - 25, y - 20, x + 25, y + 20);
+        cairo_pattern_add_color_stop_rgba(box_gradient, 0, 1.0, 0.0, 0.0, alpha);
+        cairo_pattern_add_color_stop_rgba(box_gradient, 1, 0.8, 0.0, 0.0, alpha);
+
+        cairo_set_source(cr, box_gradient);
+
+        // Draw rounded rectangle (same as blocked queue)
+        double box_radius = 8.0;
+        double degrees = M_PI / 180.0;
+        cairo_new_sub_path(cr);
+        cairo_arc(cr, x + 20 - box_radius, y - 15 + box_radius, box_radius, -90 * degrees, 0 * degrees);
+        cairo_arc(cr, x + 20 - box_radius, y + 15 - box_radius, box_radius, 0 * degrees, 90 * degrees);
+        cairo_arc(cr, x - 20 + box_radius, y + 15 - box_radius, box_radius, 90 * degrees, 180 * degrees);
+        cairo_arc(cr, x - 20 + box_radius, y - 15 + box_radius, box_radius, 180 * degrees, 270 * degrees);
+        cairo_close_path(cr);
+
+        cairo_fill(cr);
+
+        // Draw border
+        cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 0.2);
+        cairo_set_line_width(cr, 1);
+        cairo_new_sub_path(cr);
+        cairo_arc(cr, x + 20 - box_radius, y - 15 + box_radius, box_radius, -90 * degrees, 0 * degrees);
+        cairo_arc(cr, x + 20 - box_radius, y + 15 - box_radius, box_radius, 0 * degrees, 90 * degrees);
+        cairo_arc(cr, x - 20 + box_radius, y + 15 - box_radius, box_radius, 90 * degrees, 180 * degrees);
+        cairo_arc(cr, x - 20 + box_radius, y - 15 + box_radius, box_radius, 180 * degrees, 270 * degrees);
+        cairo_close_path(cr);
+        cairo_stroke(cr);
+
+        cairo_pattern_destroy(box_gradient);
+
+        // Draw process ID text
+        char pid_str[16];
+        snprintf(pid_str, sizeof(pid_str), "P%d", pid);
+        cairo_set_source_rgba(cr, 1.0, 1.0, 1.0, alpha);
+        cairo_select_font_face(cr, "Roboto", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+        cairo_set_font_size(cr, 14);
+
+        cairo_text_extents_t extents;
+        cairo_text_extents(cr, pid_str, &extents);
+        cairo_move_to(cr, x - extents.width / 2, y + extents.height / 2);
+        cairo_show_text(cr, pid_str);        // Draw arrow to next process (if there is one)
+        if (proc_iter->next != NULL)
+        {
+            cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
+            cairo_move_to(cr, x + 25, y);
+            cairo_line_to(cr, x + 35, y);
+            cairo_stroke(cr);
+            cairo_move_to(cr, x + 35, y);
+            cairo_line_to(cr, x + 30, y - 5);
+            cairo_move_to(cr, x + 35, y);
+            cairo_line_to(cr, x + 30, y + 5);
+            cairo_stroke(cr);
         }
 
         process_count++;
@@ -386,15 +493,37 @@ void view_init(GtkWidget *window, GtkWidget *main_box)
     gtk_box_append(GTK_BOX(button_box), view->pause_button);
     gtk_box_append(GTK_BOX(button_box), view->reset_button);
 
-    gtk_box_append(GTK_BOX(main_box), button_box);
-
-    for (int i = 0; i < 5; i++)
+    gtk_box_append(GTK_BOX(main_box), button_box);    for (int i = 0; i < 5; i++)
     {
         view->queue_processes[i] = NULL;
         queue_animations[i].animations = NULL;
     }
-
+    
+    // Initialize mutex queue processes
+    for (int i = 0; i < 3; i++)
+    {
+        view->mutex_queue_processes[i] = NULL;
+    }
+    
     view->running_pid = -1;
+    
+    // Initialize the resource panel to NULL - it will be created separately if needed
+    view->resource_panel = NULL;
+}
+
+// Create a separate container for the right panel (resource management)
+void view_create_right_panel(GtkWidget *parent_container) {
+    if (!parent_container || !view) return;
+    
+    // Create right panel container
+    GtkWidget *right_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_widget_set_hexpand(right_container, TRUE);
+    gtk_widget_set_halign(right_container, GTK_ALIGN_FILL);
+    gtk_widget_set_size_request(right_container, 300, -1); // Adjust width to better fit with console
+    gtk_box_append(GTK_BOX(parent_container), right_container);
+    
+    // Create resource panel within the right container
+    view_create_resource_panel(view, right_container);
 }
 
 static int get_position_in_queue(GList *queue, int pid)
@@ -525,4 +654,148 @@ GtkWidget *view_get_quantum_entry()
 GtkWidget *view_get_quantum_label()
 {
     return view->quantum_label;
+}
+
+// Helper function to create a status label for resource panel
+static GtkWidget* create_status_label(const char *text) {
+    GtkWidget *label = gtk_label_new(text);
+    gtk_widget_add_css_class(label, "simulator-label");
+    gtk_label_set_xalign(GTK_LABEL(label), 0);
+    gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
+    return label;
+}
+
+// Create the resource management panel
+void view_create_resource_panel(View *view, GtkWidget *parent) {
+    if (!view || !parent) return;
+    
+    view->resource_panel = g_new(ResourcePanel, 1);
+    // We'll use the parent container directly since it's already properly setup
+    GtkWidget *resource_container = parent;
+    gtk_widget_set_vexpand(resource_container, TRUE);
+    gtk_widget_set_margin_start(resource_container, 5);
+    gtk_widget_set_margin_end(resource_container, 5);
+
+    // Resource Status frame
+    GtkWidget *frame = gtk_frame_new(NULL);
+    gtk_widget_add_css_class(frame, "simulator-frame");
+    gtk_widget_add_css_class(frame, "scheduler-view");
+    gtk_widget_set_margin_bottom(frame, 10);  // Add margin between resource status and queues
+    gtk_box_append(GTK_BOX(resource_container), frame);
+    
+    // Add title with background
+    GtkWidget *resource_title = gtk_label_new("Resource Status");
+    gtk_widget_add_css_class(resource_title, "resource-frame-title");
+    
+    GtkWidget *content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_widget_set_margin_start(content_box, 5);
+    gtk_widget_set_margin_end(content_box, 5);
+    gtk_widget_set_margin_top(content_box, 5);
+    gtk_widget_set_margin_bottom(content_box, 5);
+    
+    GtkWidget *resource_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_box_append(GTK_BOX(resource_box), resource_title);
+    gtk_box_append(GTK_BOX(resource_box), content_box);
+    gtk_frame_set_child(GTK_FRAME(frame), resource_box);
+    
+    // Create labels for mutex status with enhanced styling
+    const char *mutex_names[] = {"userInput", "userOutput", "file"};
+    for (int i = 0; i < 3; i++) {
+        GtkWidget *label = create_status_label("");
+        gtk_widget_add_css_class(label, "resource-label");
+        view->resource_panel->mutex_labels[i] = label;
+        gtk_box_append(GTK_BOX(content_box), label);
+    }
+    
+    // Create drawing areas for each mutex queue (styled like blocked queue)
+    for (int i = 0; i < 3; i++) {
+        view->resource_panel->mutex_drawing_areas[i] = gtk_drawing_area_new();
+        gtk_widget_set_size_request(view->resource_panel->mutex_drawing_areas[i], 280, 70); // Reduced height
+        gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(view->resource_panel->mutex_drawing_areas[i]),
+                                       draw_mutex_queue_callback,
+                                       GINT_TO_POINTER(i),
+                                       NULL);
+        gtk_widget_add_css_class(view->resource_panel->mutex_drawing_areas[i], "queue-area");
+        gtk_widget_set_margin_bottom(view->resource_panel->mutex_drawing_areas[i], 8);
+        gtk_box_append(GTK_BOX(resource_container), view->resource_panel->mutex_drawing_areas[i]);
+    }
+
+    view_update_resource_panel();
+}
+
+// Helper function to create a process box for the resource panel
+static GtkWidget* create_process_box(int pid, int priority) {
+    // Create a box for the process with rounded corners
+    GtkWidget *process_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_size_request(process_box, 40, 40); // Make it square
+    gtk_widget_set_halign(process_box, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(process_box, GTK_ALIGN_CENTER);
+    
+    // Create a label for the process ID
+    char pid_str[20];
+    snprintf(pid_str, sizeof(pid_str), "P%d", pid);
+    GtkWidget *pid_label = gtk_label_new(pid_str);
+    gtk_label_set_justify(GTK_LABEL(pid_label), GTK_JUSTIFY_CENTER);
+    gtk_widget_add_css_class(pid_label, "blocked-process");
+    
+    gtk_box_append(GTK_BOX(process_box), pid_label);
+    gtk_widget_add_css_class(process_box, "blocked-process");
+    
+    return process_box;
+}
+
+// Update the resource management panel
+void view_update_resource_panel(void) {
+    if (!view || !view->resource_panel) return;
+    
+    // Get the mutex status
+    const char *mutex_names[] = {"userInput", "userOutput", "file"};
+    int i;
+    
+    // Update mutex status labels
+    for (i = 0; i < 3; i++) {
+        mutex_t *mutex = get_mutex_by_name(mutex_names[i]);
+        char text[100];
+        
+        if (mutex_is_available(mutex)) {
+            snprintf(text, sizeof(text), "%s: Available", mutex_names[i]);
+            gtk_widget_remove_css_class(view->resource_panel->mutex_labels[i], "resource-held");
+            gtk_widget_add_css_class(view->resource_panel->mutex_labels[i], "resource-available");
+        } else {
+            Process *holder = mutex_get_holder(mutex);
+            snprintf(text, sizeof(text), "%s: Held by Process %d", 
+                    mutex_names[i], holder ? holder->pid : -1);
+            gtk_widget_remove_css_class(view->resource_panel->mutex_labels[i], "resource-available");
+            gtk_widget_add_css_class(view->resource_panel->mutex_labels[i], "resource-held");
+        }
+        gtk_label_set_text(GTK_LABEL(view->resource_panel->mutex_labels[i]), text);
+    }    
+    // Update mutex queues by rebuilding the process lists and redrawing
+    for (i = 0; i < 3; i++) {
+        mutex_t *mutex = get_mutex_by_name(mutex_names[i]);
+        
+        // Clear the existing process list
+        g_list_free(view->mutex_queue_processes[i]);
+        view->mutex_queue_processes[i] = NULL;
+        
+        // Rebuild the process list from the mutex blocked queue
+        int blocked_count = mutex_get_blocked_count(mutex);
+        for (int j = 0; j < blocked_count; j++) {
+            Process *p = mutex_get_blocked_process(mutex, j);
+            if (p) {
+                view->mutex_queue_processes[i] = g_list_append(view->mutex_queue_processes[i], GINT_TO_POINTER(p->pid));
+            }
+        }
+        
+        // Trigger a redraw of the drawing area
+        gtk_widget_queue_draw(view->resource_panel->mutex_drawing_areas[i]);
+    }
+}
+
+// Reset the resource panel
+void view_reset_resource_panel(void) {
+    if (!view || !view->resource_panel) return;
+    
+    // Reset all mutexes in the backend
+    reset_all_mutexes();
 }

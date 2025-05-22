@@ -118,168 +118,6 @@ static GtkWidget *create_status_label(const char *text)
     return label;
 }
 
-void simulator_view_create_resource_panel(SimulatorView *view, GtkWidget *parent)
-{
-    if (!view || !parent)
-        return;
-
-    view->resource_panel = g_new(ResourcePanel, 1);
-
-    // Creating main container for all resource elements
-    GtkWidget *resource_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 20);
-    gtk_widget_set_vexpand(resource_container, TRUE);
-    gtk_box_append(GTK_BOX(parent), resource_container);
-    gtk_widget_set_margin_end(resource_container, 80);
-    gtk_widget_set_size_request(resource_container, 450, -1);
-    gtk_widget_set_hexpand(resource_container, FALSE); // Resource Status frame
-    GtkWidget *frame = gtk_frame_new(NULL);
-    gtk_widget_add_css_class(frame, "simulator-frame");
-    gtk_box_append(GTK_BOX(resource_container), frame);
-
-    // Add title with purple background
-    GtkWidget *resource_title = gtk_label_new("Resource Status");
-    gtk_widget_add_css_class(resource_title, "resource-frame-title");
-    gtk_widget_set_name(resource_title, "white_text_label");
-    set_label_white_text(resource_title);
-
-    GtkWidget *content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    gtk_widget_set_margin_start(content_box, 5);
-    gtk_widget_set_margin_end(content_box, 5);
-    gtk_widget_set_margin_top(content_box, 5);
-    gtk_widget_set_margin_bottom(content_box, 5);
-
-    GtkWidget *resource_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_box_append(GTK_BOX(resource_box), resource_title);
-    gtk_box_append(GTK_BOX(resource_box), content_box);
-    gtk_frame_set_child(GTK_FRAME(frame), resource_box);
-
-    // Create labels for mutex status with enhanced styling
-    const char *mutex_names[] = {"userInput", "userOutput", "file"};
-    for (int i = 0; i < 3; i++)
-    {
-        GtkWidget *label = create_status_label("");
-        gtk_widget_add_css_class(label, "resource-label");
-        view->resource_panel->mutex_labels[i] = label;
-        gtk_box_append(GTK_BOX(content_box), label);
-    }
-
-    // Create frames for each queue that will align with ready queues
-    for (int i = 0; i < 3; i++)
-    {
-        // Queue Frame
-        GtkWidget *queue_frame = gtk_frame_new(NULL);
-        gtk_widget_add_css_class(queue_frame, "simulator-frame");
-        gtk_widget_set_vexpand(queue_frame, TRUE);
-        gtk_widget_set_hexpand(queue_frame, TRUE);
-        gtk_box_append(GTK_BOX(resource_container), queue_frame); // Queue Title
-        GtkWidget *queue_title = gtk_label_new("");
-        char title[32];
-        snprintf(title, sizeof(title), "%s Queue", mutex_names[i]);
-        gtk_label_set_text(GTK_LABEL(queue_title), title);
-        gtk_widget_add_css_class(queue_title, "resource-queue-header");
-        gtk_widget_set_name(queue_title, "white_text_label");
-        set_label_white_text(queue_title);
-
-        // Queue Content
-        GtkWidget *queue_content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-        gtk_widget_set_margin_start(queue_content, 5);
-        gtk_widget_set_margin_end(queue_content, 5);
-        gtk_widget_set_margin_top(queue_content, 5);
-        gtk_widget_set_margin_bottom(queue_content, 5);
-        gtk_widget_set_vexpand(queue_content, TRUE);
-
-        // Queue container
-        GtkWidget *queue_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-        gtk_box_append(GTK_BOX(queue_box), queue_title);
-        gtk_box_append(GTK_BOX(queue_box), queue_content);
-        gtk_frame_set_child(GTK_FRAME(queue_frame), queue_box);
-
-        // Queue content label
-        GtkWidget *label = create_status_label("");
-        gtk_widget_add_css_class(label, "resource-queue-content");
-        gtk_widget_set_vexpand(label, TRUE);
-        view->resource_panel->blocked_queue_labels[i] = label;
-        gtk_box_append(GTK_BOX(queue_content), label);
-    }
-}
-
-// Update the resource management panel
-void simulator_view_update_resource_panel(SimulatorView *view)
-{
-    if (!view || !view->resource_panel)
-        return;
-
-    // Get the mutex status
-    const char *mutex_names[] = {"userInput", "userOutput", "file"};
-    int i;
-
-    // Update mutex status labels
-    for (i = 0; i < 3; i++)
-    {
-        mutex_t *mutex = get_mutex_by_name(mutex_names[i]);
-        char text[100];
-
-        if (mutex_is_available(mutex))
-        {
-            snprintf(text, sizeof(text), "%s: Available", mutex_names[i]);
-            gtk_widget_remove_css_class(view->resource_panel->mutex_labels[i], "resource-held");
-            gtk_widget_add_css_class(view->resource_panel->mutex_labels[i], "resource-available");
-        }
-        else
-        {
-            Process *holder = mutex_get_holder(mutex);
-            snprintf(text, sizeof(text), "%s: Held by Process %d",
-                     mutex_names[i], holder ? holder->pid : -1);
-            gtk_widget_remove_css_class(view->resource_panel->mutex_labels[i], "resource-available");
-            gtk_widget_add_css_class(view->resource_panel->mutex_labels[i], "resource-held");
-        }
-        gtk_label_set_text(GTK_LABEL(view->resource_panel->mutex_labels[i]), text);
-    }
-
-    // Update blocked queue labels
-    for (i = 0; i < 3; i++)
-    {
-        mutex_t *mutex = get_mutex_by_name(mutex_names[i]);
-        char text[200] = {0};
-        char temp[50] = {0};
-
-        // Set the queue content
-        int blocked_count = mutex_get_blocked_count(mutex);
-        if (blocked_count == 0)
-        {
-            strcat(text, "Empty");
-        }
-        else
-        {
-            int j;
-            for (j = 0; j < blocked_count; j++)
-            {
-                Process *p = mutex_get_blocked_process(mutex, j);
-                if (p)
-                {
-                    snprintf(temp, sizeof(temp), "P%d (Pri:%d)", p->pid, getProcessPriority(p->pid));
-                    strcat(text, temp);
-                    if (j < blocked_count - 1)
-                    {
-                        strcat(text, ", ");
-                    }
-                }
-            }
-        }
-
-        gtk_label_set_text(GTK_LABEL(view->resource_panel->blocked_queue_labels[i]), text);
-    }
-}
-
-void simulator_view_reset_resource_panel(SimulatorView *view)
-{
-    if (!view || !view->resource_panel)
-        return;
-
-    // Reset all mutexes in the backend
-    reset_all_mutexes();
-}
-
 SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_container, GtkWindow *main_window)
 {
     SimulatorView *view = g_new(SimulatorView, 1);
@@ -291,20 +129,6 @@ SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_contain
     view->arrival_entry = NULL;
     view->dialog_text_view = NULL;
     view->main_window = main_window;
-    view->resource_panel = NULL; // Create a dedicated CSS provider for label text colors with highest priority
-    GtkCssProvider *label_provider = gtk_css_provider_new();
-    gtk_css_provider_load_from_string(label_provider,
-                                      ".white-text-label { color: white !important; }"
-                                      ".simulator-frame-title { color: white !important; }"
-                                      ".resource-frame-title { color: white !important; }"
-                                      ".resource-queue-header { color: white !important; }");
-
-    // Use the highest priority possible to override everything else
-    gtk_style_context_add_provider_for_display(
-        gdk_display_get_default(),
-        GTK_STYLE_PROVIDER(label_provider),
-        G_MAXUINT); // Absolute maximum priority
-    g_object_unref(label_provider);
 
     // Create main horizontal box to contain all simulator sections
     GtkWidget *horizontal_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
@@ -383,10 +207,6 @@ SimulatorView *simulator_view_new(GtkApplication *app, GtkWidget *parent_contain
     gtk_widget_set_size_request(memory_list, 250, -1);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(memory_scrolled), memory_list);
     view->memory_list = GTK_LIST_BOX(memory_list);
-
-    // Now create and add the resource panel after the ready queues would be created
-    // This ensures proper alignment
-    simulator_view_create_resource_panel(view, right_container);
 
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(provider, ".simulator-frame { background-color: rgb(236, 236, 234); border: 1px solid #bbb; }"
@@ -707,10 +527,7 @@ void simulator_view_update_memory(SimulatorView *view)
         gtk_list_box_append(view->memory_list, slot_box);
         gtk_widget_set_visible(slot_box, TRUE);
     }
-
-    // Update resource panel whenever memory is updated
-    simulator_view_update_resource_panel(view);
-
+    
     simulator_view_update_job_pool(view);
 }
 
@@ -742,14 +559,8 @@ void simulator_view_append_dialog_text(SimulatorView *view, const char *text)
     gtk_text_buffer_insert_at_cursor(buffer, text, -1);
 }
 
-void simulator_view_free(SimulatorView *view)
-{
-    if (view)
-    {
-        if (view->resource_panel)
-        {
-            g_free(view->resource_panel);
-        }
+void simulator_view_free(SimulatorView *view) {
+    if (view) {
         g_free(view);
     }
 }

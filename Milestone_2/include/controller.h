@@ -13,5 +13,6 @@ void controller_update_queue_display(int queue_index);
 void controller_update_blocked_queue_display(void);
 void run_selected_scheduler(void);
 void controller_update_running_process(char* instruction);
+void controller_update_resource_panel(void);
 
 #endif // CONTROLLER_H

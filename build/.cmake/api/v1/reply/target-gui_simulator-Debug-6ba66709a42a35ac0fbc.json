@@ -16,6 +16,7 @@
 			"add_executable",
 			"target_link_libraries",
 			"target_compile_options",
+			"add_definitions",
 			"target_include_directories"
 		],
 		"files" : 
@@ -30,25 +31,31 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 23,
+				"line" : 28,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 33,
+				"line" : 38,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 32,
+				"line" : 37,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 26,
+				"line" : 8,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 31,
 				"parent" : 0
 			}
 		]
@@ -138,70 +145,77 @@
 					"fragment" : "-IC:/msys64/mingw64/lib/glib-2.0/include"
 				}
 			],
-			"includes" : 
+			"defines" : 
 			[
 				{
 					"backtrace" : 4,
+					"define" : "_WIN32"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 5,
 					"path" : "D:/Workspaces/GitHub/OperatingSystems/Milestone_2/include"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/gtk-4.0"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/pango-1.0"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/harfbuzz"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/fribidi"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/gdk-pixbuf-2.0"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/webp"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/cairo"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/freetype2"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/libpng16"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/pixman-1"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/graphene-1.0"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/lib/graphene-1.0/include"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/include/glib-2.0"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/msys64/mingw64/lib/glib-2.0/include"
 				}
 			],
@@ -237,9 +251,7 @@
 				18,
 				19,
 				20,
-				21,
-				22,
-				23
+				21
 			]
 		}
 	],
@@ -250,10 +262,6 @@
 		[
 			{
 				"fragment" : "-g",
-				"role" : "flags"
-			},
-			{
-				"fragment" : "",
 				"role" : "flags"
 			},
 			{
@@ -367,9 +375,7 @@
 				18,
 				19,
 				20,
-				21,
-				22,
-				23
+				21
 			]
 		}
 	],
@@ -421,12 +427,6 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/console_model.c",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "src/console_test_driver.c",
 			"sourceGroupIndex" : 0
 		},
 		{
@@ -499,12 +499,6 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/simulator_view.c",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "src/test.c",
 			"sourceGroupIndex" : 0
 		},
 		{
