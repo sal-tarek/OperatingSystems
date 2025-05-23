@@ -26,22 +26,26 @@ Scheduling Algorithms:
   Round Robin (RR) with configurable quantum
   Multi-Level Feedback Queue (MLFQ) with dynamic priority adjustment
 
+
 Graphical Interface:
   
   Displays process states, ready queues, and blocked queues
   Visualizes memory allocation for processes
   Interactive controls for stepping through the simulation, running automatically, pausing, and resetting
 
+
 Memory Management:
 
   Simulates memory allocation for processes, including PCBs, instructions, and variables
   Tracks memory ranges and usage
+
 
 Process Management:
 
   Supports process creation with instruction files
   Manages process states (NEW, READY, RUNNING, BLOCKED, TERMINATED)
   Handles mutexes for resource synchronization (userInput, userOutput, file)
+
 
 Console:
   Logs simulation events and errors
