@@ -125,15 +125,18 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     // First vertical separator (between memory and resource panel)
     GtkWidget *vseparator1 = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
-    gtk_widget_set_margin_start(vseparator1, 5);
-    gtk_widget_set_margin_end(vseparator1, 5);    
+    gtk_widget_set_margin_start(vseparator1, -222);
+    gtk_widget_set_margin_end(vseparator1, 228);    
     gtk_box_append(GTK_BOX(middle_container), vseparator1);
 
     // Middle section: Resource panel container
-    GtkWidget *resource_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    GtkWidget *resource_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 20);
     gtk_widget_set_hexpand(resource_container, TRUE); // allow it to expand
     gtk_widget_set_halign(resource_container, GTK_ALIGN_CENTER); // center in the middle
-    gtk_widget_set_size_request(resource_container, 220, -1);
+    gtk_widget_set_size_request(resource_container, 320, -1);
+    gtk_widget_set_margin_start(resource_container, -225);
+    gtk_widget_set_margin_top(resource_container, 10);
+    gtk_widget_set_margin_end(resource_container, 0);
     gtk_box_append(GTK_BOX(middle_container), resource_container);
 
     // Second vertical separator (between resource panel and controls)
@@ -149,7 +152,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_widget_set_halign(controls_container, GTK_ALIGN_END); // Fix to the right
     gtk_widget_set_valign(controls_container, GTK_ALIGN_FILL);
     gtk_widget_set_margin_end(controls_container, 40); 
-    gtk_widget_set_margin_start(controls_container, 10); 
+    gtk_widget_set_margin_start(controls_container, 15); 
     gtk_widget_set_margin_top(controls_container, 10); 
     gtk_box_append(GTK_BOX(middle_container), controls_container);
 
