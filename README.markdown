@@ -41,10 +41,6 @@ The OS Scheduler Simulation is a C-based application that simulates various oper
 The project is organized into several source files, each handling a specific component of the simulation:
 - **Back-end/Logic**:
   - **main.c**: Entry point of the application, initializes GTK, and sets up the main window and components.
-  - **controller.c**: Manages the simulation controls (step, run, pause, reset) and updates the GUI.
-  - **unified_controller.c**: Coordinates between the dashboard and simulator views, manages process creation.
-  - **dashboard_view.c**: Displays the process list and simulation status.
-  - **simulator_view.c**: Visualizes memory and handles process input.
   - **memory_manager.c**: Manages memory allocation, deallocation, and process data storage.
   - **memory.c**: Implements the memory hash table for storing data (PCBs, instructions, variables).
   - **index.c**: Manages an index table for quick access to memory locations.
@@ -61,6 +57,10 @@ The project is organized into several source files, each handling a specific com
   - **console_view.c**, **console_controller.c**, **console_model.c**: Handle console logging and user input.
   - **clock_controller.c**: Manages the simulation clock.
   - **view.c**: Contains GUI-related functions for updating the display.
+  - **controller.c**: Manages the simulation controls (step, run, pause, reset) and updates the GUI.
+  - **unified_controller.c**: Coordinates between the dashboard and simulator views, manages process creation.
+  - **dashboard_view.c**: Displays the process list and simulation status.
+  - **simulator_view.c**: Visualizes memory and handles process input.
 
 
 Header files for each source file are located in the `include/` directory.
