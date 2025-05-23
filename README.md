@@ -22,8 +22,8 @@ The OS Scheduler Simulation is a C-based application that simulates various oper
 
 Scheduling Algorithms:
 
-  First-Come-First-Serve (FCFS)
-  Round Robin (RR) with configurable quantum
+  First-Come-First-Serve (FCFS), 
+  Round Robin (RR) with configurable quantum, 
   Multi-Level Feedback Queue (MLFQ) with dynamic priority adjustment
 
 
