@@ -39,27 +39,29 @@ The OS Scheduler Simulation is a C-based application that simulates various oper
 ## Project Structure
 
 The project is organized into several source files, each handling a specific component of the simulation:
+**Back-end/Logic**:
+  - **main.c**: Entry point of the application, initializes GTK, and sets up the main window and components.
+  - **controller.c**: Manages the simulation controls (step, run, pause, reset) and updates the GUI.
+  - **unified_controller.c**: Coordinates between the dashboard and simulator views, manages process creation.
+  - **dashboard_view.c**: Displays the process list and simulation status.
+  - **simulator_view.c**: Visualizes memory and handles process input.
+  - **memory_manager.c**: Manages memory allocation, deallocation, and process data storage.
+  - **memory.c**: Implements the memory hash table for storing data (PCBs, instructions, variables).
+  - **index.c**: Manages an index table for quick access to memory locations.
+  - **process.c**: Defines the Process structure and handles process creation and management.
+  - **PCB.c**: Implements the Process Control Block (PCB) structure and related functions.
+  - **Queue.c**: Implements a queue data structure for managing ready and blocked queues.
+  - **MLFQ.c**: Implements the Multi-Level Feedback Queue scheduling algorithm.
+  - **RoundRobin.c**: Implements the Round Robin scheduling algorithm.
+  - **FCFS.c**: Implements the First-Come-First-Serve scheduling algorithm.
+  - **mutex.c**: Manages mutexes for resource synchronization.
+  - **parser.c**: Parses and executes process instructions.
+  - **instruction.c**: Defines instruction types and handlers for process execution.
+**Front-end/GUI**:
+  - **console_view.c**, **console_controller.c**, **console_model.c**: Handle console logging and user input.
+  - **clock_controller.c**: Manages the simulation clock.
+  - **view.c**: Contains GUI-related functions for updating the display.
 
-- **main.c**: Entry point of the application, initializes GTK, and sets up the main window and components.
-- **controller.c**: Manages the simulation controls (step, run, pause, reset) and updates the GUI.
-- **unified_controller.c**: Coordinates between the dashboard and simulator views, manages process creation.
-- **dashboard_view.c**: Displays the process list and simulation status.
-- **simulator_view.c**: Visualizes memory and handles process input.
-- **memory_manager.c**: Manages memory allocation, deallocation, and process data storage.
-- **memory.c**: Implements the memory hash table for storing data (PCBs, instructions, variables).
-- **index.c**: Manages an index table for quick access to memory locations.
-- **process.c**: Defines the Process structure and handles process creation and management.
-- **PCB.c**: Implements the Process Control Block (PCB) structure and related functions.
-- **Queue.c**: Implements a queue data structure for managing ready and blocked queues.
-- **MLFQ.c**: Implements the Multi-Level Feedback Queue scheduling algorithm.
-- **RoundRobin.c**: Implements the Round Robin scheduling algorithm.
-- **FCFS.c**: Implements the First-Come-First-Serve scheduling algorithm.
-- **mutex.c**: Manages mutexes for resource synchronization.
-- **parser.c**: Parses and executes process instructions.
-- **console_view.c**, **console_controller.c**, **console_model.c**: Handle console logging and user input.
-- **clock_controller.c**: Manages the simulation clock.
-- **view.c**: Contains GUI-related functions for updating the display.
-- **instruction.c**: Defines instruction types and handlers for process execution.
 
 Header files for each source file are located in the `include/` directory.
 
