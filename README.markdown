@@ -39,7 +39,7 @@ The OS Scheduler Simulation is a C-based application that simulates various oper
 ## Project Structure
 
 The project is organized into several source files, each handling a specific component of the simulation:
-**Back-end/Logic**:
+- **Back-end/Logic**:
   - **main.c**: Entry point of the application, initializes GTK, and sets up the main window and components.
   - **controller.c**: Manages the simulation controls (step, run, pause, reset) and updates the GUI.
   - **unified_controller.c**: Coordinates between the dashboard and simulator views, manages process creation.
@@ -57,7 +57,7 @@ The project is organized into several source files, each handling a specific com
   - **mutex.c**: Manages mutexes for resource synchronization.
   - **parser.c**: Parses and executes process instructions.
   - **instruction.c**: Defines instruction types and handlers for process execution.
-**Front-end/GUI**:
+- **Front-end/GUI**:
   - **console_view.c**, **console_controller.c**, **console_model.c**: Handle console logging and user input.
   - **clock_controller.c**: Manages the simulation clock.
   - **view.c**: Contains GUI-related functions for updating the display.
