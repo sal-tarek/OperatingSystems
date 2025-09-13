@@ -27,6 +27,7 @@ milestone1
 /Milestone_2/bin/
 /Milestone_2/Debug/
 /Milestone_2/Release/
+.build/
 
 # IDE and Editor files
 .vscode/

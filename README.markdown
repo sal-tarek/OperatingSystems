@@ -36,6 +36,10 @@ The OS Scheduler Simulation is a C-based application that simulates various oper
   - Logs simulation events and errors
   - Allows command-line interaction (e.g., creating processes)
 
+## Demo Video
+
+🎥 Watch the project simulation in action here [OS Scheduler Simulation](https://www.linkedin.com/posts/habiba-mahmoud-7h19i20b04_operatingsystems-virtualmemory-systemsprogramming-ugcPost-7331715196429725696-53pi?utm_source=share&utm_medium=member_desktop&rcm=ACoAAEbTSPsBu7wgdcHx_v4Jw4O5_tfMqFNBbyQ).
+
 ## Project Structure
 
 The project is organized into several source files, each handling a specific component of the simulation:
@@ -131,30 +135,10 @@ Header files for each source file are located in the `include/` directory.
      ```
 
 4. **Monitor the Simulation**:
+   - Select a scheduler (e.g., MLFQ) and click "Step" or "Run" to execute the simulation.
    - Watch the process states update in the dashboard.
    - Observe memory allocation in the simulator view.
    - Check the console for detailed logs of process execution, scheduling decisions, and errors.
-
-## Example
-
-1. Start the simulator:
-   ```bash
-   ./simulator
-   ```
-
-2. Create a process:
-   - File Path: `../programs/Program_1.txt`
-   - Arrival Time: `0`
-   - Click "Create Process".
-
-3. Select a scheduler (e.g., MLFQ) and click "Step" or "Run" to execute the simulation.
-
-4. Monitor the console output:
-   ```
-   [SYSTEM] OS Scheduler Simulation started
-   [PROCESS] Created process PID 1 with arrival time 0
-   [EXEC] Process 1 executing instruction at PC=0
-   ```
 
 5. Reset the simulation to start over:
    - Click the "Reset" button to clear all processes and reset the process ID counter.

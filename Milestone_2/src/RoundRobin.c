@@ -60,6 +60,7 @@ void runRR(int quantum)
                 enqueue(readyQueues[0], runningProcess);
                 printf("moved %d to level 0\n", runningProcess->pid);
 
+                setProcessState(runningProcess->pid, READY);
                 runningProcess->quantumUsed = 0;
                 runningProcess = NULL;
             }
